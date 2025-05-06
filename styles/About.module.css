@@ -1,0 +1,107 @@
+/* Hero Section */
+.hero {
+  background: linear-gradient(to right, #3b82f6, #6366f1);
+  color: white;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.heroDescription {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+}
+
+.timelineSection {
+  padding: 6rem 0;
+  background-color: #f8fafc;
+}
+
+.timelineContainer {
+  margin-left: 2rem;
+  padding: 1.5rem 0;
+  position: relative;
+}
+
+.timelineMarker {
+  position: absolute;
+  left: -0.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #6366f1;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timelineMarkerInner {
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: white;
+  border-radius: 9999px;
+}
+
+.timelineContent {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.timelineTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.timelineCompany {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.timelineDate {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.timelineDescription {
+  margin-top: 0.5rem;
+  color: #374151;
+}
+
+/* Resume Section */
+/* Resume Section */
+.resumeSection {
+  padding: 4rem 0; /* Tailwind's py-16 */
+  background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
+}
+
+.resumeTitle {
+  font-size: 1.875rem; /* Tailwind's text-3xl */
+  font-weight: 700; /* Tailwind's font-bold */
+  color: #1f2937; /* Tailwind's text-gray-800 */
+}
+
+.resumeDescription {
+  margin-top: 1rem; /* Tailwind's mt-4 */
+  color: #6b7280; /* Tailwind's text-gray-600 */
+}
+
+.resumeButton {
+  margin-top: 1.5rem; /* Tailwind's mt-6 */
+  padding: 0.75rem 1.5rem; /* Tailwind's px-6 py-3 */
+  background-color: #2563eb; /* Tailwind's bg-blue-600 */
+  color: white; /* Tailwind's text-white */
+  border-radius: 0.5rem; /* Tailwind's rounded-lg */
+  transition: background-color 0.2s; /* Tailwind's transition */
+  display: inline-block;
+}
+
+.resumeButton:hover {
+  background-color: #1d4ed8; /* Tailwind's hover:bg-blue-700 */
+}
