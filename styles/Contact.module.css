@@ -27,6 +27,21 @@
   padding: 2rem;
 }
 
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  width: 150px;
+  text-align: left;
+}
+
 .inputField {
   margin-top: 0.5rem;
   display: block;

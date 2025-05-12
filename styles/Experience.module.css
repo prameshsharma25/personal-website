@@ -21,6 +21,13 @@
   background-color: #f8fafc;
 }
 
+.timelineHeader {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
 .timelineContainer {
   margin-left: 2rem;
   padding: 1.5rem 0;
@@ -70,38 +77,38 @@
 }
 
 .timelineDescription {
+  font-size: 0.8rem;
   margin-top: 0.5rem;
   color: #374151;
 }
 
-/* Resume Section */
-/* Resume Section */
 .resumeSection {
-  padding: 4rem 0; /* Tailwind's py-16 */
-  background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
+  padding: 4rem 0;
+  background-color: #f3f4f6;
+  text-align: center;
 }
 
 .resumeTitle {
-  font-size: 1.875rem; /* Tailwind's text-3xl */
-  font-weight: 700; /* Tailwind's font-bold */
-  color: #1f2937; /* Tailwind's text-gray-800 */
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .resumeDescription {
-  margin-top: 1rem; /* Tailwind's mt-4 */
-  color: #6b7280; /* Tailwind's text-gray-600 */
+  margin-top: 1rem;
+  color: #6b7280;
 }
 
 .resumeButton {
-  margin-top: 1.5rem; /* Tailwind's mt-6 */
-  padding: 0.75rem 1.5rem; /* Tailwind's px-6 py-3 */
-  background-color: #2563eb; /* Tailwind's bg-blue-600 */
-  color: white; /* Tailwind's text-white */
-  border-radius: 0.5rem; /* Tailwind's rounded-lg */
-  transition: background-color 0.2s; /* Tailwind's transition */
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
   display: inline-block;
 }
 
 .resumeButton:hover {
-  background-color: #1d4ed8; /* Tailwind's hover:bg-blue-700 */
+  background-color: #1d4ed8;
 }

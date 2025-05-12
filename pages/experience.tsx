@@ -1,7 +1,7 @@
 import Head from 'next/head';
-import styles from '../styles/About.module.css';
+import styles from '../styles/Experience.module.css';
 
-export default function About() {
+export default function Experience() {
   const experiences = [
     {
       title: 'Software Engineer',
@@ -44,7 +44,7 @@ export default function About() {
   return (
     <div>
       <Head>
-        <title>About Me</title>
+        <title>Work Experience</title>
         <meta
           name="description"
           content="Learn more about me and my journey."
@@ -53,18 +53,17 @@ export default function About() {
       </Head>
 
       <main>
-        {/* About Section */}
+        {/* Work Experience Section */}
         <section className={styles.hero}>
           <div>
             <p className={styles.heroDescription}>
-              Hello! I'm Pramesh Sharma, a Software Engineer interested in ML
-              Infrastructure and Scientific Computing.
+              Hello! I'm Pramesh Sharma, a Software Engineer interested in Machine Learning Infrastructure and Scientific Computing.
             </p>
           </div>
         </section>
         {/* Experience Section */}
         <section className={styles.timelineSection}>
-          <h2>Work Experience</h2>
+          <h2 className={styles.timelineHeader}>Work Experience</h2>
           <div>
             {experiences.map((experience, index) => (
               <div key={index} className={styles.timelineContainer}>

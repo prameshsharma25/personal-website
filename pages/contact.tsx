@@ -56,10 +56,9 @@ export default function Contact() {
 
         <div className={styles.formWrapper}>
           <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <label
+            <div className={styles.formRow}>
+              <label className={styles.formLabel}
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
               >
                 Name
               </label>
@@ -74,10 +73,10 @@ export default function Contact() {
                 onChange={handleChange}
               />
             </div>
-            <div className="mb-6">
+            <div className={styles.formRow}>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className={styles.formLabel}
               >
                 Email
               </label>
@@ -92,10 +91,10 @@ export default function Contact() {
                 onChange={handleChange}
               />
             </div>
-            <div className="mb-6">
+            <div className={styles.formRow}>
               <label
                 htmlFor="message"
-                className="block text-sm font-medium text-gray-700"
+                className={styles.formLabel}
               >
                 Message
               </label>
