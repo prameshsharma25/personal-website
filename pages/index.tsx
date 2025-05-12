@@ -7,12 +7,12 @@ export default function Home() {
       <Head>
         <title>Pramesh Sharma </title>
         <meta name="description" content="Welcome to my personal website!" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main>
-        <h1>Welcome to My Personal Website</h1>
-        <p>This is a simple Next.js application.</p>
+        <div>
+          <p>Hello! I'm Pramesh Sharma, a Software Engineer interested in Machine Learning Infrastructure and Scientific Computing.</p>
+        </div>
       </main>
     </div>
   );
