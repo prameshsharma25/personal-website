@@ -24,7 +24,7 @@
   height: 180px;
   object-fit: cover;
   border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 32px rgba(10, 67, 158, 0.25);
   border: 4px solid #6366f1;
   margin-bottom: 2rem;
   transition: transform 0.3s;
@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(120deg, #a5b4fc, #f0abfc, #fcd34d, #6ee7b7);
+  background: linear-gradient(120deg, #4255b6, #1b1991, #2d428a, #1a2551);
   background-size: 300% 300%;
   animation: gradientMove 8s ease-in-out infinite;
   padding: 2rem;
