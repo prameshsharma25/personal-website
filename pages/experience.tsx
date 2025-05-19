@@ -77,7 +77,6 @@ export default function Experience() {
                 <div className={styles.timelineContent}>
                   <h3 className={styles.timelineTitle}>
                     {experience.title}
-                    {index === 0 && <span className={styles.recentBadge}>Current</span>}
                   </h3>
                   <p className={styles.timelineCompany}>{experience.company}</p>
                   <p className={styles.timelineDate}>{experience.date}</p>
