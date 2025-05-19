@@ -64,14 +64,21 @@ export default function Experience() {
         {/* Experience Section */}
         <section className={styles.timelineSection}>
           <h2 className={styles.timelineHeader}>Work Experience</h2>
-          <div>
+          <div className={styles.timelineList}>
             {experiences.map((experience, index) => (
-              <div key={index} className={styles.timelineContainer}>
+              <div
+                key={index}
+                className={styles.timelineContainer}
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
                 <div className={styles.timelineMarker}>
                   <div className={styles.timelineMarkerInner}></div>
                 </div>
                 <div className={styles.timelineContent}>
-                  <h3 className={styles.timelineTitle}>{experience.title}</h3>
+                  <h3 className={styles.timelineTitle}>
+                    {experience.title}
+                    {index === 0 && <span className={styles.recentBadge}>Current</span>}
+                  </h3>
                   <p className={styles.timelineCompany}>{experience.company}</p>
                   <p className={styles.timelineDate}>{experience.date}</p>
                   <p className={styles.timelineDescription}>
