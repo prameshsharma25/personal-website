@@ -57,7 +57,7 @@ export default function Experience() {
         <section className={styles.hero}>
           <div>
             <p className={styles.heroDescription}>
-              Take a look at my work experience below! My interests stretch from Biotech to the Space. I have a particular emphasis in Machine Learning Infrastructure and Scientific Computing.
+              Take a look at my work experience below! My interests stretch from biotech to aerospace. I have a particular emphasis in Machine Learning Infrastructure and Scientific Computing.
             </p>
           </div>
         </section>

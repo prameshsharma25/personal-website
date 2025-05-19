@@ -1,0 +1,64 @@
+.heroContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f6ff 0%, #e0e7ff 100%);
+  padding: 2rem;
+}
+
+.heroCard {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(31, 41, 55, 0.15);
+  padding: 2.5rem 2rem;
+  max-width: 500px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profileImage {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+  border: 4px solid #6366f1;
+  margin-bottom: 2rem;
+  transition: transform 0.3s;
+}
+.profileImage:hover {
+  transform: scale(1.05) rotate(-2deg);
+}
+
+.heroText {
+  font-size: 1.15rem;
+  color: #374151;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.heroName {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.animatedBackground {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #a5b4fc, #f0abfc, #fcd34d, #6ee7b7);
+  background-size: 300% 300%;
+  animation: gradientMove 8s ease-in-out infinite;
+  padding: 2rem;
+}
+
+@keyframes gradientMove {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
