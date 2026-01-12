@@ -18,7 +18,7 @@ export default function Home() {
           </h1>
           
           <p className={styles.heroDescription}>
-            I received my Bachelor's in Computer Science from the University of California, Davis. Currently, I work at the National Institutes of Health studying fold-switching proteins.
+            I received my Bachelor&apos;s in Computer Science from the University of California, Davis. Currently, I work at the National Institutes of Health studying fold-switching proteins.
           </p>
 
           <div className={styles.terminalWindow}>
