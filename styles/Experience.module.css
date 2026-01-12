@@ -1,135 +1,155 @@
 .hero {
-  background: linear-gradient(to right, #3b82f6, #6366f1);
-  color: white;
-  padding: 4rem 0;
-  text-align: center;
+  background: var(--bg);
+  color: var(--text);
+  padding: 6rem 2rem 4rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .heroTitle {
   font-size: 2.25rem;
-  font-weight: 700;
+  font-weight: 400;
+  color: var(--text);
+  max-width: 900px;
+  margin: 0 auto;
+  letter-spacing: -0.02em;
 }
 
 .heroDescription {
-  margin-top: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
   font-size: 1.125rem;
+  color: var(--text-dim);
+  line-height: 1.8;
 }
 
 .timelineSection {
-  padding: 6rem 0;
-  background-color: #f8fafc;
+  padding: 6rem 2rem;
+  background-color: var(--bg);
 }
 
 .timelineHeader {
   text-align: center;
   font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 4rem;
+  letter-spacing: -0.02em;
 }
 
 .timelineList {
   position: relative;
   padding-left: 2.5rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
+
 .timelineList::before {
   content: '';
   position: absolute;
-  left: 0.75rem;
+  left: 0.5rem;
   top: 0;
   bottom: 0;
-  width: 4px;
-  background: linear-gradient(to bottom, #6366f1, #3b82f6);
-  border-radius: 2px;
+  width: 1px;
+  background: var(--border);
   z-index: 0;
 }
 
 .timelineContainer {
   position: relative;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
   z-index: 1;
+  animation: fadeIn 0.7s ease;
 }
 
 .timelineMarker {
   position: absolute;
-  left: -0.75rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: #6366f1;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  left: -0.6rem;
+  width: 1rem;
+  height: 1rem;
+  background-color: var(--text);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
 }
 
 .timelineMarkerInner {
-  width: 0.75rem;
-  height: 0.75rem;
-  background-color: white;
-  border-radius: 9999px;
+  display: none;
 }
 
 .timelineContent {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s, transform 0.2s;
+  background-color: var(--bg-secondary);
+  padding: 2rem;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s, transform 0.2s;
 }
+
 .timelineContent:hover {
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
-  transform: translateY(-4px) scale(1.02);
+  border-color: var(--text-dim);
+  transform: translateY(-2px);
 }
 
 .timelineTitle {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.5rem;
 }
 
 .timelineCompany {
   font-size: 0.875rem;
-  color: #4b5563;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
 }
 
 .timelineDate {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
 }
 
 .timelineDescription {
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-  color: #374151;
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  line-height: 1.6;
 }
 
 .resumeSection {
-  padding: 4rem 0;
-  background-color: #f3f4f6;
+  padding: 6rem 2rem;
+  background-color: var(--bg);
   text-align: center;
+  border-top: 1px solid var(--border);
 }
 
 .resumeTitle {
   font-size: 1.875rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
 }
 
 .resumeDescription {
   margin-top: 1rem;
-  color: #6b7280;
+  color: var(--text-dim);
+  font-size: 1rem;
 }
 
 .resumeButton {
-  margin-top: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #2563eb;
-  color: white;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s;
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  background-color: var(--text);
+  color: var(--bg);
+  border: 1px solid var(--text);
+  transition: all 0.2s;
   display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
 }
+
 .resumeButton:hover {
-  background-color: #1d4ed8;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 @keyframes fadeInUp {
@@ -141,7 +161,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-.timelineContainer {
-  animation: fadeInUp 0.7s cubic-bezier(0.23, 1, 0.32, 1);
 }

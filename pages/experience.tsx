@@ -4,9 +4,15 @@ import styles from '../styles/Experience.module.css';
 export default function Experience() {
   const experiences = [
     {
+      title: 'Postbaccalaureate Fellow',
+      company: 'National Institutes of Health',
+      date: 'August 2024 - Present',
+      description: 'Computational Biology Branch',
+    },
+    {
       title: 'Software Engineer',
       company: 'Intelligent Retail Lab by Walmart',
-      date: 'July 2024 - Present',
+      date: 'July 2024 - July 2025',
       description: 'Store Vision Services',
     },
     {
@@ -53,14 +59,6 @@ export default function Experience() {
       </Head>
 
       <main>
-        {/* Work Experience Section */}
-        <section className={styles.hero}>
-          <div>
-            <p className={styles.heroDescription}>
-              Take a look at my work experience below! My interests stretch from biotech to aerospace. I have a particular emphasis in Machine Learning Infrastructure and Scientific Computing.
-            </p>
-          </div>
-        </section>
         {/* Experience Section */}
         <section className={styles.timelineSection}>
           <h2 className={styles.timelineHeader}>Work Experience</h2>

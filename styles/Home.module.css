@@ -1,64 +1,200 @@
+/* Home.module.css */
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 .heroContainer {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0f6ff 0%, #e0e7ff 100%);
   padding: 2rem;
+  animation: fadeIn 0.8s ease;
+  background: var(--bg);
 }
 
 .heroCard {
-  background: #fff;
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 32px rgba(31, 41, 55, 0.15);
-  padding: 2.5rem 2rem;
-  max-width: 500px;
+  max-width: 800px;
   width: 100%;
+}
+
+.status {
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  margin-bottom: 3rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
 }
 
-.profileImage {
-  width: 180px;
-  height: 180px;
-  object-fit: cover;
+.status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--text);
   border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(10, 67, 158, 0.25);
-  border: 4px solid #6366f1;
-  margin-bottom: 2rem;
-  transition: transform 0.3s;
-}
-.profileImage:hover {
-  transform: scale(1.05) rotate(-2deg);
-}
-
-.heroText {
-  font-size: 1.15rem;
-  color: #374151;
-  text-align: center;
-  margin-bottom: 1.5rem;
+  animation: blink 1.5s infinite;
 }
 
 .heroName {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 1rem;
+  font-size: 4rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
-.animatedBackground {
-  min-height: 100vh;
+.heroText {
+  font-size: 1.25rem;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  max-width: 700px;
+  letter-spacing: -0.01em;
+}
+
+.heroText b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.heroDescription {
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin-bottom: 3rem;
+  max-width: 650px;
+  line-height: 1.8;
+}
+
+/* Terminal Window Styles */
+.terminalWindow {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  margin-top: 4rem;
+  overflow: hidden;
+}
+
+.terminalHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(120deg, #4255b6, #1b1991, #2d428a, #1a2551);
-  background-size: 300% 300%;
-  animation: gradientMove 8s ease-in-out infinite;
-  padding: 2rem;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
-@keyframes gradientMove {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+.terminalDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.terminalDot:nth-child(1) {
+  background: #ff5f56;
+}
+
+.terminalDot:nth-child(2) {
+  background: #ffbd2e;
+}
+
+.terminalDot:nth-child(3) {
+  background: #27c93f;
+}
+
+.terminalDot:hover {
+  filter: brightness(1.2);
+}
+
+.terminalDot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 8px;
+  font-weight: bold;
+  color: #4d0000;
+}
+
+.terminalDot:hover::after {
+  opacity: 1;
+}
+
+.terminalDot:nth-child(1)::after {
+  content: '×';
+  font-size: 14px;
+}
+
+.terminalDot:nth-child(2)::after {
+  content: '−';
+  font-size: 14px;
+}
+
+.terminalDot:nth-child(3)::after {
+  content: '+';
+  font-size: 12px;
+}
+
+.terminalTitle {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.terminalBody {
+  padding: 2rem 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+
+.terminalLine {
+  margin-bottom: 0.5rem;
+  display: flex;
+}
+
+.prompt {
+  color: var(--text-dim);
+  margin-right: 1rem;
+  user-select: none;
+}
+
+.output {
+  color: var(--text);
+}
+
+.outputDim {
+  color: var(--text-dim);
+}
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: var(--text);
+  animation: blink 1s infinite;
+  margin-left: 2px;
+  vertical-align: middle;
+  transform: translateY(5px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .heroName {
+    font-size: 2.5rem;
+  }
+  
+  .heroText {
+    font-size: 1.1rem;
+  }
+  
+  .terminalBody {
+    padding: 1.5rem 1rem;
+    font-size: 0.8rem;
+  }
 }

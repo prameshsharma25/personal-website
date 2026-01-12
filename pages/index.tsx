@@ -9,20 +9,72 @@ export default function Home() {
         <meta name="description" content="Welcome to my personal website!" />
       </Head>
 
-      <main className={styles.animatedBackground}>
+      <main className={styles.heroContainer}>
         <div className={styles.heroCard}>
-          <img
-            src="profile.jpg"
-            alt="Profile Picture"
-            className={styles.profileImage}
-          />
+          <div className={styles.status}>ONLINE</div>
+          
           <h1 className={styles.heroName}>
-            Pramesh Sharma <span role="img" aria-label="waving hand">👋</span>
+            Pramesh Sharma
           </h1>
-          <p className={styles.heroText}>
-            I’m a Software Engineer passionate about <b>Machine Learning Infrastructure</b> and <b>Scientific Computing</b>.<br />
-            I earned my Bachelor’s in Computer Science from the University of California, Davis. Currently, I work at the Intelligent Retail Lab by Walmart, building and optimizing self-checkout systems that shape the future of retail technology.
+          
+          <p className={styles.heroDescription}>
+            I received my Bachelor's in Computer Science from the University of California, Davis. Currently, I work at the National Institutes of Health studying fold-switching proteins.
           </p>
+
+          <div className={styles.terminalWindow}>
+            <div className={styles.terminalHeader}>
+              <div className={styles.terminalDot}></div>
+              <div className={styles.terminalDot}></div>
+              <div className={styles.terminalDot}></div>
+              <div className={styles.terminalTitle}>system.log</div>
+            </div>
+            <div className={styles.terminalBody}>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>~$</span>
+                <span className={styles.output}>cat profile.txt</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.outputDim}>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.output}>Name: Pramesh Sharma</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.output}>Role: Postbaccalaureate Fellow</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.output}>Company: National Institutes of Health</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.outputDim}>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>~$</span>
+                <span className={styles.output}>skills --list</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.outputDim}>→ Machine Learning</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.outputDim}>→ Scientific Computing</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>&nbsp;&nbsp;</span>
+                <span className={styles.outputDim}>→ Computational Biology</span>
+              </div>
+              <div className={styles.terminalLine}>
+                <span className={styles.prompt}>~$</span>
+                <span className={styles.cursor}></span>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
