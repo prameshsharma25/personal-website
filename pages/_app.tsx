@@ -2,6 +2,7 @@ import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import Navbar from '../components/Navbar';
 import Script from 'next/script';
+import { Analytics } from "@vercel/analytics/next"
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -14,6 +15,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       />
       <Navbar />
       <Component {...pageProps} />
+      <Analytics />
     </>
   );
 }
