@@ -27,6 +27,11 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
+            <Link href="/mentorship" className="hover:text-gray-400">
+              Mentorship
+            </Link>
+          </li>
+          <li>
             <Link href="/contact" className="hover:text-gray-400">
               Contact
             </Link>

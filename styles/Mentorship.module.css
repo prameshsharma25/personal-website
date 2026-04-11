@@ -1,0 +1,166 @@
+/* Mentorship.module.css */
+
+.container {
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  background: var(--bg);
+  animation: fadeIn 0.8s ease;
+}
+
+.header {
+  max-width: 900px;
+  margin: 0 auto 4rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 700px;
+}
+
+.section {
+  max-width: 900px;
+  margin: 0 auto 4rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+
+.sectionDescription {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Calendly Container */
+.calendlyContainer {
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.calendlyContainer iframe {
+  display: block;
+}
+
+/* Resources List */
+.resourcesList {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.resourceItem {
+  padding: 2rem;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  transition: all 0.3s ease;
+}
+
+.resourceItem:hover {
+  border-color: var(--text);
+  background: var(--bg);
+}
+
+.resourceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.resourceTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0;
+}
+
+.resourceTag {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.resourceDescription {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .calendlyContainer {
+    margin-bottom: 1rem;
+  }
+
+  .calendlyContainer iframe {
+    height: 600px !important;
+  }
+
+  .resourceHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .resourceTag {
+    align-self: flex-start;
+  }
+}
+
+/* Mobile - reduce Calendly height */
+@media (max-width: 600px) {
+  .calendlyContainer iframe {
+    height: 500px !important;
+  }
+}
