@@ -50,7 +50,7 @@ export default function Mentorship() {
                   <span className={styles.resourceTag}>In Development</span>
                 </div>
                 <p className={styles.resourceDescription}>
-                  I'm working on guides including "How to Cold Email" and other resources to help you excel in your career.
+                  I&apos;m working on guides including &quot;How to Cold Email&quot; and other resources to help you excel in your career.
                 </p>
               </div>
             </div>
