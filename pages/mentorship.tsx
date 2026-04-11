@@ -44,15 +44,20 @@ export default function Mentorship() {
               A collection of guides and resources to help you in your career journey.
             </p>
             <div className={styles.resourcesList}>
-              <div className={styles.resourceItem}>
+              <a
+                href="https://www.notion.so/My-Cold-Emailing-Template-Academia-Industry-4bc7b4d79a1f48138f2d5d2103ea00b5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.resourceItem}
+              >
                 <div className={styles.resourceHeader}>
-                  <h3 className={styles.resourceTitle}>Coming Soon</h3>
-                  <span className={styles.resourceTag}>In Development</span>
+                  <h3 className={styles.resourceTitle}>Cold Emailing Template</h3>
+                  <span className={styles.resourceTag}>Guide</span>
                 </div>
                 <p className={styles.resourceDescription}>
-                  I&apos;m working on guides including &quot;How to Cold Email&quot; and other resources to help you excel in your career.
+                  My templates and strategies for cold emailing in academia and industry. Learn how to craft compelling emails that get responses.
                 </p>
-              </div>
+              </a>
             </div>
           </div>
         </section>

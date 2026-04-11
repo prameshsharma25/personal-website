@@ -70,15 +70,19 @@
 }
 
 .resourceItem {
+  display: block;
   padding: 2rem;
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
 }
 
 .resourceItem:hover {
   border-color: var(--text);
   background: var(--bg);
+  transform: translateX(4px);
 }
 
 .resourceHeader {
