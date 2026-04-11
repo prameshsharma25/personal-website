@@ -1,0 +1,144 @@
+/* Posts.module.css */
+
+.container {
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  background: var(--bg);
+  animation: fadeIn 0.8s ease;
+}
+
+.header {
+  max-width: 900px;
+  margin: 0 auto 4rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.state {
+  max-width: 900px;
+  margin: 4rem auto;
+  padding: 3rem 2rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.stateText {
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+
+.postsList {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  gap: 2rem;
+}
+
+.postCard {
+  display: block;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.postCard:hover {
+  border-color: var(--text);
+  background: var(--bg);
+  transform: translateY(-2px);
+}
+
+.postContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.postTitle {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.postCard:hover .postTitle {
+  color: var(--text);
+}
+
+.postDescription {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.postFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.postDate {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.postLink {
+  font-size: 0.9rem;
+  color: var(--text);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.postCard:hover .postLink {
+  opacity: 1;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .postCard {
+    padding: 1.5rem;
+  }
+
+  .postTitle {
+    font-size: 1.25rem;
+  }
+}
