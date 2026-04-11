@@ -86,3 +86,54 @@ textarea.inputField {
   background-color: var(--bg);
   color: var(--text);
 }
+
+@media (max-width: 768px) {
+  .container {
+    padding: 4rem 1.5rem;
+  }
+
+  .heading {
+    font-size: 1.5rem;
+  }
+
+  .formWrapper {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 2rem 1rem;
+  }
+
+  .heading {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .description {
+    font-size: 0.9rem;
+  }
+
+  .formWrapper {
+    padding: 1.25rem;
+  }
+
+  .formRow {
+    margin-bottom: 1.5rem;
+  }
+
+  .inputField {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  textarea.inputField {
+    min-height: 100px;
+  }
+
+  .submitButton {
+    padding: 0.875rem;
+    font-size: 0.8rem;
+  }
+}

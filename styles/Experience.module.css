@@ -100,6 +100,91 @@
   margin-bottom: 0.25rem;
 }
 
+@media (max-width: 768px) {
+  .hero {
+    padding: 4rem 1.5rem 2.5rem;
+  }
+
+  .heroTitle {
+    font-size: 1.75rem;
+  }
+
+  .heroDescription {
+    font-size: 1rem;
+  }
+
+  .timelineSection {
+    padding: 4rem 1.5rem;
+  }
+
+  .timelineHeader {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .timelineList {
+    padding-left: 1.5rem;
+  }
+
+  .timelineList::before {
+    left: 0.2rem;
+  }
+
+  .timelineMarker {
+    left: -0.45rem;
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .timelineContent {
+    padding: 1.5rem;
+  }
+
+  .timelineTitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .heroTitle {
+    font-size: 1.4rem;
+  }
+
+  .heroDescription {
+    font-size: 0.9rem;
+  }
+
+  .timelineSection {
+    padding: 2rem 1rem;
+  }
+
+  .timelineHeader {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .timelineList {
+    padding-left: 1rem;
+  }
+
+  .timelineContent {
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .timelineTitle {
+    font-size: 1rem;
+  }
+
+  .timelineCompany {
+    font-size: 0.8rem;
+  }
+}
+
 .timelineDate {
   font-size: 0.875rem;
   color: var(--text-dim);

@@ -185,6 +185,11 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .heroContainer {
+    min-height: auto;
+    padding: 2rem 1rem;
+  }
+
   .heroName {
     font-size: 2.5rem;
   }
@@ -192,9 +197,51 @@
   .heroText {
     font-size: 1.1rem;
   }
+
+  .heroDescription {
+    font-size: 0.9rem;
+  }
+
+  .status {
+    margin-bottom: 2rem;
+  }
   
+  .terminalWindow {
+    margin-top: 2rem;
+  }
+
   .terminalBody {
     padding: 1.5rem 1rem;
     font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroContainer {
+    padding: 1rem;
+  }
+
+  .heroName {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .heroText {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .heroDescription {
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .terminalBody {
+    padding: 1rem;
+    font-size: 0.75rem;
+  }
+
+  .terminalLine {
+    margin-bottom: 0.3rem;
   }
 }

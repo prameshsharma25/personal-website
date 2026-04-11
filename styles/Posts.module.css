@@ -141,4 +141,67 @@
   .postTitle {
     font-size: 1.25rem;
   }
+
+  .postDescription {
+    font-size: 0.9rem;
+  }
+
+  .postFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+    min-height: auto;
+  }
+
+  .header {
+    margin: 0 auto 2rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .state {
+    padding: 2rem 1rem;
+    margin: 2rem auto;
+  }
+
+  .stateText {
+    font-size: 0.9rem;
+  }
+
+  .postsList {
+    gap: 1.5rem;
+  }
+
+  .postCard {
+    padding: 1rem;
+  }
+
+  .postTitle {
+    font-size: 1.1rem;
+  }
+
+  .postDescription {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .postDate {
+    font-size: 0.8rem;
+  }
+
+  .postLink {
+    font-size: 0.85rem;
+  }
 }

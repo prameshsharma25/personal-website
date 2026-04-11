@@ -148,23 +148,59 @@
     margin-bottom: 1rem;
   }
 
-  .calendlyContainer iframe {
-    height: 600px !important;
+  .resourceItem {
+    padding: 1.5rem;
   }
 
   .resourceHeader {
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 0.75rem;
   }
 
-  .resourceTag {
-    align-self: flex-start;
+  .resourceTitle {
+    font-size: 1.1rem;
   }
 }
 
-/* Mobile - reduce Calendly height */
-@media (max-width: 600px) {
-  .calendlyContainer iframe {
-    height: 500px !important;
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+    min-height: auto;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .header {
+    margin: 0 auto 2rem;
+  }
+
+  .section {
+    margin: 0 auto 2rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.9rem;
+  }
+
+  .resourceItem {
+    padding: 1rem;
+  }
+
+  .resourceTitle {
+    font-size: 1rem;
+  }
+
+  .resourceTag {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .resourceDescription {
+    font-size: 0.85rem;
   }
 }

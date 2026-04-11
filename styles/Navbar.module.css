@@ -42,3 +42,24 @@
 .navLink:hover {
   color: var(--text);
 }
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .navLinks {
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+  }
+
+  .navbar {
+    padding: 1.5rem 1rem;
+  }
+
+  .logo {
+    font-size: 0.875rem;
+  }
+}
