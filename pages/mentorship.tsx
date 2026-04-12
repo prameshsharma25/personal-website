@@ -1,7 +1,14 @@
 import Head from 'next/head';
+import Link from 'next/link';
+import { GetStaticProps } from 'next';
 import styles from '../styles/Mentorship.module.css';
+import { getAllGuides, GuideMetadata } from '../lib/guides';
 
-export default function Mentorship() {
+interface MentorshipPageProps {
+  guides: GuideMetadata[];
+}
+
+export default function Mentorship({ guides }: MentorshipPageProps) {
   return (
     <div>
       <Head>
@@ -37,27 +44,32 @@ export default function Mentorship() {
         </section>
 
         {/* Resources Section */}
-        <section className={styles.section}>
+        <section className={styles.section} id="guides">
           <div className={styles.sectionContent}>
             <h2 className={styles.sectionTitle}>Resources & Guides</h2>
             <p className={styles.sectionDescription}>
               A collection of guides and resources to help you in your career journey.
             </p>
             <div className={styles.resourcesList}>
-              <a
-                href="https://www.notion.so/My-Cold-Emailing-Template-Academia-Industry-4bc7b4d79a1f48138f2d5d2103ea00b5"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.resourceItem}
-              >
-                <div className={styles.resourceHeader}>
-                  <h3 className={styles.resourceTitle}>Cold Emailing Template</h3>
-                  <span className={styles.resourceTag}>Guide</span>
-                </div>
-                <p className={styles.resourceDescription}>
-                  My templates and strategies for cold emailing in academia and industry. Learn how to craft compelling emails that get responses.
-                </p>
-              </a>
+              {guides.length > 0 ? (
+                guides.map((guide) => (
+                  <Link
+                    key={guide.slug}
+                    href={`/mentorship/${guide.slug}`}
+                    className={styles.resourceItem}
+                  >
+                    <div className={styles.resourceHeader}>
+                      <h3 className={styles.resourceTitle}>{guide.title}</h3>
+                      <span className={styles.resourceTag}>Guide</span>
+                    </div>
+                    <p className={styles.resourceDescription}>
+                      {guide.description}
+                    </p>
+                  </Link>
+                ))
+              ) : (
+                <p className={styles.noGuides}>More guides coming soon...</p>
+              )}
             </div>
           </div>
         </section>
@@ -65,3 +77,14 @@ export default function Mentorship() {
     </div>
   );
 }
+
+export const getStaticProps: GetStaticProps<MentorshipPageProps> = async () => {
+  const guides = getAllGuides();
+
+  return {
+    props: {
+      guides,
+    },
+    revalidate: 3600, // Revalidate every hour
+  };
+};
