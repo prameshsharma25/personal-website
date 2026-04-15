@@ -47,6 +47,45 @@
   gap: 2rem;
 }
 
+.postArticle {
+  display: block;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.postArticle:hover {
+  border-color: var(--text);
+  background: var(--bg);
+}
+
+.postHeader {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.substackNote {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+  padding: 0.75rem 0;
+}
+
+.substackNote a {
+  color: var(--text);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.substackNote a:hover {
+  opacity: 0.7;
+}
+
 .postCard {
   display: block;
   padding: 2rem;
@@ -66,6 +105,78 @@
 .postContent {
   display: flex;
   flex-direction: column;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.postContent :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.postContent h1 {
+  font-size: 2rem;
+  margin-top: 2rem;
+}
+
+.postContent h2 {
+  font-size: 1.5rem;
+}
+
+.postContent h3 {
+  font-size: 1.25rem;
+}
+
+.postContent p {
+  margin-bottom: 1rem;
+}
+
+.postContent :is(ul, ol) {
+  margin-bottom: 1rem;
+  margin-left: 2rem;
+}
+
+.postContent li {
+  margin-bottom: 0.5rem;
+}
+
+.postContent blockquote {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.postContent code {
+  background: var(--bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+  color: var(--text);
+}
+
+.postContent pre {
+  background: var(--bg);
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.postContent a {
+  color: var(--text);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.postContent a:hover {
+  opacity: 0.7;
 }
 
 .postTitle {
@@ -134,7 +245,8 @@
     font-size: 0.95rem;
   }
 
-  .postCard {
+  .postCard,
+  .postArticle {
     padding: 1.5rem;
   }
 
@@ -144,6 +256,14 @@
 
   .postDescription {
     font-size: 0.9rem;
+  }
+
+  .postContent h1 {
+    font-size: 1.75rem;
+  }
+
+  .postContent h2 {
+    font-size: 1.35rem;
   }
 
   .postFooter {
@@ -184,7 +304,8 @@
     gap: 1.5rem;
   }
 
-  .postCard {
+  .postCard,
+  .postArticle {
     padding: 1rem;
   }
 
@@ -197,11 +318,23 @@
     margin-bottom: 1rem;
   }
 
+  .postContent h1 {
+    font-size: 1.4rem;
+  }
+
+  .postContent h2 {
+    font-size: 1.1rem;
+  }
+
   .postDate {
     font-size: 0.8rem;
   }
 
   .postLink {
     font-size: 0.85rem;
+  }
+
+  .substackNote {
+    font-size: 0.8rem;
   }
 }
