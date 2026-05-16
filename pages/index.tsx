@@ -90,7 +90,7 @@ export default function Home() {
             research focus, and secondary identity as a science communicator.
           */}
           <p className={styles.heroDescription}>
-            I'm a Computational Biologist and NIH Postbaccalaureate Fellow developing machine learning methods to predict protein conformational states. I graduated from UC Davis with a degree in Computer Science. I use my background in both biology and computer science to bridge the gap between these fields and communicate complex scientific concepts to diverse audiences. I am passionate about science and mentoring future scientists and engineers.
+            I&apos;m a Computational Biologist and NIH Postbaccalaureate Fellow developing machine learning methods to predict protein conformational states. I graduated from UC Davis with a degree in Computer Science. I use my background in both biology and computer science to bridge the gap between these fields and communicate complex scientific concepts to diverse audiences. I am passionate about science and mentoring future scientists and engineers.
           </p>
 
           {/* Terminal card — unchanged from your original */}
