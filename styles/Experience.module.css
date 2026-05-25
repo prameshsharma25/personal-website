@@ -22,6 +22,56 @@
   line-height: 1.8;
 }
 
+.bioSection {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+.bioText {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #555;
+}
+.timelineBullets {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+}
+.timelineBullet {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+.publicationsSection {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+.publicationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.publicationItem {
+  border-left: 3px solid #e0e0e0;
+  padding-left: 1rem;
+}
+.publicationTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+.publicationJournal {
+  font-style: italic;
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.2rem;
+}
+.publicationAuthors {
+  font-size: 0.8rem;
+  color: #888;
+}
+
 .timelineSection {
   padding: 6rem 2rem;
   background-color: var(--bg);
@@ -79,7 +129,9 @@
   background-color: var(--bg-secondary);
   padding: 2rem;
   border: 1px solid var(--border);
-  transition: border-color 0.2s, transform 0.2s;
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
 }
 
 .timelineContent:hover {
