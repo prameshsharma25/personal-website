@@ -39,13 +39,6 @@ export default function Experience() {
       ],
     },
     {
-      title: 'Software Engineering Intern',
-      company: 'Intelligent Retail Lab by Walmart',
-      date: 'June 2023 - August 2023',
-      description: 'Intelligent Store Technology',
-      bullets: [],
-    },
-    {
       title: 'Space Systems Engineering Intern',
       company: 'NASA',
       date: 'August 2022 - December 2022',
@@ -108,14 +101,16 @@ export default function Experience() {
       <main>
         {/* Bio Section */}
         <section className={styles.bioSection}>
-          <p className={styles.bioText}>
-            I started my career building computer vision systems for Walmart and chasing a NASA internship I&apos;d been rejected from twice. 
-            What pulled me back to biology wasn&apos;t a plan — it was a rare genetic disease I was born with, and the realization that the 
-            problems I actually cared about lived at the intersection of computation and human health. That thread has run through 
-            everything since: two internships at Genentech, two at NASA, and now the NIH, where I develop AI-driven tools to study 
-            proteins that switch shapes to carry out different biological functions.
-          </p>
-        </section>
+        <h1 className={styles.bioName}>Who am I?</h1>
+        <p className={styles.bioRole}>Postbaccalaureate Fellow, NIH · Computational Structural Biology</p>
+        <p className={styles.bioText}>
+          I started my career building computer vision systems for Walmart and chasing a NASA internship I&apos;d been rejected from twice.
+          What pulled me back to biology wasn&apos;t a plan — it was a rare genetic disease I was born with, and the realization that the
+          problems I actually cared about lived at the intersection of computation and human health. That thread has run through
+          everything since: two internships at Genentech, two at NASA, and now the NIH, where I develop AI-driven tools to study
+          proteins that switch shapes to carry out different biological functions.
+        </p>
+</section>
 
         {/* Experience Section */}
         <section className={styles.timelineSection}>

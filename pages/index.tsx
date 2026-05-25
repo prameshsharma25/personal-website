@@ -163,13 +163,13 @@ export default function Home() {
               <div className={styles.terminalLine}>
                 <span className={styles.prompt}>&nbsp;&nbsp;</span>
                 <span className={styles.outputDim}>
-                  → <a href="https://prameshsharma.com/experience" style={{color:'inherit'}}>Experience</a>
+                  → <a href="https://medium.com/@prameshsharma25" style={{color:'inherit'}}>Medium</a>
                 </span>
               </div>
               <div className={styles.terminalLine}>
                 <span className={styles.prompt}>&nbsp;&nbsp;</span>
                 <span className={styles.outputDim}>
-                  → <a href="https://prameshsharma.com/mentorship" style={{color:'inherit'}}>Mentorship</a>
+                  → <a href="https://www.pinterest.com/prameshsharma25/" style={{color:'inherit'}}>Pinterest</a>
                 </span>
               </div>
               <div className={styles.terminalLine}>
