@@ -9,7 +9,7 @@ import re
 import random
 import smtplib
 import feedparser
-from datetime import datetime
+from datetime import datetime, time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from google import genai
@@ -91,22 +91,32 @@ def generate_note(posts: list[dict]) -> str:
     )
 
     client = genai.Client(api_key=GEMINI_API_KEY)
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=(
-            f"Here are some of my recent Substack posts:\n\n{posts_text}\n\n"
-            "Write today's Substack Note. Draw inspiration from the themes and stories above "
-            "but don't just summarize — synthesize something new and resonant."
-        ),
-        config=genai.types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            max_output_tokens=2048,
-            temperature=0.9,
-        ),
-    )
-    print(f"Finish reason: {response.candidates[0].finish_reason}")
-    print(f"Raw text length: {len(response.text)}")
-    return response.text.strip()
+
+    for attempt in range(5):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=(
+                    f"Here are some of my recent Substack posts:\n\n{posts_text}\n\n"
+                    "Write today's Substack Note. Draw inspiration from the themes and stories above "
+                    "but don't just summarize — synthesize something new and resonant."
+                ),
+                config=genai.types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    max_output_tokens=2048,
+                    temperature=0.9,
+                ),
+            )
+            print(f"Finish reason: {response.candidates[0].finish_reason}")
+            print(f"Raw text length: {len(response.text)}")
+            return response.text.strip()
+        except Exception as e:
+            if "503" in str(e) and attempt < 4:
+                wait = 15 * (attempt + 1)  # 15s, 30s, 45s, 60s
+                print(f"Server busy (attempt {attempt + 1}/5), retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def send_email(note: str) -> None:
