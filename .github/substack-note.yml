@@ -1,0 +1,31 @@
+name: Daily Substack Note
+
+on:
+  schedule:
+    # Runs every day at 9:00 AM ET (13:00 UTC)
+    - cron: "0 13 * * *"
+  workflow_dispatch: # allows manual trigger from GitHub UI anytime
+
+jobs:
+  generate-note:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install google-generativeai feedparser
+
+      - name: Run note agent
+        env:
+          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
+          SENDER_EMAIL:        ${{ secrets.SENDER_EMAIL }}
+          RECIPIENT_EMAIL:     ${{ secrets.RECIPIENT_EMAIL }}
+          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python scripts/generate_substack_note.py
