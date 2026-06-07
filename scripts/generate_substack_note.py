@@ -9,7 +9,8 @@ import re
 import random
 import smtplib
 import feedparser
-from datetime import datetime, time
+import time
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from google import genai
