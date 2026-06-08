@@ -1,0 +1,165 @@
+/* Outer wrapper — handles entrance animation and column flow */
+.card {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: bookReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes bookReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Inner wrapper — clips everything, handles hover lift */
+.inner {
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  display: block;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease;
+  cursor: pointer;
+}
+
+.inner:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.75);
+}
+
+.innerDefault {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Cover image */
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.5s ease;
+}
+
+.inner:hover .image {
+  transform: scale(1.06);
+}
+
+/* Fallback when image fails */
+.fallback {
+  width: 100%;
+  height: 300px;
+  background: linear-gradient(135deg, #374151, #111827);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  opacity: 0.3;
+}
+
+/* Now Reading badge */
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(59, 130, 246, 0.95);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  font-family: inherit;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Hover overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.97) 0%,
+    rgba(0, 0, 0, 0.6) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+}
+
+.inner:hover .overlay {
+  opacity: 1;
+}
+
+/* Overlay text elements */
+.overlayTitle {
+  margin: 0 0 3px 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transform: translateY(8px);
+  transition: transform 0.26s ease 0.04s;
+}
+
+.overlayAuthor {
+  margin: 0 0 5px 0;
+  font-size: 11px;
+  color: rgba(200, 200, 200, 0.9);
+  transform: translateY(8px);
+  transition: transform 0.26s ease 0.08s;
+}
+
+.overlayRating {
+  margin: 0 0 5px 0;
+  font-size: 11px;
+  transform: translateY(8px);
+  transition: transform 0.26s ease 0.11s;
+}
+
+.overlayDescription {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(160, 160, 160, 0.9);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transform: translateY(8px);
+  transition: transform 0.26s ease 0.14s;
+}
+
+/* Slide up text on hover — applied via JS hovered state */
+.inner:hover .overlayTitle,
+.inner:hover .overlayAuthor,
+.inner:hover .overlayRating,
+.inner:hover .overlayDescription {
+  transform: translateY(0);
+}
+
+.starFilled { color: #fbbf24; }
+.starEmpty  { color: #4b5563; }
