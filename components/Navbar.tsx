@@ -1,51 +1,41 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import styles from '../styles/Navbar.module.css';
 
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/experience', label: 'About' },
+  { href: '/posts', label: 'Posts' },
+  { href: '/mentorship', label: 'Mentorship' },
+  { href: '/books', label: 'Books' },
+  { href: '/research-opportunities', label: 'PhD Opportunities' },
+  { href: '/contact', label: 'Contact' },
+];
+
 export default function Navbar() {
+  const { pathname } = useRouter();
+
   return (
-    <nav className={styles.navbar}>
+    <nav className={styles.navbar} aria-label="Main navigation">
       <div className={styles.container}>
         <h1 className={styles.logo}>
-          <Link href="/" className="hover:text-gray-400">
-              Pramesh Sharma
-            </Link>
-          </h1>
+          <Link href="/" className={styles.logoLink}>Pramesh Sharma</Link>
+        </h1>
         <ul className={styles.navLinks}>
-          <li>
-            <Link href="/" className="hover:text-gray-400">
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link href="/experience" className="hover:text-gray-400">
-              About
-            </Link>
-          </li>
-          <li>
-            <Link href="/posts" className="hover:text-gray-400">
-              Posts
-            </Link>
-          </li>
-          <li>
-            <Link href="/mentorship" className="hover:text-gray-400">
-              Mentorship
-            </Link>
-          </li>
-          <li>
-            <Link href="/books" className="hover:text-gray-400">
-              Books
-            </Link>
-          </li>
-          <li>
-            <Link href="/research-opportunities" className="hover:text-gray-400">
-              PhD Opportunities
-            </Link>
-          </li>
-          <li>
-            <Link href="/contact" className="hover:text-gray-400">
-              Contact
-            </Link>
-          </li>
+          {links.map(({ href, label }) => {
+            const active = pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`${styles.navLink} ${active ? styles.active : ''}`}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </nav>
