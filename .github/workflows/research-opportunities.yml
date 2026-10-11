@@ -43,6 +43,7 @@ jobs:
             Weekly worldwide research scan for computational biology, bioinformatics, and machine learning.
 
             Review each new or changed listing before merging:
+            - Check scanWarnings for research areas that could not complete; this update may be partial.
             - Confirm the country, institutional ownership of the source, and professor/lab details.
             - Confirm the original-language excerpt describes doctoral recruiting and the status matches the stated intake.
             - Check deadlines, funding, eligibility, and application route against official sources.

@@ -65,7 +65,11 @@ The workflow uses Gemini 2.5 Flash with Google Search grounding, making at most
 six generation requests and requesting five candidates per area. Each area uses
 one grounded search followed by one tool-free, schema-constrained extraction.
 Each search request may perform multiple searches. There are no retries or paid-model fallbacks;
-API/quota errors abort the run without changing the dataset. This bounds work,
+API/quota errors abort the run without changing the dataset. Blocked, truncated,
+or malformed model output skips only that research area, with no retry and no
+use of the blocked content. Valid results from other areas can still be reviewed;
+`scanWarnings` records incomplete areas and the page displays a notice. If all
+areas fail, the dataset is left unchanged and the workflow fails. This bounds work,
 but does not enforce a billing-account spending cap. Free quotas and model
 availability can change: check [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing).
 

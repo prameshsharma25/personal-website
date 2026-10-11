@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from scripts.research_opportunities import validate, merge, parse_response, public_source_url, normalize, main, discover, call_gemini, skip_message, check_public_source
+from scripts.research_opportunities import validate, merge, parse_response, public_source_url, normalize, main, discover, call_gemini, skip_message, check_public_source, ModelResponseError
 
 class ResearchTests(unittest.TestCase):
     def test_skip_log_explains_validation_failure(self):
@@ -121,6 +121,44 @@ class ResearchTests(unittest.TestCase):
         with patch('scripts.research_opportunities.urlopen', return_value=io.BytesIO(b'<html>Unavailable</html>')):
             with self.assertRaisesRegex(ValueError, 'search: API returned'):
                 call_gemini({}, 'test-only', 'Bioinformatics search')
+
+    def test_blocked_area_preserves_valid_results_and_records_warning(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'opportunities.json'
+            old = dict(self.example(), id='old', lastChecked='2026-09-01')
+            output.write_text(json.dumps({'lastRun': '2026-09-01', 'opportunities': [old]}))
+            new = dict(self.example(), id='new', lastChecked='2026-10-11')
+            with patch.dict('os.environ', {'GEMINI_API_KEY': 'test-only'}), \
+                 patch('sys.argv', ['research', '--output', str(output)]), \
+                 patch('scripts.research_opportunities.discover', side_effect=[[self.example()], [], ModelResponseError('RECITATION')]), \
+                 patch('scripts.research_opportunities.validate', return_value=new):
+                main()
+            result = json.loads(output.read_text())
+            self.assertEqual({x['id'] for x in result['opportunities']}, {'old', 'new'})
+            self.assertEqual(result['scanWarnings'], [{'area': 'Machine learning', 'reason': 'RECITATION'}])
+            self.assertEqual(next(x for x in result['opportunities'] if x['id'] == 'old')['lastChecked'], '2026-09-01')
+
+    def test_all_blocked_areas_leave_dataset_unchanged(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'opportunities.json'
+            original = json.dumps({'lastRun': '2026-09-01', 'opportunities': []})
+            output.write_text(original)
+            with patch.dict('os.environ', {'GEMINI_API_KEY': 'test-only'}), \
+                 patch('sys.argv', ['research', '--output', str(output)]), \
+                 patch('scripts.research_opportunities.discover', side_effect=ModelResponseError('RECITATION')):
+                with self.assertRaisesRegex(ModelResponseError, 'All research areas failed'): main()
+            self.assertEqual(output.read_text(), original)
+
+    def test_recitation_content_is_never_used(self):
+        response = self.response(json.dumps([self.example()]), True)
+        response['candidates'][0]['finishReason'] = 'RECITATION'
+        with self.assertRaisesRegex(ModelResponseError, 'RECITATION'): parse_response(response)
+
+    def test_literal_null_is_not_a_professor(self):
+        item = self.example()
+        item['professor'] = 'null'
+        with self.assertRaisesRegex(ValueError, 'professor'):
+            validate(item, '2026-10-11', lambda _: normalize(item['evidence']))
 
     def test_api_failure_preserves_dataset(self):
         with tempfile.TemporaryDirectory() as directory:

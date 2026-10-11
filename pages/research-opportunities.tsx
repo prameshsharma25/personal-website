@@ -4,6 +4,7 @@ import dataset from '../data/research-opportunities.json';
 import { countryLabel, listingStatus, Opportunity, researchAreas } from '../lib/research';
 import styles from '../styles/Research.module.css';
 
+const scanWarnings = (dataset as { scanWarnings?: { area: string; reason: string }[] }).scanWarnings || [];
 const opportunities = dataset.opportunities as Opportunity[];
 const dateLabel = (value: string) => new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 
@@ -33,6 +34,7 @@ export default function ResearchOpportunities() {
         <p>Find your next research home in computational biology, bioinformatics, and machine learning.</p>
         <p className={styles.note}>Recruiting evidence and application details from university and lab websites. Confirm availability with the program before applying. A general invitation does not confirm an opening for a particular intake.</p>
         {dataset.lastRun && <p className={styles.note}>Last scan: {dateLabel(dataset.lastRun)} · Sources older than 45 days are flagged for rechecking.</p>}
+        {scanWarnings.length > 0 && <p className={styles.note}>Latest scan incomplete for: {scanWarnings.map(warning => warning.area).join(', ')}. Existing listings remain available; check their source dates.</p>}
       </header>
       <div className={styles.filters}>
         <label>Search<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Professor, lab, school, or topic" /></label>
