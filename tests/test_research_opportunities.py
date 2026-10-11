@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from scripts.research_opportunities import validate, merge, parse_response, public_source_url, normalize, main, discover, call_gemini, skip_message, check_public_source, ModelResponseError
+from scripts.research_opportunities import validate, merge, parse_response, public_source_url, normalize, main, discover, call_gemini, skip_message, check_public_source, ModelResponseError, QuotaError, RequestPacer, quota_diagnostic
 
 class ResearchTests(unittest.TestCase):
     def test_skip_log_explains_validation_failure(self):
@@ -118,7 +118,7 @@ class ResearchTests(unittest.TestCase):
 
     def test_transport_json_error_identifies_stage(self):
         import io
-        with patch('scripts.research_opportunities.urlopen', return_value=io.BytesIO(b'<html>Unavailable</html>')):
+        with patch('scripts.research_opportunities.PACER.wait'), patch('scripts.research_opportunities.urlopen', return_value=io.BytesIO(b'<html>Unavailable</html>')):
             with self.assertRaisesRegex(ValueError, 'search: API returned'):
                 call_gemini({}, 'test-only', 'Bioinformatics search')
 
@@ -160,6 +160,47 @@ class ResearchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'professor'):
             validate(item, '2026-10-11', lambda _: normalize(item['evidence']))
 
+    def test_request_pacing(self):
+        pacer = RequestPacer()
+        with patch('scripts.research_opportunities.time.monotonic', side_effect=[0, 10, 65]), \
+             patch('scripts.research_opportunities.time.sleep') as sleep:
+            pacer.wait()
+            sleep.assert_not_called()
+            pacer.wait()
+            self.assertEqual(sum(call.args[0] for call in sleep.call_args_list), 55)
+
+    def test_quota_diagnostics_do_not_print_raw_errors(self):
+        import io
+        body = {'error': {'message': 'secret message', 'details': [
+            {'violations': [{'quotaId': 'GenerateRequestsPerDay', 'quotaValue': '20'}]},
+            {'retryDelay': '42s'}]}}
+        diagnostic = quota_diagnostic(io.BytesIO(json.dumps(body).encode()))
+        self.assertIn('GenerateRequestsPerDay', diagnostic)
+        self.assertIn('42s', diagnostic)
+        self.assertNotIn('secret', diagnostic)
+
+    def test_429_is_not_retried(self):
+        import io
+        from urllib.error import HTTPError
+        with patch('scripts.research_opportunities.PACER.wait'), \
+             patch('scripts.research_opportunities.urlopen', side_effect=HTTPError('https://example.org', 429, 'Limited', {}, io.BytesIO(b'{}'))) as api:
+            with self.assertRaises(QuotaError): call_gemini({}, 'test-only', 'Search')
+            self.assertEqual(api.call_count, 1)
+
+    def test_quota_preserves_verified_candidates_and_stops_requests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'opportunities.json'
+            new = dict(self.example(), id='new', lastChecked='2026-10-11')
+            with patch.dict('os.environ', {'GEMINI_API_KEY': 'test-only'}), \
+                 patch('sys.argv', ['research', '--output', str(output)]), \
+                 patch('scripts.research_opportunities.discover', side_effect=[[self.example()], QuotaError('429')]) as api, \
+                 patch('scripts.research_opportunities.validate', return_value=new):
+                main()
+            result = json.loads(output.read_text())
+            self.assertEqual(result['opportunities'], [new])
+            self.assertEqual([x['area'] for x in result['scanWarnings']], ['Bioinformatics', 'Machine learning'])
+            self.assertEqual(api.call_count, 2)
+
     def test_api_failure_preserves_dataset(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / 'opportunities.json'
@@ -167,7 +208,7 @@ class ResearchTests(unittest.TestCase):
             output.write_text(original)
             with patch.dict('os.environ', {'GEMINI_API_KEY': 'test-only'}), \
                  patch('sys.argv', ['research', '--output', str(output)]), \
-                 patch('scripts.research_opportunities.discover', side_effect=[[], RuntimeError('quota exceeded')]) as request:
+                 patch('scripts.research_opportunities.discover', side_effect=[[], QuotaError('quota exceeded')]) as request:
                 with self.assertRaises(RuntimeError): main()
                 self.assertEqual(request.call_count, 2)
             self.assertEqual(output.read_text(), original)

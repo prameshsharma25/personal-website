@@ -65,7 +65,12 @@ The workflow uses Gemini 2.5 Flash with Google Search grounding, making at most
 six generation requests and requesting five candidates per area. Each area uses
 one grounded search followed by one tool-free, schema-constrained extraction.
 Each search request may perform multiple searches. There are no retries or paid-model fallbacks;
-API/quota errors abort the run without changing the dataset. Blocked, truncated,
+Requests are spaced at least 65 seconds apart within a run to reduce minute-limit
+errors. HTTP 429 stops all further API calls and reports available quota identifiers.
+If earlier areas produced verified candidates, those results are saved for review
+with incomplete-area warnings; otherwise the run fails without changing the dataset.
+Other API errors abort without changing the dataset. Pacing cannot fix exhausted
+daily quotas or usage from other workflows sharing the same Google project. Blocked, truncated,
 or malformed model output skips only that research area, with no retry and no
 use of the blocked content. Valid results from other areas can still be reviewed;
 `scanWarnings` records incomplete areas and the page displays a notice. If all

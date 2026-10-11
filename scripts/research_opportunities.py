@@ -10,6 +10,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import date, datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
@@ -27,6 +28,50 @@ OPTIONAL = ['intake', 'deadline', 'deadlineDetails', 'funding', 'eligibility', '
 
 class ModelResponseError(ValueError):
     """One area could not produce usable results; never use blocked output."""
+
+
+class QuotaError(RuntimeError):
+    """Stop all further API calls when the project's quota is exhausted."""
+
+
+class RequestPacer:
+    def __init__(self, interval=65):
+        self.interval = interval
+        self.last_started = None
+
+    def wait(self):
+        if self.last_started is not None:
+            remaining = self.interval - (time.monotonic() - self.last_started)
+            if remaining > 0:
+                print(f'Pacing Gemini requests: waiting {remaining:.0f}s.', flush=True)
+                # Short chunks keep individual waits bounded.
+                while remaining > 0:
+                    pause = min(remaining, 30)
+                    time.sleep(pause)
+                    remaining -= pause
+        self.last_started = time.monotonic()
+
+
+PACER = RequestPacer()
+
+
+def quota_diagnostic(error):
+    """Report only quota identifiers/retry delays, never the raw error body."""
+    details = []
+    try:
+        body = json.loads(error.read(65536))
+        for detail in body.get('error', {}).get('details', []):
+            for violation in detail.get('violations', []):
+                for key in ('quotaId', 'quotaMetric', 'quotaValue'):
+                    value = str(violation.get(key, ''))
+                    if value and re.fullmatch(r'[A-Za-z0-9_./-]{1,200}', value):
+                        details.append(f'{key}={value}')
+            delay = detail.get('retryDelay', '')
+            if isinstance(delay, str) and re.fullmatch(r'[0-9.]+s', delay):
+                details.append(f'suggested retry delay={delay}')
+    except (ValueError, TypeError, AttributeError, OSError):
+        pass
+    return '; '.join(details) or 'No quota details supplied; check project limits in Google AI Studio.'
 
 
 def public_source_url(url):
@@ -163,6 +208,7 @@ def candidate_schema():
 
 
 def call_gemini(payload, key, stage):
+    PACER.wait()
     request = Request(f'https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent',
                       data=json.dumps(payload).encode(),
                       headers={'Content-Type': 'application/json', 'x-goog-api-key': key})
@@ -176,6 +222,8 @@ def call_gemini(payload, key, stage):
                 raise ValueError(f'{stage}: invalid API response envelope')
             return result
     except HTTPError as error:
+        if error.code == 429:
+            raise QuotaError(f'{stage}: Gemini HTTP 429. {quota_diagnostic(error)} No further API requests will be made.') from None
         # Never print the API response body or credentials.
         raise RuntimeError(f'{stage}: Gemini returned HTTP {error.code}; stopped without retries or fallback.') from None
 
@@ -275,6 +323,13 @@ def main():
         prior = [{'professor': x['professor'], 'sourceUrl': x['sourceUrl']} for x in previous['opportunities'] if area in x['areas']]
         try:
             candidates = discover(area, today, key, prior[:15])
+        except QuotaError as error:
+            print(f'WARNING: {error}', flush=True)
+            if not fresh:
+                raise
+            for remaining_area in AREAS[AREAS.index(area):]:
+                scan_warnings.append({'area': remaining_area, 'reason': 'Scan stopped at Gemini quota limit (HTTP 429).'})
+            break
         except ModelResponseError as error:
             scan_warnings.append({'area': area, 'reason': str(error)})
             print(f'WARNING: {area} scan incomplete: {error}', flush=True)
