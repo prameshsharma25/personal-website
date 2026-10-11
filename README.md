@@ -36,7 +36,7 @@ Use a Gmail app password for `GMAIL_APP_PASSWORD`. These settings are optional
 for browsing the site, and must be configured to send contact emails. The
 Substack feed requires internet access.
 
-## Research Opportunities
+## PhD Opportunities
 
 The `/research-opportunities` page reads `data/research-opportunities.json`.
 It covers US PhD recruitment in computational biology, bioinformatics, and all

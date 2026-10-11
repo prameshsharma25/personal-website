@@ -3,9 +3,26 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from scripts.research_opportunities import validate, merge, parse_response, official_url, normalize, main, discover, call_gemini
+from scripts.research_opportunities import validate, merge, parse_response, official_url, normalize, main, discover, call_gemini, skip_message
 
 class ResearchTests(unittest.TestCase):
+    def test_skip_log_explains_validation_failure(self):
+        message = skip_message('Bioinformatics', self.example(), ValueError('Missing or invalid lab'))
+        self.assertIn('A. Researcher', message)
+        self.assertIn('example.edu/join', message)
+        self.assertIn('Missing or invalid lab', message)
+
+    def test_skip_log_distinguishes_network_errors_without_credentials(self):
+        from urllib.error import HTTPError, URLError
+        item = self.example()
+        item['sourceUrl'] = 'https://user:secret@example.edu/join?token=private'
+        for error, expected in [(HTTPError(item['sourceUrl'], 403, 'Forbidden', {}, None), 'HTTP 403'),
+                                (TimeoutError(), 'timed out'), (URLError('private details'), 'connection failed')]:
+            message = skip_message('Bioinformatics', item, error)
+            self.assertIn(expected, message)
+            self.assertNotIn('secret', message)
+            self.assertNotIn('private', message)
+
     def example(self):
         return dict(professor='A. Researcher', lab='Example lab', university='Example University',
                     location='California', country='US', areas=['Bioinformatics'], summary='Genome research.',

@@ -21,13 +21,13 @@ export default function ResearchOpportunities() {
   }).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
   return <>
     <Head>
-      <title>Research Opportunities | Pramesh Sharma</title>
+      <title>PhD Opportunities | Pramesh Sharma</title>
       <meta name="description" content="Explore US PhD opportunities in computational biology, bioinformatics, and machine learning, with recruiting sources and application details." />
     </Head>
     <main className={styles.main}>
       <header className={styles.header}>
         <p className={styles.eyebrow}>UNITED STATES · PHD RESEARCH</p>
-        <h1>Research Opportunities</h1>
+        <h1>PhD Opportunities</h1>
         <p>Find your next research home in computational biology, bioinformatics, and machine learning.</p>
         <p className={styles.note}>Recruiting evidence and application details from university and lab websites. Confirm availability with the program before applying. A general invitation does not confirm an opening for a particular intake.</p>
         {dataset.lastRun && <p className={styles.note}>Last scan: {dateLabel(dataset.lastRun)} · Sources older than 45 days are flagged for rechecking.</p>}

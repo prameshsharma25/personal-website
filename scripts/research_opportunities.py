@@ -12,7 +12,7 @@ import sys
 from datetime import date, datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, HTTPRedirectHandler, build_opener, urlopen
 
@@ -211,6 +211,28 @@ def merge(existing, fresh):
     return sorted(merged.values(), key=lambda x: (x['university'], x['professor']))
 
 
+def skip_message(area, item, error):
+    """Explain rejections without logging response bodies or URL credentials."""
+    if isinstance(error, HTTPError):
+        reason = f'Source request returned HTTP {error.code}'
+    elif isinstance(error, TimeoutError):
+        reason = 'Source request timed out'
+    elif isinstance(error, URLError):
+        reason = 'Source connection failed (DNS, TLS, or network error)'
+    elif isinstance(error, ValueError):
+        reason = str(error)
+    else:
+        reason = f'Invalid candidate data or source read failure ({type(error).__name__})'
+    try:
+        source = urlsplit(item.get('sourceUrl') or '')
+        url = (source.hostname or '') + source.path
+    except (ValueError, TypeError):
+        url = 'Invalid source URL'
+    details = {'professor': item.get('professor'), 'university': item.get('university'),
+               'source': url[:500], 'reason': reason}
+    return f'{area}: skipped candidate ' + json.dumps(details, ensure_ascii=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=DATA)
@@ -231,8 +253,8 @@ def main():
             try:
                 fresh.append(validate(item, today))
                 accepted += 1
-            except (ValueError, TypeError, KeyError, OSError):
-                print(f'{area}: skipped a candidate with invalid or inaccessible evidence.')
+            except (ValueError, TypeError, KeyError, OSError) as error:
+                print(skip_message(area, item, error), flush=True)
         print(f'{area}: {accepted} of {len(candidates)} candidates passed source checks.')
     # Atomic write: failed API runs never erase or partially update published data.
     result = {'lastRun': today, 'opportunities': merge(previous['opportunities'], fresh)}

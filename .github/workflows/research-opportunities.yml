@@ -1,4 +1,4 @@
-name: Research Opportunities
+name: PhD Opportunities
 on:
   schedule:
     - cron: '23 14 * * 1' # Mondays at 14:23 UTC
@@ -37,8 +37,8 @@ jobs:
         with:
           branch: automation/research-opportunities
           add-paths: data/research-opportunities.json
-          commit-message: Update research opportunities
-          title: Update US PhD research opportunities
+          commit-message: Update PhD opportunities
+          title: Update US PhD opportunities
           body: |
             Weekly research scan for computational biology, bioinformatics, and machine learning.
 
