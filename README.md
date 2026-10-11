@@ -94,7 +94,7 @@ then run:
 
 ```sh
 python3 scripts/research_opportunities.py
-python3 -m unittest discover -s scripts -p 'test_research_opportunities.py'
+python3 -m unittest discover -s tests -p 'test_research_opportunities.py'
 ```
 
 The tests use fixtures and mocks and make no API calls. For a separate review
