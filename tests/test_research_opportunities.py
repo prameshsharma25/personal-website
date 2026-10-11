@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from scripts.research_opportunities import validate, merge, parse_response, official_url, normalize, main
+from scripts.research_opportunities import validate, merge, parse_response, official_url, normalize, main, discover, call_gemini
 
 class ResearchTests(unittest.TestCase):
     def example(self):
@@ -44,6 +44,45 @@ class ResearchTests(unittest.TestCase):
         response = {'candidates': [{'finishReason': 'STOP', 'groundingMetadata': {'groundingChunks': [{}], 'webSearchQueries': ['PhD']},
                                    'content': {'parts': [{'text': '```json\n[]\n```'}]}}]}
         self.assertEqual(parse_response(response), [])
+
+    def response(self, text, grounded=False):
+        candidate = {'finishReason': 'STOP', 'content': {'parts': [{'text': text}]}}
+        if grounded:
+            candidate['groundingMetadata'] = {'groundingChunks': [{'web': {'uri': 'https://example.edu/join'}}], 'webSearchQueries': ['PhD']}
+        return {'candidates': [candidate]}
+
+    def test_prose_search_uses_separate_structured_extraction(self):
+        notes = 'Here are the opportunities I found, with recruiting evidence and sources.'
+        with patch('scripts.research_opportunities.call_gemini', side_effect=[
+            self.response(notes, True), self.response(json.dumps([self.example()]))
+        ]) as api:
+            result = discover('Bioinformatics', '2026-10-11', 'test-only', [])
+        self.assertEqual(result, [self.example()])
+        self.assertEqual(api.call_count, 2)
+        search = api.call_args_list[0].args[0]
+        extraction = api.call_args_list[1].args[0]
+        self.assertIn('tools', search)
+        self.assertNotIn('responseSchema', search['generationConfig'])
+        self.assertNotIn('tools', extraction)
+        self.assertEqual(extraction['generationConfig']['responseMimeType'], 'application/json')
+        self.assertIn('responseSchema', extraction['generationConfig'])
+        self.assertIn(notes, extraction['contents'][0]['parts'][0]['text'])
+
+    def test_empty_or_ungrounded_search_does_not_extract(self):
+        for response in [self.response('', True), self.response('Found opportunities')]:
+            with patch('scripts.research_opportunities.call_gemini', return_value=response) as api:
+                with self.assertRaises(ValueError): discover('Bioinformatics', '2026-10-11', 'test-only', [])
+                self.assertEqual(api.call_count, 1)
+
+    def test_malformed_extraction_is_not_treated_as_no_results(self):
+        for text in ['', 'Here are your results', '[null]', '{}', '[1]', '[{"lab":']:
+            with self.assertRaises(ValueError): parse_response(self.response(text), require_grounding=False)
+
+    def test_transport_json_error_identifies_stage(self):
+        import io
+        with patch('scripts.research_opportunities.urlopen', return_value=io.BytesIO(b'<html>Unavailable</html>')):
+            with self.assertRaisesRegex(ValueError, 'search: API returned'):
+                call_gemini({}, 'test-only', 'Bioinformatics search')
 
     def test_api_failure_preserves_dataset(self):
         with tempfile.TemporaryDirectory() as directory:

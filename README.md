@@ -62,8 +62,9 @@ The initial dataset is intentionally empty, with no fabricated listings.
    fails because of repository permissions.
 
 The workflow uses Gemini 2.5 Flash with Google Search grounding, making at most
-three generation requests and requesting five candidates per area. Each request
-may perform multiple searches. There are no retries or paid-model fallbacks;
+six generation requests and requesting five candidates per area. Each area uses
+one grounded search followed by one tool-free, schema-constrained extraction.
+Each search request may perform multiple searches. There are no retries or paid-model fallbacks;
 API/quota errors abort the run without changing the dataset. This bounds work,
 but does not enforce a billing-account spending cap. Free quotas and model
 availability can change: check [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing).
