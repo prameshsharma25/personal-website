@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from scripts.research_opportunities import validate, merge, parse_response, official_url, normalize, main, discover, call_gemini, skip_message
+from scripts.research_opportunities import validate, merge, parse_response, public_source_url, normalize, main, discover, call_gemini, skip_message, check_public_source
 
 class ResearchTests(unittest.TestCase):
     def test_skip_log_explains_validation_failure(self):
@@ -33,14 +33,33 @@ class ResearchTests(unittest.TestCase):
     def test_evidence_must_exist(self):
         with self.assertRaises(ValueError): validate(self.example(), '2026-10-11', lambda _: 'No recruiting information')
 
-    def test_no_external_or_unsafe_urls(self):
-        for url in ['http://example.edu', 'https://example.edu.evil.com', 'https://localhost', 'javascript:alert(1)', 'https://example.edu:8000']:
-            self.assertFalse(official_url(url))
+    def test_no_unsafe_urls(self):
+        for url in ['http://example.edu', 'https://127.0.0.1', 'https://localhost', 'javascript:alert(1)', 'https://example.edu:8000']:
+            self.assertFalse(public_source_url(url))
 
-    def test_reject_non_us_and_invalid_deadline(self):
-        for field, value in [('country', 'UK'), ('deadline', '2027-02-30'), ('status', 'verified')]:
+    def test_reject_invalid_country_and_deadline(self):
+        for field, value in [('country', 'United Kingdom'), ('deadline', '2027-02-30'), ('status', 'verified')]:
             item = self.example(); item[field] = value
             with self.assertRaises(ValueError): validate(item, '2026-10-11', lambda _: normalize(item['evidence']))
+
+    def test_international_sources_and_original_language_evidence(self):
+        for country, url, quote in [
+            ('GB', 'https://example.ac.uk/join', 'We welcome applications from prospective PhD students.'),
+            ('DE', 'https://example.de/jobs', 'Wir suchen eine Doktorandin oder einen Doktoranden.'),
+            ('JP', 'https://example.ac.jp/jobs', '博士課程の学生を募集しています。研究内容と応募条件については、この募集案内をご覧ください。'),
+            ('ZA', 'https://example.ac.za/jobs', 'We welcome applications from prospective PhD students.'),
+            ('BR', 'https://example.br/jobs', 'We welcome applications from prospective PhD students.'),
+        ]:
+            item = self.example()
+            item.update(country=country, sourceUrl=url, applicationUrl=url, evidence=quote)
+            result = validate(item, '2026-10-11', lambda _: normalize(quote))
+            self.assertEqual(result['country'], country)
+            self.assertEqual(result['evidence'], quote)
+
+    def test_private_dns_is_rejected(self):
+        with patch('scripts.research_opportunities.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('10.0.0.1', 443))]):
+            with self.assertRaisesRegex(ValueError, 'non-public'):
+                check_public_source('https://example.org/jobs')
 
     def test_duplicate_refresh_preserves_other_entries(self):
         item = self.example()
@@ -78,6 +97,8 @@ class ResearchTests(unittest.TestCase):
         self.assertEqual(api.call_count, 2)
         search = api.call_args_list[0].args[0]
         extraction = api.call_args_list[1].args[0]
+        self.assertIn('worldwide', search['contents'][0]['parts'][0]['text'])
+        self.assertNotIn('enum', extraction['generationConfig']['responseSchema']['items']['properties']['country'])
         self.assertIn('tools', search)
         self.assertNotIn('responseSchema', search['generationConfig'])
         self.assertNotIn('tools', extraction)

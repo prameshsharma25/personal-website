@@ -39,7 +39,7 @@ Substack feed requires internet access.
 ## PhD Opportunities
 
 The `/research-opportunities` page reads `data/research-opportunities.json`.
-It covers US PhD recruitment in computational biology, bioinformatics, and all
+It covers worldwide PhD recruitment in computational biology, bioinformatics, and all
 machine learning, with no fixed entry year. Browsing the page makes no AI calls.
 The initial dataset is intentionally empty, with no fabricated listings.
 
@@ -71,13 +71,22 @@ availability can change: check [Gemini pricing](https://ai.google.dev/gemini-api
 
 ### Source checks and review
 
-Candidates must have an official HTTPS `.edu` HTML source and an exact recruiting
-excerpt found on that live page. Redirects must also stay on HTTPS `.edu` URLs.
-University program pages are used for application links. This conservative first
-version excludes labs hosted only on `.org`, personal domains, or PDF/JavaScript-only
-pages; it cannot discover every opportunity. Source matching verifies the excerpt,
-not all model interpretations: before merging, review US location, professor/lab,
-intake, recruiting status, funding, eligibility, deadline, and application route.
+Candidates must have a public HTTPS HTML source and an exact recruiting excerpt
+found on that live page. Sources and redirects are checked for public network
+addresses; domains are no longer restricted to `.edu`. The search targets official
+universities, research institutes, and labs across all countries. URL safety
+checks do not establish institutional ownership: confirm that in the pull request.
+PDF/JavaScript-only pages may still be skipped.
+
+Country uses uppercase ISO alpha-2 codes (for example US, GB, DE, IN) and is shown
+as a country name with a filter on the page. Existing US records remain compatible.
+Original-language recruiting excerpts are preserved, with English summaries;
+reviewers should check their meaning rather than relying on English keyword matches.
+Before merging, review country, institution, professor/lab, intake, recruiting
+status, funding, eligibility (including international and language requirements),
+deadline/timezone, and application route. Code checks the country format; reviewers
+confirm the actual country. The same six-call budget and five-candidate-per-area
+limit apply, so each scan is a worldwide sample, not exhaustive coverage.
 
 An undated invitation is labeled **General invitation**, not a confirmed current
 opening. Unknown fields remain null and display as **Not stated**. Existing

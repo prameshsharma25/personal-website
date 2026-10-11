@@ -5,7 +5,7 @@ export interface Opportunity {
   lab: string;
   university: string;
   location: string;
-  country: 'US';
+  country: string;
   areas: string[];
   summary: string;
   status: 'advertised' | 'general';
@@ -24,4 +24,9 @@ export function listingStatus(post: Opportunity, today: string) {
   if (post.deadline && post.deadline < today) return 'Expired';
   if (Date.parse(today) - Date.parse(post.lastChecked) > 45 * 86400000) return 'Needs recheck';
   return post.status === 'advertised' ? 'Advertised opening' : 'General invitation';
+}
+
+const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
+export function countryLabel(code: string) {
+  try { return countryNames.of(code) || code; } catch { return code; }
 }

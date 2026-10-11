@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import dataset from '../data/research-opportunities.json';
-import { listingStatus, Opportunity, researchAreas } from '../lib/research';
+import { countryLabel, listingStatus, Opportunity, researchAreas } from '../lib/research';
 import styles from '../styles/Research.module.css';
 
 const opportunities = dataset.opportunities as Opportunity[];
@@ -9,6 +9,8 @@ const dateLabel = (value: string) => new Date(value).toLocaleDateString('en-US',
 
 export default function ResearchOpportunities() {
   const [query, setQuery] = useState('');
+  const [country, setCountry] = useState('All countries');
+  const countries = [...new Set(opportunities.map(post => post.country))].sort((a, b) => countryLabel(a).localeCompare(countryLabel(b)));
   const [area, setArea] = useState('All areas');
   const [status, setStatus] = useState('Current listings');
   const [today, setToday] = useState(dataset.lastRun?.slice(0, 10) || '1970-01-01');
@@ -16,17 +18,17 @@ export default function ResearchOpportunities() {
   const visible = opportunities.filter(post => {
     const state = listingStatus(post, today);
     const matchesStatus = status === 'All listings' || (status === 'Current listings' ? !['Expired', 'Needs recheck'].includes(state) : state === status);
-    return matchesStatus && (area === 'All areas' || post.areas.includes(area)) &&
-      `${post.professor} ${post.lab} ${post.university} ${post.location} ${post.summary}`.toLowerCase().includes(query.toLowerCase().trim());
+    return matchesStatus && (country === 'All countries' || post.country === country) && (area === 'All areas' || post.areas.includes(area)) &&
+      `${post.professor} ${post.lab} ${post.university} ${post.location} ${countryLabel(post.country)} ${post.summary}`.toLowerCase().includes(query.toLowerCase().trim());
   }).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
   return <>
     <Head>
       <title>PhD Opportunities | Pramesh Sharma</title>
-      <meta name="description" content="Explore US PhD opportunities in computational biology, bioinformatics, and machine learning, with recruiting sources and application details." />
+      <meta name="description" content="Explore worldwide PhD opportunities in computational biology, bioinformatics, and machine learning, with recruiting sources and application details." />
     </Head>
     <main className={styles.main}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>UNITED STATES · PHD RESEARCH</p>
+        <p className={styles.eyebrow}>WORLDWIDE · PHD RESEARCH</p>
         <h1>PhD Opportunities</h1>
         <p>Find your next research home in computational biology, bioinformatics, and machine learning.</p>
         <p className={styles.note}>Recruiting evidence and application details from university and lab websites. Confirm availability with the program before applying. A general invitation does not confirm an opening for a particular intake.</p>
@@ -34,6 +36,7 @@ export default function ResearchOpportunities() {
       </header>
       <div className={styles.filters}>
         <label>Search<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Professor, lab, school, or topic" /></label>
+        <label>Country<select value={country} onChange={e => setCountry(e.target.value)}><option>All countries</option>{countries.map(code => <option key={code} value={code}>{countryLabel(code)}</option>)}</select></label>
         <label>Research area<select value={area} onChange={e => setArea(e.target.value)}>{['All areas', ...researchAreas].map(x => <option key={x}>{x}</option>)}</select></label>
         <label>Recruiting status<select value={status} onChange={e => setStatus(e.target.value)}>{['Current listings', 'Advertised opening', 'General invitation', 'Needs recheck', 'Expired', 'All listings'].map(x => <option key={x}>{x}</option>)}</select></label>
       </div>
@@ -46,7 +49,7 @@ export default function ResearchOpportunities() {
         <div className={styles.tags}><span>{listingStatus(post, today)}</span>{post.areas.map(x => <span key={x}>{x}</span>)}</div>
         <h2>{post.lab}</h2>
         <p className={styles.professor}>{post.professor} · {post.university}</p>
-        <p className={styles.note}>{post.location}</p>
+        <p className={styles.note}>{post.location} · {countryLabel(post.country)}</p>
         <p>{post.summary}</p>
         <dl className={styles.details}>
           <div><dt>Entry term</dt><dd>{post.intake || 'Not stated'}</dd></div>

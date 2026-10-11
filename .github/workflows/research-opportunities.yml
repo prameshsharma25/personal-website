@@ -38,13 +38,13 @@ jobs:
           branch: automation/research-opportunities
           add-paths: data/research-opportunities.json
           commit-message: Update PhD opportunities
-          title: Update US PhD opportunities
+          title: Update worldwide PhD opportunities
           body: |
-            Weekly research scan for computational biology, bioinformatics, and machine learning.
+            Weekly worldwide research scan for computational biology, bioinformatics, and machine learning.
 
             Review each new or changed listing before merging:
-            - Confirm the university is in the US and the professor/lab match the source.
-            - Confirm the excerpt describes recruiting and the status matches the stated intake.
+            - Confirm the country, institutional ownership of the source, and professor/lab details.
+            - Confirm the original-language excerpt describes doctoral recruiting and the status matches the stated intake.
             - Check deadlines, funding, eligibility, and application route against official sources.
             - Remove outdated openings or incorrect entries. Missing results do not delete older listings.
 
