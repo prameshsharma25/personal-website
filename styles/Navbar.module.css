@@ -29,7 +29,9 @@
 
 .navLinks {
   display: flex;
-  gap: 2.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 1rem 1.5rem;
 }
 
 .navLink {

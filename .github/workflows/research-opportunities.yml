@@ -1,0 +1,51 @@
+name: Research Opportunities
+on:
+  schedule:
+    - cron: '23 14 * * 1' # Mondays at 14:23 UTC
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: research-opportunities
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test validation and merging
+        run: python -m unittest discover -s scripts -p 'test_research_opportunities.py'
+      - name: Discover and check opportunities
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/research_opportunities.py
+      - name: Preserve review dataset
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-opportunities
+          path: data/research-opportunities.json
+          retention-days: 14
+      - name: Prepare updates for review
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: automation/research-opportunities
+          add-paths: data/research-opportunities.json
+          commit-message: Update research opportunities
+          title: Update US PhD research opportunities
+          body: |
+            Weekly research scan for computational biology, bioinformatics, and machine learning.
+
+            Review each new or changed listing before merging:
+            - Confirm the university is in the US and the professor/lab match the source.
+            - Confirm the excerpt describes recruiting and the status matches the stated intake.
+            - Check deadlines, funding, eligibility, and application route against official sources.
+            - Remove outdated openings or incorrect entries. Missing results do not delete older listings.
+
+            The script checks that recruiting excerpts appear in live university pages. This is not a guarantee of admission or current availability. Merging publishes the data on the next site deployment.

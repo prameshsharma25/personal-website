@@ -37,6 +37,11 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
+            <Link href="/research-opportunities" className="hover:text-gray-400">
+              Research Opportunities
+            </Link>
+          </li>
+          <li>
             <Link href="/contact" className="hover:text-gray-400">
               Contact
             </Link>
