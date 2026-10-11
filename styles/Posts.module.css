@@ -135,6 +135,13 @@
   margin-bottom: 1rem;
 }
 
+.postContent img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
 .postContent :is(ul, ol) {
   margin-bottom: 1rem;
   margin-left: 2rem;

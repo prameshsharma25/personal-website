@@ -15,7 +15,7 @@ export const books: Book[] = [
     title: 'Cloud Cuckoo Land',
     author: 'Anthony Doerr',
     coverUrl: '/books/cloud-cuckoo-land.jpg',
-    status: 'reading',
+    status: 'completed',
     description: 'An intricate tapestry of stories spanning centuries, connected by an ancient Greek text and the power of storytelling.',
   },
   {

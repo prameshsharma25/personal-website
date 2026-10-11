@@ -75,17 +75,23 @@ export default function Experience() {
 
   const publications = [
     {
+      title: 'AMMPER-2: A spatially explicit agent-based model of microbial radiobiology with redox dye simulation',
+      journal: 'Applied and Environmental Microbiology',
+      authors: 'Daniel Palacios, Pramesh Sharma, Madeline Marous, Danny Mejia, Lauren Liddell, Diana Gentry, Sergio Santa Maria, Jessica Lee',
+      link: 'https://www.biorxiv.org/content/10.64898/2026.10.08.757403v1',
+    },
+    {
+      title: 'AlphaFold reveals but sometimes distorts an organizational principle of protein folding',
+      journal: 'Nature Communications',
+      authors: 'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Lauren L. Porter',
+      link: 'https://www.biorxiv.org/content/10.64898/2025.12.30.697132v4',
+    },
+    {
       title: 'EasyDIVER+: an advanced tool for analyzing high throughput sequencing data from in vitro evolution of nucleic acids or amino acids',
       journal: 'Journal of Molecular Evolution',
       authors: 'Celia Blanco, Allison Tee, Pramesh Sharma, Matilda S. Newton, Kun-Hwa Lee, Samuel E. Erickson, Burckhard Seelig, Irene A. Chen',
-      link: null,
-    },
-    {
-      title: 'AMMPER-2: A spatially explicit agent-based model of microbial radiobiology with redox dye simulation',
-      journal: 'American Society for Microbiology',
-      authors: 'Jessica A. Lee, Daniel Palacios, Amrita Singh, Madeline Marous, Pramesh Sharma, Lauren Liddel, Diana Gentry, Sergio Santa Maria',
-      link: null,
-    },
+      link: 'https://link.springer.com/article/10.1007/s00239-025-10244-w',
+    }
   ];
 
   return (
