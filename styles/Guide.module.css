@@ -131,6 +131,8 @@
   padding: 0;
   color: var(--text, #e0e0e0);
   font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .a {

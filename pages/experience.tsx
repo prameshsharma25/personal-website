@@ -97,6 +97,7 @@ export default function Experience() {
   return (
     <div>
       <Head>
+        <link rel="canonical" href="https://prameshsharma.com/experience" />
         <title>About - Pramesh Sharma</title>
         <meta
           name="description"

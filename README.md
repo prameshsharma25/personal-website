@@ -119,3 +119,19 @@ python3 -m unittest discover -s tests -p 'test_research_opportunities.py'
 The tests use fixtures and mocks and make no API calls. For a separate review
 file, pass `--output /tmp/research-opportunities.json`; the page continues reading
 the repository dataset until you copy reviewed results into it.
+
+
+## Search visibility
+
+Blog posts are published at `/posts/<mdx-filename>`; `/posts` is the index.
+Each post and mentorship guide has its own title, description, self-referencing
+canonical URL, social metadata, and Article structured data. Website versions of
+Substack posts use the website URL as the preferred canonical while retaining the
+original Substack attribution. This does not change canonical settings on Substack.
+
+`/sitemap.xml` automatically includes all MDX posts and guides alongside the main
+pages. `public/robots.txt` points to it. After deploying, submit
+`https://prameshsharma.com/sitemap.xml` in Google Search Console and inspect the
+cold-email guide and a new post URL. Compare clicks, impressions, CTR, and average
+position by query and page over comparable date ranges. Indexing and rankings
+remain Google's decision; metadata changes do not guarantee traffic.

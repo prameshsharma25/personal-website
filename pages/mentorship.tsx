@@ -12,6 +12,7 @@ export default function Mentorship({ guides }: MentorshipPageProps) {
   return (
     <div>
       <Head>
+        <link rel="canonical" href="https://prameshsharma.com/mentorship" />
         <title>Mentorship - Pramesh Sharma</title>
         <meta name="description" content="Resume reviews and career guidance for students navigating research, internships, and PhD applications." />
       </Head>

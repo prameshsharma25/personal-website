@@ -24,6 +24,7 @@ export default function ResearchOpportunities() {
   }).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
   return <>
     <Head>
+        <link rel="canonical" href="https://prameshsharma.com/research-opportunities" />
       <title>PhD Opportunities | Pramesh Sharma</title>
       <meta name="description" content="Explore worldwide PhD opportunities in computational biology, bioinformatics, and machine learning, with recruiting sources and application details." />
     </Head>

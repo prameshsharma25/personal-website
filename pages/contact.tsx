@@ -43,6 +43,7 @@ export default function Contact() {
   return (
     <div>
       <Head>
+        <link rel="canonical" href="https://prameshsharma.com/contact" />
         <title>Contact Me</title>
         <meta name="description" content="Get in touch with me." />
         <link rel="icon" href="/favicon.ico" />

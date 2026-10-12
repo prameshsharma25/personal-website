@@ -5,6 +5,7 @@ export default function PrivacyPolicy() {
   return (
     <div>
       <Head>
+        <link rel="canonical" href="https://prameshsharma.com/privacy" />
         <title>Privacy Policy - Pramesh Sharma</title>
         <meta name="description" content="Privacy policy for Pramesh Sharma's personal website" />
       </Head>

@@ -18,9 +18,9 @@ export default function Navbar() {
   return (
     <nav className={styles.navbar} aria-label="Main navigation">
       <div className={styles.container}>
-        <h1 className={styles.logo}>
+        <div className={styles.logo}>
           <Link href="/" className={styles.logoLink}>Pramesh Sharma</Link>
-        </h1>
+        </div>
         <ul className={styles.navLinks}>
           {links.map(({ href, label }) => {
             const active = pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));

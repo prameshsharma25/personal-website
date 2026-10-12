@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import Seo from '../../components/Seo';
 import Link from 'next/link';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
@@ -21,7 +21,7 @@ type ComponentProps = Record<string, unknown>;
 
 export default function GuidePage({ guide, source, allGuides }: GuidePageProps) {
   const components = {
-    h1: (props: ComponentProps) => <h1 className={styles.h1} {...props} />,
+    h1: (props: ComponentProps) => <h2 className={styles.h2} {...props} />,
     h2: (props: ComponentProps) => <h2 className={styles.h2} {...props} />,
     h3: (props: ComponentProps) => <h3 className={styles.h3} {...props} />,
     p: (props: ComponentProps) => <p className={styles.p} {...props} />,
@@ -36,12 +36,7 @@ export default function GuidePage({ guide, source, allGuides }: GuidePageProps) 
 
   return (
     <div>
-      <Head>
-        <title>{guide.title} - Pramesh Sharma</title>
-        <meta name="description" content={guide.description} />
-        <meta name="og:title" content={guide.title} />
-        <meta name="og:description" content={guide.description} />
-      </Head>
+      <Seo title={guide.title} description={guide.description} path={`/mentorship/${guide.slug}`} date={guide.date} article />
 
       <main className={styles.container}>
         <div className={styles.navigation}>
@@ -60,6 +55,7 @@ export default function GuidePage({ guide, source, allGuides }: GuidePageProps) 
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
+                  timeZone: 'UTC',
                 })}
               </p>
             )}
