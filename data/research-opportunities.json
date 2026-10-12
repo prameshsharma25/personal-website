@@ -1,4 +1,10 @@
 {
-  "lastRun": "2026-10-11",
+  "lastRun": "2026-10-12",
+  "scanWarnings": [
+    {
+      "area": "Bioinformatics",
+      "reason": "Bioinformatics search: incomplete or blocked model response (RECITATION)"
+    }
+  ],
   "opportunities": []
 }
