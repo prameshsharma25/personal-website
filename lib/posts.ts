@@ -11,6 +11,8 @@ export interface PostMetadata {
   substackUrl?: string;
   slug: string;
   content?: string;
+  draft: boolean;
+  relatedLinks: { label: string; href: string }[];
 }
 
 export interface Post extends PostMetadata {
@@ -31,8 +33,10 @@ export function getPostBySlug(slug: string): Post {
     slug,
     title: data.title || 'Untitled',
     description: data.description || '',
-    date: data.date,
-    substackUrl: data.substackUrl,
+    date: data.date || null,
+    substackUrl: data.substackUrl || null,
+    draft: data.draft === true,
+    relatedLinks: data.relatedLinks || [],
     content,
   };
 }
@@ -45,21 +49,8 @@ export function getAllPosts(): PostMetadata[] {
   const files = fs.readdirSync(postsDirectory);
   const posts = files
     .filter((file) => file.endsWith('.mdx'))
-    .map((file) => {
-      const slug = file.replace(/\.mdx$/, '');
-      const filePath = path.join(postsDirectory, file);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-      const { data, content } = matter(fileContent);
-
-      return {
-        slug,
-        title: data.title || 'Untitled',
-        description: data.description || '',
-        date: data.date,
-        substackUrl: data.substackUrl,
-        content,
-      };
-    })
+    .map((file) => getPostBySlug(file.replace(/\.mdx$/, '')))
+    .filter((post) => !post.draft || process.env.NODE_ENV === 'development')
     .sort((a, b) => {
       const dateA = new Date(a.date || '').getTime();
       const dateB = new Date(b.date || '').getTime();

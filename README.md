@@ -135,3 +135,23 @@ pages. `public/robots.txt` points to it. After deploying, submit
 cold-email guide and a new post URL. Compare clicks, impressions, CTR, and average
 position by query and page over comparable date ranges. Indexing and rankings
 remain Google's decision; metadata changes do not guarantee traffic.
+
+### Draft posts and related topics
+
+Set `draft: true` in a post's frontmatter to preview it with `sh scripts/local.sh`
+(`npm run dev`). Drafts appear in the local post index and have a `noindex` tag.
+Production builds omit them from the index, article routes, and sitemap.
+The NIH article is at `/posts/how-i-found-an-nih-postbac-lab` in development.
+Search its MDX file for `TODO`, replace all prompts, verify the details, update the
+publication date, then set `draft: false` to publish it on the next deployment.
+
+Use `relatedLinks` in post frontmatter for the footer's topic links:
+
+```yaml
+relatedLinks:
+  - label: "Cold email templates for research opportunities"
+    href: "/mentorship/cold-emailing"
+```
+
+Choose a few relevant destinations and descriptive labels, rather than adding
+repetitive keyword lists. Do not link to unpublished drafts from published posts.

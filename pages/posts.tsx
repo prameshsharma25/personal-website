@@ -19,6 +19,7 @@ export default function Posts({ posts }: Props) {
           {posts.length === 0 && <p>No posts found.</p>}
           {posts.map(post => (
             <article key={post.slug} className={styles.postCard}>
+              {post.draft && <p className={styles.draftNotice}>Draft preview</p>}
               <h2 className={styles.postTitle}><Link href={`/posts/${post.slug}`}>{post.title}</Link></h2>
               <p className={styles.postDescription}>{post.description}</p>
               <div className={styles.postFooter}>
