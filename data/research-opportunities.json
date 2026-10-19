@@ -1,9 +1,13 @@
 {
-  "lastRun": "2026-10-12",
+  "lastRun": "2026-10-19",
   "scanWarnings": [
     {
-      "area": "Bioinformatics",
-      "reason": "Bioinformatics search: incomplete or blocked model response (RECITATION)"
+      "area": "Computational biology",
+      "reason": "Computational biology search: response contains no web search evidence"
+    },
+    {
+      "area": "Machine learning",
+      "reason": "Machine learning search: incomplete or blocked model response (RECITATION)"
     }
   ],
   "opportunities": []
