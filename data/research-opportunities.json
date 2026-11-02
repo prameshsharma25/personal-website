@@ -1,14 +1,31 @@
 {
-  "lastRun": "2026-10-19",
-  "scanWarnings": [
+  "lastRun": "2026-11-02",
+  "scanWarnings": [],
+  "opportunities": [
     {
-      "area": "Computational biology",
-      "reason": "Computational biology search: response contains no web search evidence"
-    },
-    {
-      "area": "Machine learning",
-      "reason": "Machine learning search: incomplete or blocked model response (RECITATION)"
+      "professor": "Professor Georgina Hold",
+      "lab": "Microbiome Research Centre",
+      "university": "University of New South Wales (UNSW Sydney)",
+      "location": "Sydney",
+      "summary": "Professor Georgina Hold is seeking a highly motivated PhD candidate with a background in bioinformatics or computational biology to join her research group. The project focuses on translational microbiome science, particularly the host–microbe interface in inflammatory bowel disease (IBD). It will integrate metagenomic, metabolomic, and clinical metadata to identify microbial and host-derived signatures associated with disease activity, treatment response, and progression using machine learning and statistical modelling.",
+      "sourceUrl": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGgXfyVdAZ53YlEca4llllccgz5-Ce5y2F_uZQdtG37eCnNbDCDAwPFHIFA57iwL6fdigAnyqjQDiqSovEyFVOeWhzGs9_PXk8xMzHdBlLmnM1F73hqTXeTdr9UvZ4kgCZcG9_Y0QIzro9cvGJ0mAmbh3cxTkA=",
+      "evidence": "Professor Georgina Hold is seeking a highly motivated PhD candidate with a background in bioinformatics or computational biology to join her research group at the Microbiome Research Centre, Faculty of Medicine and Health, University of New South Wales (UNSW Sydney).",
+      "intake": null,
+      "deadline": "2025-07-24",
+      "deadlineDetails": null,
+      "funding": "Competitive applicants will be supported in applying for a UNSW RTP scholarship or other schemes that provide full tuition and stipend.",
+      "eligibility": "A strong academic background (Honours Class I or MSc) in bioinformatics, computational biology, statistics, data science, or a related discipline. Proficiency in R and/or Python, and experience with high-dimensional data analysis (e.g., microbiome, transcriptomics, metabolomics). Prior experience in longitudinal data modelling, mixed-effects models, or machine learning will be highly regarded. Familiarity with microbiome analysis tools (e.g., QIIME2, HUMAnN3, MetaPhlAn, DESeq2) is desirable.",
+      "applicationDetails": "Direct lab application. To express interest, please email Professor Georgina Hold with a brief cover letter, CV including academic transcript, a short research statement (200 words max) describing interest or prior experience in IBD bioinformatics, and any relevant publications or code repositories.",
+      "applicationUrl": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGgXfyVdAZ53YlEca4llllccgz5-Ce5y2F_uZQdtG37eCnNbDCDAwPFHIFA57iwL6fdigAnyqjQDiqSovEyFVOeWhzGs9_PXk8xMzHdBlLmnM1F73hqTXeTdr9UvZ4kgCZcG9_Y0QIzro9cvGJ0mAmbh3cxTkA=",
+      "country": "AU",
+      "status": "advertised",
+      "areas": [
+        "Bioinformatics",
+        "Computational biology",
+        "Machine learning"
+      ],
+      "id": "76f4020aaadd18a6",
+      "lastChecked": "2026-11-02"
     }
-  ],
-  "opportunities": []
+  ]
 }
