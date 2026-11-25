@@ -6,6 +6,7 @@ import {
   type Inspection,
 } from '../lib/amyloid-inspector';
 import {
+  DEVICE_LIMITS,
   validateDeviceFiles,
   type DeviceArtifacts,
   type DeviceMessage,
@@ -177,13 +178,13 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       if (
         !Number.isInteger(minCluster) ||
         minCluster < 2 ||
-        minCluster > 20 ||
+        minCluster > DEVICE_LIMITS.files ||
         !Number.isInteger(minSamples) ||
         minSamples < 1 ||
-        minSamples > 19
+        minSamples >= DEVICE_LIMITS.files
       )
         throw new Error(
-          'Use a minimum cluster size of 2–20 and minimum samples of 1–19.'
+          `Use a minimum cluster size of 2–${DEVICE_LIMITS.files} and minimum samples of 1–${DEVICE_LIMITS.files - 1}.`
         );
       const confidenceBytes =
         confidence && compare && files.length > 1
@@ -343,12 +344,24 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               event.target.value = '';
             }}
           />
-          <p>Up to 20 files · 10 MB each · 25 MB total</p>
+          <p>
+            Up to {DEVICE_LIMITS.files} files ·{' '}
+            {DEVICE_LIMITS.fileBytes / 1024 ** 2} MB each ·{' '}
+            {DEVICE_LIMITS.totalBytes / 1024 ** 2} MB total
+          </p>
           {!!files.length && (
-            <p>
-              {files.length} {files.length === 1 ? 'structure' : 'structures'}{' '}
-              selected: {files.map((file) => file.name).join(', ')}
-            </p>
+            <details>
+              <summary>
+                {files.length} {files.length === 1 ? 'Structure' : 'Structures'}{' '}
+                Selected ·{' '}
+                {(
+                  files.reduce((sum, file) => sum + file.size, 0) /
+                  1024 ** 2
+                ).toFixed(1)}{' '}
+                MB
+              </summary>
+              <p>{files.map((file) => file.name).join(', ')}</p>
+            </details>
           )}
         </div>
       </div>
@@ -372,12 +385,20 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   groups similar assemblies; representative structures and
                   shortlist eligibility are included in the download.
                 </p>
+                <p aria-label="Comparison Workload">
+                  Up to {(files.length ** 2).toLocaleString('en-US')} MM-align
+                  runs for {files.length} structures, including self-checks and
+                  both comparison directions. Different sequences or chain
+                  counts are grouped separately, reducing the work. Larger
+                  batches can take a long time; keep this tab open. Turn off
+                  comparisons to calculate individual reports only.
+                </p>
                 <label>
                   Minimum Cluster Size
                   <input
                     type="number"
                     min="2"
-                    max="20"
+                    max={DEVICE_LIMITS.files}
                     value={minCluster}
                     disabled={running}
                     onChange={(event) =>
@@ -390,7 +411,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   <input
                     type="number"
                     min="1"
-                    max="19"
+                    max={DEVICE_LIMITS.files - 1}
                     value={minSamples}
                     disabled={running}
                     onChange={(event) =>

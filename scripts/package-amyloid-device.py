@@ -72,9 +72,9 @@ manifest = {
         "scipy": "1.18.0",
     },
     "limits": {
-        "max_files": 20,
+        "max_files": 125,
         "max_file_bytes": 10 * 1024**2,
-        "max_total_bytes": 25 * 1024**2,
+        "max_total_bytes": 100 * 1024**2,
         "max_atoms": 20000,
         "max_chains": 32,
     },

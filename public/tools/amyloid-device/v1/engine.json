@@ -15,9 +15,9 @@
     "scipy": "1.18.0"
   },
   "limits": {
-    "max_files": 20,
+    "max_files": 125,
     "max_file_bytes": 10485760,
-    "max_total_bytes": 26214400,
+    "max_total_bytes": 104857600,
     "max_atoms": 20000,
     "max_chains": 32
   },

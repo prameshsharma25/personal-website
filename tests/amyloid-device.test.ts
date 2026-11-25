@@ -10,14 +10,36 @@ test('device input limits reject unsupported, empty, oversized, and excessive ba
   assert.doesNotThrow(() =>
     validateDeviceFiles([file, { ...file, name: 'assembly.mmcif' }])
   );
+  assert.doesNotThrow(() =>
+    validateDeviceFiles(
+      Array.from({ length: 125 }, (_, i) => ({
+        ...file,
+        name: `model-${i}.pdb`,
+      }))
+    )
+  );
+  assert.doesNotThrow(() =>
+    validateDeviceFiles(
+      Array.from({ length: 10 }, (_, i) => ({
+        name: `model-${i}.pdb`,
+        size: 10 * 1024 ** 2,
+      }))
+    )
+  );
   for (const files of [
     [],
     [file, file],
-    Array.from({ length: 21 }, (_, i) => ({ ...file, name: `model-${i}.pdb` })),
+    Array.from({ length: 126 }, (_, i) => ({
+      ...file,
+      name: `model-${i}.pdb`,
+    })),
     [{ ...file, name: 'report.json' }],
     [{ ...file, size: 0 }],
     [{ ...file, size: DEVICE_LIMITS.fileBytes + 1 }],
-    Array(3).fill({ ...file, size: DEVICE_LIMITS.fileBytes }),
+    Array.from({ length: 11 }, (_, i) => ({
+      name: `model-${i}.pdb`,
+      size: 10 * 1024 ** 2,
+    })),
   ]) {
     assert.throws(() => validateDeviceFiles(files));
   }

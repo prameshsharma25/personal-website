@@ -2,9 +2,9 @@ import type { InputFile } from './amyloid-inspector';
 import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
 
 export const DEVICE_LIMITS = {
-  files: 20,
+  files: 125,
   fileBytes: 10 * 1024 * 1024,
-  totalBytes: 25 * 1024 * 1024,
+  totalBytes: 100 * 1024 * 1024,
 };
 export type DeviceResult = {
   structures: AnalysisModel[];
@@ -34,7 +34,7 @@ export type DeviceArtifacts = Record<string, InputFile[]>;
 
 export function validateDeviceFiles(files: Pick<File, 'name' | 'size'>[]) {
   if (!files.length || files.length > DEVICE_LIMITS.files)
-    throw new Error('Select between 1 and 20 structures.');
+    throw new Error(`Select between 1 and ${DEVICE_LIMITS.files} structures.`);
   if (new Set(files.map((file) => file.name)).size !== files.length)
     throw new Error('Rename duplicate filenames before analysis.');
   if (files.some((file) => !/\.(pdb|cif|mmcif)$/i.test(file.name)))
@@ -45,5 +45,7 @@ export function validateDeviceFiles(files: Pick<File, 'name' | 'size'>[]) {
     files.some((file) => !file.size || file.size > DEVICE_LIMITS.fileBytes) ||
     files.reduce((sum, file) => sum + file.size, 0) > DEVICE_LIMITS.totalBytes
   )
-    throw new Error('Choose nonempty files up to 10 MB each and 25 MB total.');
+    throw new Error(
+      `Choose nonempty files up to ${DEVICE_LIMITS.fileBytes / 1024 ** 2} MB each and ${DEVICE_LIMITS.totalBytes / 1024 ** 2} MB total.`
+    );
 }

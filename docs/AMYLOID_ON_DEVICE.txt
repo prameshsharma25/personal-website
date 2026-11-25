@@ -38,13 +38,18 @@ be turned off. It uses:
   validated identically to the server. No confidence is inferred from B-factors.
 
 LIMITS AND LIFECYCLE
-Up to 20 unique filenames, 10 MiB each, 25 MiB total; PDB/mmCIF, first model only,
+Up to 125 unique filenames, 10 MiB each, 100 MiB total; PDB/mmCIF, first model only,
 20,000 normalized atoms and 32 polymer chains per structure. Confidence CSV <=64 KiB.
 Default clustering: min_cluster_size 10, min_samples 3 (4 including self in sklearn).
 Pools too small for the settings get unavailable clusters, not fabricated noise.
-There can be at most 400 directed MM-align executions; comparable singleton groups
+There can be at most 15,625 directed MM-align executions; comparable singleton groups
 need none. Runtime and memory use depend on the device, structure, and batch size.
 The pairwise workload grows quadratically. Desktop use is recommended for batches.
+These are configured input safeguards, not measured browser capacity guarantees.
+The selection summary shows the maximum comparison count before starting; the
+progress bar uses the actual count after grouping. Smaller batches may still
+exhaust memory on some devices. The cluster-size control allows 2-125 members,
+and minimum samples allows 1-124 neighbors; scientific defaults remain unchanged.
 
 Each MM-align invocation gets a fresh Emscripten instance to avoid cross-pair state.
 Its memory may grow to 1 GiB; this is a ceiling, not an allocated amount or an
@@ -113,3 +118,7 @@ six-structure browser job against native MM-align distances. The latter uses
 synthetic chain translations of a public prediction, not experimental or private
 benchmark data. Archive checksums, confidence handling, cancellation, failure/retry,
 progress, mobile layout, and no-upload assertions are included.
+The 125-file limit is checked through actual browser selection, worker startup,
+and cancellation. A 21-input single-chain fixture completes all 441 directed
+alignments, clustering, and a checksum-verified ZIP, exercising the former
+400-alignment ceiling. This is not a full 125-assembly capacity benchmark.

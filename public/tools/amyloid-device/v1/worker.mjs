@@ -52,7 +52,7 @@ self.onmessage = async ({ data }) => {
         limits.max_total_bytes
     )
       throw new Error(
-        'Select up to 20 PDB or mmCIF files: 10 MB each, 25 MB total.'
+        `Select up to ${limits.max_files} PDB or mmCIF files: ${limits.max_file_bytes / 1024 ** 2} MB each, ${limits.max_total_bytes / 1024 ** 2} MB total.`
       );
     const settings = data.settings || {
       min_cluster_size: 10,
@@ -62,10 +62,10 @@ self.onmessage = async ({ data }) => {
     if (
       !Number.isInteger(settings.min_cluster_size) ||
       settings.min_cluster_size < 2 ||
-      settings.min_cluster_size > 20 ||
+      settings.min_cluster_size > limits.max_files ||
       !Number.isInteger(settings.min_samples) ||
       settings.min_samples < 1 ||
-      settings.min_samples > 19 ||
+      settings.min_samples >= limits.max_files ||
       settings.max_candidates !== 10
     )
       throw new Error('Invalid clustering settings.');
@@ -175,7 +175,7 @@ self.onmessage = async ({ data }) => {
     }
     if (batch) {
       const plan = JSON.parse(await python.runPythonAsync('alignment_plan()'));
-      if (plan.tasks.length > 400)
+      if (plan.tasks.length > limits.max_files ** 2)
         throw new Error('Too many pairwise alignments for this browser run.');
       const failed = new Set();
       for (const [index, task] of plan.tasks.entries()) {
