@@ -17,8 +17,10 @@ const colors = [
 ];
 export default function AmyloidStructureViewer({
   structure,
+  reportAvailable = true,
 }: {
   structure: NonNullable<Inspection['structure']>;
+  reportAvailable?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<MolecularViewer | null>(null);
@@ -142,7 +144,9 @@ export default function AmyloidStructureViewer({
         <p className={styles.viewerMessage} role="status">
           {state === 'loading'
             ? 'Opening The Structure…'
-            : '3D rendering is unavailable in this browser. The report and descriptors remain available.'}
+            : reportAvailable
+              ? '3D rendering is unavailable in this browser. The report and descriptors remain available.'
+              : '3D rendering is unavailable in this browser. Try a browser with WebGL enabled.'}
         </p>
       )}
       <div className={styles.viewerControls}>
@@ -208,8 +212,10 @@ export default function AmyloidStructureViewer({
       </div>
       <p className={styles.caption}>
         Drag to rotate · Scroll to zoom · Colors identify chains, not
-        confidence. Warnings describe the assembly; this view does not localize
-        them to residues.
+        confidence.{' '}
+        {reportAvailable
+          ? 'Warnings describe the assembly; this view does not localize them to residues.'
+          : 'Showing the first coordinate model. No amyloid assessment has been calculated.'}
       </p>
     </div>
   );

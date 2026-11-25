@@ -49,20 +49,18 @@ export default function Tools() {
             <h2>Amyloid Warning Inspector</h2>
             <p>
               A structure can look convincing and still warrant a closer look.
-              Open an Amyloid Candidates report to explore its geometry,
-              packing, and energy descriptors alongside the predicted assembly.
+              Upload predicted structures to calculate geometry, packing, and
+              energy descriptors, compare assemblies, and review the warnings.
             </p>
             <ul>
               <li>Interactive PDB and mmCIF structure inspection</li>
               <li>Warning explanations and questions to investigate</li>
-              <li>Local file reading with SHA-256 consistency checks</li>
+              <li>Batch analysis, clustering, and downloadable reports</li>
             </ul>
             <Link href="/tools/amyloid-inspector" className={styles.primary}>
               Open The Inspector <span aria-hidden="true">↗</span>
             </Link>
-            <p className={styles.caption}>
-              Report reader · No account required
-            </p>
+            <p className={styles.caption}>Structure Analysis & Report Viewer</p>
           </div>
         </article>
         <p className={styles.footerNote}>

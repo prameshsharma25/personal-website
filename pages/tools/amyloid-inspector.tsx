@@ -10,8 +10,8 @@ export default function AmyloidTool() {
   return (
     <>
       <Seo
-        title="Amyloid Warning Inspector — Structure & Descriptor Viewer"
-        description="Inspect Amyloid Candidates reports with an interactive molecular viewer, geometry and packing descriptors, energy estimates, and explanations of structural warnings."
+        title="Amyloid Warning Inspector — Structure Analysis & Clustering"
+        description="Analyze PDB and mmCIF assemblies with Amyloid Candidates: structural warnings, descriptors, MM-align comparisons, clustering, and downloadable research reports."
         path="/tools/amyloid-inspector"
         breadcrumbs={[
           { name: 'Home', path: '/' },
@@ -29,19 +29,19 @@ export default function AmyloidTool() {
           isAccessibleForFree: true,
           url: 'https://prameshsharma.com/tools/amyloid-inspector',
           description:
-            'A browser-local reader and molecular viewer for Amyloid Candidates gate reports.',
+            'Analyze uploaded assemblies with Amyloid Candidates and inspect local reports in an interactive molecular viewer.',
         }}
       />
       <main className={ui.page}>
         <div className={styles.breadcrumb}>
           <Link href="/tools">← All Tools</Link>
-          <span>Research Preview / Report Reader</span>
+          <span>Research Preview / Structure Analysis</span>
         </div>
         <PageIntro
           eyebrow="Amyloid Candidates / Structure Assessment"
           title="Amyloid Warning"
           accent="Inspector."
-          description="See the assembly. Understand the descriptors. Follow each warning back to the evidence that needs a closer look."
+          description="Upload predicted structures to calculate amyloid descriptors, compare assemblies, and inspect the warnings alongside the evidence."
         />
         <AmyloidInspector />
         <section
@@ -88,10 +88,12 @@ export default function AmyloidTool() {
           <p className={styles.kicker}>04 / Use The Current Package</p>
           <h2 id="package-heading">Your Pipeline. A Clearer View.</h2>
           <p>
-            Run Amyloid Candidates locally, then select the gate report, its
-            unchanged pipeline manifest, and the original coordinate file above.
-            The browser does not recalculate scores or change the package’s
-            thresholds.
+            The analysis service runs Amyloid Candidates on your uploaded
+            coordinates. Comparable assemblies are aligned with MM-align and
+            clustered with HDBSCAN. Results include individual warning reports,
+            distance matrices, cluster memberships, and shortlist eligibility.
+            You can also run the package locally and open its reports using Open
+            Existing Reports.
           </p>
           <pre className={styles.code}>
             <code>{`# In an environment with Amyloid Candidates installed:\namyloid-structural-pipeline --structure candidate.pdb \\\n  --prediction-id candidate --output-directory results\namyloid-gates --manifest results/candidate/candidate.manifest.json \\\n  --output results/candidate/candidate.gates.json`}</code>

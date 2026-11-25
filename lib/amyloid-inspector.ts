@@ -137,6 +137,63 @@ export async function sha256(bytes: Uint8Array): Promise<string> {
     v.toString(16).padStart(2, '0')
   ).join('');
 }
+/** A coordinate-only preview has no package classification or report binding. */
+export async function readStructure(
+  file: InputFile
+): Promise<NonNullable<Inspection['structure']>> {
+  requireValue(
+    file.bytes.byteLength <= MAX_FILE_BYTES,
+    'Each file must be 25 MB or smaller.'
+  );
+  requireValue(
+    /\.(pdb|cif|mmcif)$/i.test(file.name),
+    'Choose a PDB or mmCIF coordinate file.'
+  );
+  let text: string;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true }).decode(file.bytes);
+  } catch {
+    throw new Error('The structure must be a text PDB or mmCIF file.');
+  }
+  requireValue(
+    !text.includes('\0'),
+    'The structure must be a text PDB or mmCIF file.'
+  );
+  const format = /\.pdb$/i.test(file.name) ? 'pdb' : 'cif';
+  if (format === 'pdb') {
+    const atoms = text
+      .split(/\r?\n/)
+      .filter((line) => /^(ATOM  |HETATM)/.test(line));
+    requireValue(
+      atoms.length,
+      'This PDB has no ATOM or HETATM coordinate records. Choose a file containing atomic coordinates.'
+    );
+    requireValue(
+      atoms.every((line) =>
+        [30, 38, 46].every((start) => {
+          const value = line.slice(start, start + 8).trim();
+          return value.length > 0 && Number.isFinite(Number(value));
+        })
+      ),
+      'This PDB contains missing or invalid atom coordinates. Check its fixed-width coordinate columns.'
+    );
+  } else {
+    requireValue(
+      /^data_\S*/m.test(text) &&
+        ['x', 'y', 'z'].every((axis) =>
+          new RegExp('_atom_site\\.Cartn_' + axis + '(?:\\s|$)', 'i').test(text)
+        ),
+      'This mmCIF file does not contain an atom-site coordinate table.'
+    );
+  }
+  return {
+    name: file.name.split(/[\\/]/).pop() || 'Structure',
+    text,
+    format,
+    sha256: await sha256(file.bytes),
+    modelIndex: 0,
+  };
+}
 export async function inspectFiles(files: InputFile[]): Promise<Inspection> {
   requireValue(
     files.length > 0 && files.length <= 3,

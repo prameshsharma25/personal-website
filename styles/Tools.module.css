@@ -577,3 +577,116 @@
     transform: none;
   }
 }
+.modeTabs {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin: 0 0 1.5rem;
+}
+.modeTabs button {
+  padding: 0.85rem 1rem;
+  border: 1px solid #8cc5a944;
+  border-radius: 8px;
+  color: #c7e7d6;
+  background: #10231a;
+  cursor: pointer;
+}
+.modeTabs button[aria-pressed='true'] {
+  background: #b5f4d4;
+  color: #102b1d;
+}
+.analysisSettings {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+.analysisSettings label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+.analysisSettings input {
+  max-width: 100%;
+  border: 1px solid #93c4a74a;
+  border-radius: 7px;
+  padding: 0.7rem;
+  background: #10241a;
+  color: #d7eddf;
+}
+.analysisSettings input[type='number'] {
+  width: 120px;
+}
+.analysisSettings p {
+  line-height: 1.8;
+}
+.analysisSettings a {
+  color: #b5f4d4;
+  text-decoration: underline;
+}
+.exampleBar .runButton {
+  background: #b5f4d4;
+  color: #12271b;
+  font-weight: 600;
+  padding: 0.85rem 1.1rem;
+}
+.jobPanel {
+  border: 1px solid #8bc6aa44;
+  border-radius: 14px;
+  padding: 1.4rem;
+  margin: 2rem 0;
+}
+.tableScroll {
+  overflow-x: auto;
+  margin: 1.3rem 0;
+}
+.analysisTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  text-align: left;
+}
+.analysisTable caption {
+  text-align: left;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.analysisTable th,
+.analysisTable td {
+  padding: 0.85rem 0.7rem;
+  border-bottom: 1px solid #9ec4ad33;
+  vertical-align: top;
+  min-width: 110px;
+}
+.analysisTable th {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  max-width: 250px;
+}
+.analysisTable td {
+  color: #b6cfbf;
+}
+.analysisTable button {
+  cursor: pointer;
+  padding: 0.6rem;
+  min-height: 44px;
+  border: 1px solid #9de3bd55;
+  border-radius: 6px;
+  color: #d5f3e0;
+  background: #173524;
+}
+.analysisTable summary {
+  cursor: pointer;
+}
+.analysisTable p {
+  line-height: 1.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .modeTabs button {
+    transition: none;
+  }
+}
+
+.resultHeading h2 {
+  overflow-wrap: anywhere;
+}

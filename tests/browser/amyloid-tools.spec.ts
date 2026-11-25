@@ -66,7 +66,12 @@ test('reads local reports without network upload and rejects mismatched coordina
     if (request.method() !== 'GET') writes.push(request.url());
   });
   await page.goto('/tools/amyloid-inspector');
-  const input = page.getByLabel('Choose Report Files', { exact: true });
+  await page
+    .getByRole('button', { name: 'Open Existing Reports', exact: true })
+    .click();
+  const input = page.getByLabel('Choose Structure Or Report Files', {
+    exact: true,
+  });
   await input.setInputFiles([demo('2beg.gates.json')]);
   await expect(page.getByText('Report Only', { exact: true })).toBeVisible();
   await input.setInputFiles([

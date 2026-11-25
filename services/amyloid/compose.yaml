@@ -1,0 +1,17 @@
+services:
+  analysis:
+    build: .
+    ports:
+      - "127.0.0.1:8001:8001"
+    volumes:
+      - analysis-data:/data
+    environment:
+      AMYLOID_ALLOWED_ORIGINS: "http://127.0.0.1:3000,http://localhost:3000,http://127.0.0.1:3835"
+      AMYLOID_MAX_ACTIVE_JOBS: "3"
+      AMYLOID_JOBS_PER_DAY: "20"
+    cpus: 2
+    mem_limit: 3g
+    pids_limit: 128
+    restart: unless-stopped
+volumes:
+  analysis-data:

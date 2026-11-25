@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
   inspectFiles,
+  readStructure,
   parseGate,
   metrics,
   reviewExport,
@@ -147,4 +148,23 @@ test('review export omits local source paths and prediction identifiers', async 
   assert.equal(exported.includes('/Users/private'), false);
   assert.equal(exported.includes('component_inputs'), false);
   assert.equal(exported.includes(result.reportHash), true);
+});
+
+test('standalone coordinates preview without inventing an analysis report', async () => {
+  const source = (await files('2beg'))[2];
+  const structure = await readStructure(source);
+  assert.equal(structure.format, 'pdb');
+  assert.equal(structure.modelIndex, 0);
+  assert.equal(structure.sha256, await sha256(source.bytes));
+  for (const text of ['', 'not a structure', 'ATOM  invalid', 'ATOM  \u0000']) {
+    await assert.rejects(
+      readStructure({ name: 'bad.pdb', bytes: new TextEncoder().encode(text) })
+    );
+  }
+  await assert.rejects(
+    readStructure({
+      name: 'bad.cif',
+      bytes: new TextEncoder().encode('data_empty'),
+    })
+  );
 });

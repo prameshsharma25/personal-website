@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   inspectFiles,
+  readStructure,
   metrics,
   numberOrNull,
   reviewExport,
@@ -10,12 +11,17 @@ import {
   type Inspection,
 } from '../lib/amyloid-inspector';
 import AmyloidStructureViewer from './AmyloidStructureViewer';
+import AmyloidBatchAnalysis from './AmyloidBatchAnalysis';
 import styles from '../styles/Tools.module.css';
 
 export default function AmyloidInspector() {
+  const [mode, setMode] = useState('analysis');
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [structurePreview, setStructurePreview] = useState<NonNullable<
+    Inspection['structure']
+  > | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [example, setExample] = useState('');
@@ -26,6 +32,7 @@ export default function AmyloidInspector() {
     setBusy(true);
     setError('');
     setInspection(null);
+    setStructurePreview(null);
     setExample('');
     try {
       let selected: File[];
@@ -48,17 +55,21 @@ export default function AmyloidInspector() {
         throw new Error(
           'Select up to three files, 25 MB per file and 50 MB total.'
         );
-      const result = await inspectFiles(
-        await Promise.all(
-          selected.map(async (file) => ({
-            name: file.name,
-            bytes: new Uint8Array(await file.arrayBuffer()),
-          }))
-        )
+      const inputs = await Promise.all(
+        selected.map(async (file) => ({
+          name: file.name,
+          bytes: new Uint8Array(await file.arrayBuffer()),
+        }))
       );
-      if (id === operation.current) {
-        setInspection(result);
-        setExample(demo || '');
+      if (inputs.length === 1 && /\.(pdb|cif|mmcif)$/i.test(inputs[0].name)) {
+        const structure = await readStructure(inputs[0]);
+        if (id === operation.current) setStructurePreview(structure);
+      } else {
+        const result = await inspectFiles(inputs);
+        if (id === operation.current) {
+          setInspection(result);
+          setExample(demo || '');
+        }
       }
     } catch (problem) {
       if (id === operation.current)
@@ -74,6 +85,7 @@ export default function AmyloidInspector() {
   function clear() {
     ++operation.current;
     setInspection(null);
+    setStructurePreview(null);
     setExample('');
     setBusy(false);
     setError('');
@@ -101,34 +113,84 @@ export default function AmyloidInspector() {
       aria-label="Amyloid Report Inspector"
       aria-busy={busy}
     >
-      <div className={styles.upload}>
-        <div>
-          <p className={styles.kicker}>01 / Open A Result</p>
-          <h2>Bring Your Assembly Into Focus.</h2>
-          <p>
-            Select a <code>.gates.json</code> report. Add its{' '}
-            <code>.manifest.json</code> and original PDB or mmCIF file to
-            inspect the matching structure.
-          </p>
-        </div>
-        <div className={styles.uploadActions}>
-          <label htmlFor="amyloid-files">Choose Report Files</label>
-          <input
-            ref={input}
-            id="amyloid-files"
-            type="file"
-            accept=".json,.pdb,.cif,.mmcif"
-            multiple
-            disabled={!ready || busy}
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-              if (files.length) void open(files);
-              e.target.value = '';
-            }}
-          />
-          <p>Up to 3 files · 25 MB each · 50 MB total</p>
-        </div>
+      <div
+        className={styles.modeTabs}
+        role="group"
+        aria-label="Choose An Analysis Mode"
+      >
+        <button
+          aria-pressed={mode === 'analysis'}
+          onClick={() => {
+            setMode('analysis');
+            clear();
+          }}
+        >
+          Analyze Structures
+        </button>
+        <button
+          aria-pressed={mode === 'reports'}
+          onClick={() => {
+            setMode('reports');
+            clear();
+          }}
+        >
+          Open Existing Reports
+        </button>
       </div>
+      <div hidden={mode !== 'analysis'}>
+        <AmyloidBatchAnalysis
+          onReset={clear}
+          onPreview={(structure) => {
+            setInspection(null);
+            setStructurePreview(structure);
+            setExample('');
+          }}
+          onInspect={(result) => {
+            setStructurePreview(null);
+            setInspection(result);
+            setExample('');
+          }}
+        />
+      </div>
+      {mode === 'reports' && (
+        <>
+          <div className={styles.upload}>
+            <div>
+              <p className={styles.kicker}>01 / Open A Structure Or Result</p>
+              <h2>Bring Your Assembly Into Focus.</h2>
+              <p>
+                Open a PDB or mmCIF file to explore its structure. To see
+                calculated warnings and descriptors, select the structure
+                together with its <code>.gates.json</code> report and{' '}
+                <code>.manifest.json</code>.
+              </p>
+            </div>
+            <div className={styles.uploadActions}>
+              <label htmlFor="amyloid-files">
+                Choose Structure Or Report Files
+              </label>
+              <input
+                ref={input}
+                id="amyloid-files"
+                type="file"
+                accept=".json,.pdb,.cif,.mmcif"
+                multiple
+                disabled={!ready || busy}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length) void open(files);
+                  e.target.value = '';
+                }}
+              />
+              <p>Up to 3 files · 25 MB each · 50 MB total</p>
+            </div>
+          </div>
+          <p className={styles.caption}>
+            Report files and local previews stay in your browser. No analysis is
+            submitted in this mode.
+          </p>
+        </>
+      )}
       <div className={styles.exampleBar}>
         <span>Try A Calculated Example</span>
         <button
@@ -144,10 +206,7 @@ export default function AmyloidInspector() {
           2BEG / High Support ↗
         </button>
       </div>
-      <p className={styles.caption}>
-        Your files are read in your browser and are not uploaded. This tool
-        reads package results; it does not run scoring on a structure by itself.
-      </p>
+
       {!ready && (
         <>
           <p className={styles.notice}>
@@ -161,6 +220,60 @@ export default function AmyloidInspector() {
         <p role="alert" className={styles.error}>
           {error}
         </p>
+      )}
+      {structurePreview && (
+        <div className={styles.results}>
+          <div className={styles.resultHeading}>
+            <div>
+              <p className={styles.kicker}>02 / Structure Preview</p>
+              <h2>{structurePreview.name}</h2>
+            </div>
+            <div className={styles.controls}>
+              <button onClick={clear}>Clear Files</button>
+            </div>
+          </div>
+          <div className={styles.workbench}>
+            <section
+              className={styles.structurePanel}
+              aria-label="Structure Inspection"
+            >
+              <div className={styles.panelHeader}>
+                <h3>Structure</h3>
+                <span className={styles.badge}>Structure Only</span>
+              </div>
+              <AmyloidStructureViewer
+                key={structurePreview.sha256}
+                structure={structurePreview}
+                reportAvailable={false}
+              />
+            </section>
+            <section
+              className={styles.warningPanel}
+              aria-labelledby="preview-warning-title"
+            >
+              <div className={styles.panelHeader}>
+                <h3 id="preview-warning-title">Analysis Not Yet Calculated</h3>
+              </div>
+              <div className={styles.notice}>
+                <p>
+                  Your structure is ready to explore. Rotate it, inspect
+                  individual chains, or switch between cartoon and stick views.
+                </p>
+                <p>
+                  A PDB contains coordinates; the amyloid warning and descriptor
+                  calculations come from the Python package. No scores or
+                  warning results have been calculated for this preview.
+                </p>
+                <button
+                  className={styles.primary}
+                  onClick={() => setMode('analysis')}
+                >
+                  Analyze Structures ↑
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
       )}
       {report && inspection && (
         <div className={styles.results}>
