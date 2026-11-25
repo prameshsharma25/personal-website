@@ -580,8 +580,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       {ready && !supported && (
         <p className={styles.error} role="alert">
           On-device analysis needs WebAssembly, Web Workers, and a secure
-          connection. Try an up-to-date browser; existing reports can still be
-          opened below.
+          connection. Try an up-to-date browser or use Server Analysis when
+          available.
         </p>
       )}
       {error && (

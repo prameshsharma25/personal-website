@@ -1,7 +1,4 @@
 import { test, expect } from '@playwright/test';
-import path from 'node:path';
-const demo = (name: string) =>
-  path.resolve('public/tools/amyloid-example', name);
 test('first Dr. Lauren Porter mention links to NIH and Tools has a dedicated route', async ({
   page,
 }) => {
@@ -18,6 +15,11 @@ test('first Dr. Lauren Porter mention links to NIH and Tools has a dedicated rou
   await expect(page.getByRole('heading', { level: 1 })).toContainText(
     'Amyloid Structure Analysis'
   );
+  await expect(
+    page
+      .getByRole('group', { name: 'Choose An Analysis Mode' })
+      .getByRole('button')
+  ).toHaveText(['On My Device', 'Server Analysis']);
   await expect(
     page
       .getByRole('navigation', { name: 'Main Navigation' })
@@ -58,42 +60,6 @@ test('loads calculated warning, renders actual structure, exports, and clears', 
   await expect(page.locator('[data-viewer]')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
-test('reads local reports without network upload and rejects mismatched coordinates', async ({
-  page,
-}) => {
-  const writes: string[] = [];
-  page.on('request', (request) => {
-    if (request.method() !== 'GET') writes.push(request.url());
-  });
-  await page.goto('/tools/amyloid-inspector');
-  await page
-    .getByRole('button', { name: 'Open Existing Reports', exact: true })
-    .click();
-  const input = page.getByLabel('Choose Structure Or Report Files', {
-    exact: true,
-  });
-  await input.setInputFiles([demo('2beg.gates.json')]);
-  await expect(page.getByText('Report Only', { exact: true })).toBeVisible();
-  await input.setInputFiles([
-    demo('2beg.gates.json'),
-    demo('2beg.manifest.json'),
-    demo('6qjh.pdb'),
-  ]);
-  await expect(page.locator('main [role="alert"]')).toContainText(
-    'Structure mismatch'
-  );
-  await expect(page.locator('[data-viewer]')).toHaveCount(0);
-  await input.setInputFiles([
-    demo('2beg.gates.json'),
-    demo('2beg.manifest.json'),
-    demo('2beg.pdb'),
-  ]);
-  await expect(
-    page.getByRole('heading', { name: 'Amyloid Like High Support' })
-  ).toBeVisible();
-  await expect(page.getByText('0.948', { exact: true })).toBeVisible();
-  expect(writes).toEqual([]);
-});
 test('works at mobile width with reduced motion and a failed renderer', async ({
   page,
 }) => {
@@ -131,7 +97,9 @@ test('keeps instructions, metadata, and routes available without JavaScript', as
     `${process.env.TEST_BASE_URL || 'http://127.0.0.1:3817'}/tools/amyloid-inspector`
   );
   await expect(
-    page.getByText('Enable JavaScript to open reports', { exact: false })
+    page.getByText('Enable JavaScript to analyze and preview structures', {
+      exact: false,
+    })
   ).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',

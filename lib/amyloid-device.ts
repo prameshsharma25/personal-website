@@ -57,9 +57,7 @@ export function validateDeviceFiles(files: Pick<File, 'name' | 'size'>[]) {
   if (new Set(files.map((file) => file.name)).size !== files.length)
     throw new Error('Rename duplicate filenames before analysis.');
   if (files.some((file) => !/\.(pdb|cif|mmcif)$/i.test(file.name)))
-    throw new Error(
-      'Choose PDB or mmCIF coordinate files. Open JSON results in Open Existing Reports.'
-    );
+    throw new Error('Choose PDB or mmCIF coordinate files.');
   if (
     files.some((file) => !file.size || file.size > DEVICE_LIMITS.fileBytes) ||
     files.reduce((sum, file) => sum + file.size, 0) > DEVICE_LIMITS.totalBytes

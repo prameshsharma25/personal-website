@@ -22,7 +22,8 @@ Restart the website, then open /tools/amyloid-inspector. The default Compose
 configuration allows localhost:3000, 127.0.0.1:3000 and 127.0.0.1:3835. Change
 AMYLOID_ALLOWED_ORIGINS to the exact frontend origins you use. Trailing slashes
 are not part of an origin. Selecting files previews a single structure locally;
-selecting Analyze sends them to the worker. Existing-report mode stays local.
+selecting Analyze in Server Analysis sends them to the worker. On My Device
+keeps calculations and structure files in the browser.
 
 For native development, use Python 3.13 in an isolated virtual environment:
   python3.13 -m venv .venv

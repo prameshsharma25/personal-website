@@ -105,7 +105,7 @@ export default function AmyloidTool() {
             between implementations. Server Analysis retains the native hdbscan
             implementation for larger jobs; a separately configured worker is
             required for that mode. You can also run the package on your
-            computer and open existing reports.
+            computer to generate reports independently of this website.
           </p>
           <pre className={styles.code}>
             <code>{`# In an environment with Amyloid Candidates installed:\namyloid-structural-pipeline --structure candidate.pdb \\\n  --prediction-id candidate --output-directory results\namyloid-gates --manifest results/candidate/candidate.manifest.json \\\n  --output results/candidate/candidate.gates.json`}</code>
@@ -119,9 +119,8 @@ export default function AmyloidTool() {
             >
               package installation and pipeline instructions ↗
             </a>
-            . This reader supports gate-report schema 1.0 and pipeline-manifest
-            schema 1.1. The 3D view currently supports model index 0; other
-            models can still be reviewed as reports.
+            . The website analyzes and displays the first model in each
+            structure file.
           </p>
           <p>
             Examples were calculated with package commit{' '}

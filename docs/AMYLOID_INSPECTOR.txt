@@ -17,16 +17,17 @@ generated. Missing confidence is not inferred. See services/amyloid/README.txt.
 
 Set AMYLOID_API_URL only if enabling Server Analysis, using a public HTTPS base
 URL (or localhost HTTP for development). No service is contacted until the user
-opens Server Analysis. Without a worker, on-device calculations and report reading
-still work. A website build or PR merge does not deploy the optional service.
+opens Server Analysis. Without a worker, on-device calculations and calculated
+examples still work. A website build or PR merge does not deploy the optional service.
 
-Open Existing Reports reads files entirely in the browser: one gate-report 1.0
-JSON, optionally one structural-pipeline-manifest 1.1 JSON and original PDB/mmCIF.
-The reader compares SHA-256 over raw bytes: gate -> manifest -> coordinates.
-This establishes file pairing, not scientific correctness. A lone coordinate
-file opens as an unscored preview. Changing manifest whitespace changes its hash.
-The renderer supports model index 0 and never silently substitutes another model.
-Warnings are assembly-level; this version does not map them onto residues.
+The interface offers On My Device and Server Analysis. Selecting a single
+coordinate file previews its structure before calculation. Calculated results and
+public examples open in the shared inspector, which verifies SHA-256 pairing
+between the gate report, manifest, and coordinate bytes. This establishes file
+consistency, not scientific correctness. The renderer supports model index 0 and
+never silently substitutes another model. Warnings are assembly-level; this
+version does not map them onto residues. Downloaded reports remain available as
+files, but there is no separate report-upload mode.
 
 Package invocation in its installed environment:
 amyloid-structural-pipeline --structure candidate.pdb --prediction-id candidate --output-directory results

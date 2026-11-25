@@ -194,6 +194,9 @@ test('engine failure is recoverable, cancellation terminates the worker, and nav
   page,
 }) => {
   test.setTimeout(90000);
+  await page.route('**/api/amyloid-config', (route) =>
+    route.fulfill({ json: { enabled: false } })
+  );
   await page.route('**/tools/amyloid-device/v1/engine.json', (route) =>
     route.abort()
   );
@@ -217,10 +220,13 @@ test('engine failure is recoverable, cancellation terminates the worker, and nav
     { timeout: 60000 }
   );
   await page
-    .getByRole('button', { name: 'Open Existing Reports', exact: true })
+    .getByRole('button', { name: 'Server Analysis', exact: true })
     .click();
   await expect(
-    page.getByLabel('Choose Structure Or Report Files')
+    page.getByRole('region', {
+      name: 'Analyze Uploaded Structures',
+      exact: true,
+    })
   ).toBeVisible();
   await page.getByRole('button', { name: 'On My Device', exact: true }).click();
   await page
