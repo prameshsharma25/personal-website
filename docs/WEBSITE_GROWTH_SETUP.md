@@ -41,15 +41,13 @@ This version charges a fixed $5 and does not calculate sales tax, discounts, or 
 
 ## Reader experience
 
-Pages use a brief entrance transition, scroll reveals, card interactions, and
-reading progress on articles. The homepage includes a keyboard-accessible
-illustration of conformational change. It is an illustration, not a molecular
-simulation. The essay page uses a quieter editorial layout and lets readers
-switch between short excerpts.
+The site uses locally hosted Manrope and Space Grotesk fonts, pronounced page
+entrances, scroll reveals, and pointer-responsive cards. The homepage displays
+real RfaH structures with a 3D viewer. See [structure provenance, font loading,
+and motion behavior](RFAH_AND_MOTION.md) for sources and implementation details.
 
-Animation respects `prefers-reduced-motion`; the browser can change that preference
-while the page is open. Content is server rendered and remains visible without
-JavaScript. No new animation package or external font request is required.
+The essay page retains its editorial layout and selectable excerpts. Motion
+respects reduced-motion preferences, and readable content is server rendered.
 
 The newsletter implementation has been removed, including public signup,
 management pages, server routes, Google sender integration, and environment

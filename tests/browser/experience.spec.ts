@@ -1,18 +1,53 @@
 import { test, expect } from '@playwright/test';
 
-test('homepage illustration responds to the keyboard and navigation retains content', async ({ page }) => {
+test('RfaH viewer switches experimental states and offers keyboard controls', async ({ page }) => {
+  const externalFonts: string[] = [];
+  let releaseStructure!: () => void;
+  const structureGate = new Promise<void>(resolve => { releaseStructure = resolve; });
+  await page.route('**/2LCL-CTD.pdb', async route => { await structureGate; await route.continue(); });
+  page.on('request', request => { if (/fonts\.(googleapis|gstatic)\.com/.test(request.url())) externalFonts.push(request.url()); });
   await page.goto('/');
-  const slider = page.getByRole('slider', { name: 'Explore a change in shape' });
-  const chain = page.locator('svg path[pathLength="1"]');
-  const before = await chain.getAttribute('d');
-  await slider.focus(); await slider.press('End');
-  await expect(slider).toHaveValue('100');
-  expect(await chain.getAttribute('d')).not.toBe(before);
+  const figure = page.locator('figure[data-fold]');
+  await expect(figure).toHaveAttribute('data-viewer', 'ready', { timeout: 20000 });
+  await expect(figure.locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'Pause rotation', exact: true }).click();
+  await expect(figure).toHaveAttribute('data-spinning', 'false');
+  await page.getByRole('button', { name: /β-barrel state/ }).focus(); await page.keyboard.press('Enter');
+  await expect(figure).toHaveAttribute('data-fold', 'beta');
+  try {
+    await expect(figure).toHaveAttribute('data-viewer', 'loading');
+    await expect(figure.locator('canvas')).not.toBeVisible();
+    await expect(figure.locator('svg')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+  } finally { releaseStructure(); }
+  await expect(figure).toHaveAttribute('data-viewer', 'ready');
+  await expect(figure).toHaveAttribute('data-rendered-fold', 'beta');
+  await expect(figure).toContainText('2LCL / CHAIN A');
+  await page.getByRole('button', { name: 'Rotate structure left' }).click();
+  await page.getByRole('button', { name: 'Zoom in' }).click();
+  await page.getByRole('button', { name: 'Reset view', exact: true }).click();
+  await page.getByText('Structures & sources', { exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Download the displayed coordinates' })).toHaveAttribute('href', '/structures/rfah/2LCL-CTD.pdb');
+  expect(externalFonts).toEqual([]);
   await page.getByRole('link', { name: 'About my work', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pramesh Sharma');
   await expect(page.locator('.routeProgress')).toHaveAttribute('data-loading', 'false');
+});
+
+test('local fonts render and pointer tilt responds to reduced-motion changes', async ({ page }) => {
   await page.goto('/');
-  await page.screenshot({ path: '.local/home-motion-desktop.png', fullPage: true, animations: 'disabled' });
+  await page.evaluate(() => document.fonts.ready);
+  const fonts = await page.evaluate(() => [...document.fonts].filter(font => font.status === 'loaded').map(font => font.family));
+  expect(fonts).toEqual(expect.arrayContaining(['bodyFont', 'displayFont']));
+  const card = page.locator('[data-tilt]').first();
+  await card.scrollIntoViewIfNeeded();
+  await expect.poll(() => page.evaluate(() => document.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
+  await card.hover({ position: { x: 30, y: 30 } });
+  await expect.poll(() => card.evaluate(element => { const matrix = new DOMMatrix(getComputedStyle(element).transform); return Math.abs(matrix.m13) + Math.abs(matrix.m23); })).toBeGreaterThan(.01);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(() => card.evaluate(element => element.style.getPropertyValue('--tilt-x'))).toBe('');
+  const rotation = await card.evaluate(element => { const matrix = new DOMMatrix(getComputedStyle(element).transform); return Math.abs(matrix.m13) + Math.abs(matrix.m23); });
+  expect(rotation).toBe(0);
 });
 
 test('editorial collection offers PDF details and selectable excerpts without school-specific sales copy', async ({ page }) => {
@@ -49,8 +84,10 @@ test('newsletter pages and APIs are removed and do not trigger background reques
 test('reduced motion suppresses effects while reading progress and controls remain usable', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await page.getByRole('slider').focus(); await page.getByRole('slider').press('End');
-  await expect(page.getByRole('slider')).toHaveValue('100');
+  await page.getByRole('button', { name: /β-barrel state/ }).click();
+  await expect(page.locator('figure[data-fold]')).toHaveAttribute('data-fold', 'beta');
+  await expect(page.locator('figure[data-fold]')).toHaveAttribute('data-spinning', 'false');
+  await expect(page.getByRole('button', { name: 'Rotation paused', exact: true })).toBeDisabled();
   expect(await page.evaluate(() => document.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
   await page.goto('/posts/how-i-found-an-nih-postbac-lab');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
@@ -67,4 +104,16 @@ test('public reading content remains visible with JavaScript disabled', async ({
     await expect(page.locator('main')).not.toHaveCSS('opacity', '0');
   }
   await context.close();
+});
+
+test('actual-coordinate fallback remains usable when the viewer cannot load', async ({ page }) => {
+  await page.route('**/vendor/3dmol/**', route => route.abort());
+  await page.goto('/');
+  const figure = page.locator('figure[data-fold]');
+  await expect(figure).toHaveAttribute('data-viewer', 'fallback');
+  await expect(figure.locator('svg')).toBeVisible();
+  const before = await figure.locator('svg path').getAttribute('d');
+  await page.getByRole('button', { name: /β-barrel state/ }).click();
+  expect(await figure.locator('svg path').getAttribute('d')).not.toBe(before);
+  await expect(figure).toContainText('2LCL / CHAIN A');
 });

@@ -13,7 +13,7 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
         <p className={resource.eyebrow}>COMPUTATIONAL BIOLOGIST</p>
-        <h1>Hi, I’m Pramesh.</h1>
+        <h1 className={styles.heroTitle}><span>Hi, I’m</span>{' '}<span className={styles.name}>Pramesh.</span></h1>
         <p className={styles.description}>At NIH, I study proteins that can switch between different shapes. My work uses code and machine learning to understand these changes and the limits of protein structure prediction.</p>
         <p className={styles.description}>Getting here took a few changes of direction. I’ve shared what helped me find a lab, reach out to mentors, and move from software engineering into research.</p>
         <div className={resource.actions}>
@@ -29,7 +29,7 @@ export default function Home() {
           <p>Here’s what helped me get started, including the emails I actually sent.</p>
         </div>
         <div className={styles.guideGrid}>{STARTING_GUIDES.map((guide, i) =>
-          <Link data-reveal data-reveal-delay={i * 70} href={guide.href} key={guide.href} className={styles.guideCard}>
+          <Link data-tilt data-reveal data-reveal-delay={i * 70} href={guide.href} key={guide.href} className={styles.guideCard}>
             <span className={styles.number}>0{i + 1}</span>
             <h3>{guide.label}</h3><p>{guide.description}</p>
             <span className={styles.arrow} aria-hidden="true">↗</span>
