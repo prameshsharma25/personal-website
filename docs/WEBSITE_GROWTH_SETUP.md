@@ -107,3 +107,15 @@ records each PDF's page count and checksum.
 - [Vercel private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
 - [Google ads.txt guidance](https://support.google.com/adsense/answer/12171612)
 - [Google Search Console](https://developers.google.com/search/docs/monitor-debug/search-console-start)
+
+## Gumroad products and the UC annotation paywall
+
+The public UC guide contains only the original essay. Commentary lives in the ignored `private-products/uc-essay-annotations/source.md`; it is not imported into the site, serialized into page data, or included in public downloads. `scripts/package_uc_annotations.py` generates the paid PDF, and `scripts/prepare_gumroad_assets.py` prepares separate UC and PhD upload folders under `private-products/gumroad/`. Both scripts require ReportLab and PyMuPDF. Back up the ignored source and buyer files privately; Git does not contain them.
+
+The two proposed products are $5 each. The PhD product includes the original three-PDF ZIP; the UC product is a PDF containing the free essay and paid commentary. Upload only the designated buyer files to Gumroad’s Content tab, using the matching PNG covers, thumbnails, and listing copy. The screenshot’s existing PhD draft URL is `https://pramesh6.gumroad.com/l/rzmra`; the UC product still needs its own published URL.
+
+After configuring Gumroad payouts, publishing, and completing Gumroad’s test-purchase flow, set `GUMROAD_SALES_ENABLED=true` and the actual `PHD_ESSAYS_GUMROAD_URL` / `UC_ANNOTATIONS_GUMROAD_URL`. Only HTTPS product URLs on `pramesh6.gumroad.com` are accepted. Leave either URL blank until that product is ready. Redeploy after changing these settings; the UC guide is generated statically with hourly revalidation. Gumroad handles checkout, receipts, and file delivery; no Gumroad API secret or Gmail transport is required for these purchases. The PhD page prefers an enabled Gumroad URL over the existing Stripe checkout.
+
+Removing the commentary from the current site does not erase copies already published in old deployments, Git history, or search caches. This change does not rewrite repository history.
+
+Gumroad references: [product setup](https://gumroad.com/help/article/149-adding-a-product), [cover specifications](https://gumroad.com/help/article/60-adding-a-cover-image), [test purchases](https://gumroad.com/help/article/62-testing-a-purchase).
