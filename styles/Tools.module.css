@@ -1160,3 +1160,128 @@
   line-height: 1.8;
   max-width: 95ch;
 }
+
+.runHistory {
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid rgba(166, 244, 208, 0.24);
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 59, 46, 0.52),
+    rgba(9, 24, 20, 0.7)
+  );
+  margin-bottom: 1.5rem;
+}
+.runHistory h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin: 0 0 0.5rem;
+}
+.runList {
+  display: grid;
+  gap: 0.65rem;
+  max-height: min(28rem, 55vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  list-style: none;
+  padding: 0.25rem;
+  margin: 1rem 0;
+}
+.runCard {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(166, 244, 208, 0.2);
+  border-radius: 0.8rem;
+  padding: 1rem;
+  color: #d7eee1;
+  background: rgba(4, 16, 11, 0.7);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+.runCard:hover:not(:disabled),
+.runCard[aria-pressed='true'] {
+  border-color: #a6f4d0;
+  background: rgba(37, 75, 57, 0.55);
+}
+.runCard:focus-visible,
+.newRunButton:focus-visible {
+  outline: 2px solid #a6f4d0;
+  outline-offset: 2px;
+}
+.runCard:disabled {
+  cursor: default;
+}
+.runCardTop {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  align-items: start;
+  flex-wrap: wrap;
+}
+.runCardTop strong {
+  font-size: 1rem;
+  color: #f1fff7;
+  flex: 1;
+  min-width: min(12rem, 100%);
+}
+.runStatus {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 1rem;
+  background: #243b32;
+  color: #cce6d8;
+}
+.runStatus[data-status='completed'] {
+  background: #193c30;
+  color: #b5f5d9;
+}
+.runStatus[data-status='running'] {
+  background: #173743;
+  color: #aee7f8;
+}
+.runStatus[data-status='paused'] {
+  background: #3b3421;
+  color: #f2d799;
+}
+.runStatus[data-status='failed'] {
+  background: #442925;
+  color: #ffc3b5;
+}
+.runDate {
+  color: #a9c2b4;
+  font-size: 0.75rem;
+}
+.runEmpty {
+  padding: 1.3rem 0;
+  color: #b3c9bd;
+}
+.newRunButton {
+  padding: 0.7rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid #a6f4d0;
+  background: #a6f4d0;
+  color: #102c21;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.newRunButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  .runCard {
+    transition: none;
+  }
+}
+.runHistory .clusterFilters {
+  flex-wrap: wrap;
+  overflow: visible;
+}

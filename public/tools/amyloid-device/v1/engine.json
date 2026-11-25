@@ -36,8 +36,8 @@
     "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9",
     "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
     "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
-    "worker.mjs": "6ef639535321a43c634196a25ce0f9ff758f64af0b52d4df957eb53c3f0dfe8c",
-    "checkpoints.mjs": "bd42e1bdfcf8930c8bffcc5c5b792983a00d1ba10e6946e4d540e54edddbc88b"
+    "worker.mjs": "e4ce2f97d5b5d12c86c006e8ff9f7f5a2327b9d20df1c6e28b0dc48e90480664",
+    "checkpoints.mjs": "15fbf4ffbd25c73085f209b8b96da4545745afee39054b4ac33e7f5bb70da118"
   },
   "pipeline_files": {
     "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -90,5 +90,11 @@
     "amyloid_cross_check/scoring_calibration/reference_gates.py": "e46771f3b6f4ed24ebabdf5710afb8995bf1a07cb8d168abae29a92e44b609ad",
     "licenses/ATTRIBUTION.md": "2c8d7749e49e109abb43b701617df242be1fd93f13366509df94d22eab9dca8b",
     "licenses/LICENSE": "12eef3f23a3754f277babb57baeeb82ac12f5148ed9a575d33ea029b52860138"
-  }
+  },
+  "checkpoint_compatible_engines": [
+    {
+      "engine": "d41a5f7743f755ac61cc5c39be21efb72f9aa3d7c3e9d7ee2deb8156fa7e8cec",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    }
+  ]
 }

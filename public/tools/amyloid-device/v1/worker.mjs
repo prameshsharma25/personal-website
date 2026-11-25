@@ -100,7 +100,7 @@ self.onmessage = async ({ data }) => {
   );
   try {
     if (data.resumeId) {
-      const saved = await readCheckpointSummary();
+      const saved = await readCheckpointSummary(data.resumeId);
       if (saved?.id !== data.resumeId)
         throw new Error('The saved run is no longer available.');
       if (saved.status === 'complete') {
@@ -240,12 +240,12 @@ self.onmessage = async ({ data }) => {
             alignmentWorkers: workerChoice,
           },
           engine,
-          data.resumeId
+          data.resumeId,
+          data.checkpointId
         );
         checkpointNotice(checkpoint.meta, true);
       } catch (error) {
-        if (data.resumeId || String(error).includes('A saved run is waiting'))
-          throw error;
+        if (data.resumeId) throw error;
         checkpointWarning(error);
       }
     }

@@ -156,13 +156,14 @@ test('real parallel descriptors and comparisons resume after two crashes with id
   const cachedIds = await page.evaluate(
     () =>
       new Promise<string[]>((resolve, reject) => {
-        const request = indexedDB.open('amyloid-analysis-checkpoints-v1', 1);
+        const request = indexedDB.open('amyloid-analysis-checkpoints-v1', 2);
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
           const db = request.result;
           const tx = db.transaction('descriptors');
           const keys = tx.objectStore('descriptors').getAllKeys();
-          keys.onsuccess = () => resolve(keys.result as string[]);
+          keys.onsuccess = () =>
+            resolve(keys.result.map((key) => (key as string[])[1]));
           tx.oncomplete = () => db.close();
         };
       })
@@ -170,16 +171,15 @@ test('real parallel descriptors and comparisons resume after two crashes with id
   // The originating page still owns the lock even though its worker was lost.
   const other = await context.newPage();
   await other.goto('/tools/amyloid-inspector');
-  await other
-    .getByRole('button', { name: 'Resume Saved Run', exact: true })
-    .click();
-  await expect(other.locator('main [role=alert]')).toContainText('Another tab');
-  await other
-    .getByRole('button', { name: 'Delete Saved Run', exact: true })
-    .click();
   await expect(
-    other.getByRole('region', { name: 'On-Device Analysis', exact: true })
-  ).toContainText('Another tab');
+    other.getByRole('button', { name: 'Resume Saved Run', exact: true })
+  ).toBeDisabled();
+  await expect(
+    other.getByRole('button', { name: 'Delete Saved Run', exact: true })
+  ).toBeDisabled();
+  await expect(
+    other.getByRole('region', { name: 'Saved Analysis', exact: true })
+  ).toContainText('another tab');
   expect((await saved(other)).id).toBe(first.id);
   await other.close();
   await page.evaluate(() =>
@@ -250,6 +250,13 @@ test('real parallel descriptors and comparisons resume after two crashes with id
     .getByRole('button', { name: 'Delete Saved Run', exact: true })
     .click();
   expect(await saved(page)).toBeNull();
+  // Deleting the selected run also clears its workspace. Re-select inputs for the fresh comparison.
+  await page
+    .getByLabel('Choose Structures', { exact: true })
+    .setInputFiles(inputs);
+  await page
+    .getByLabel('Optional Confidence CSV', { exact: true })
+    .setInputFiles(confidence);
   // Fresh calculation of the same inputs verifies restoration did not alter science.
   await page
     .getByLabel('Save Progress On This Device', { exact: true })
@@ -328,7 +335,7 @@ test('serial recovery reuses a saved failed input and cancellation keeps a recov
     }
   );
   await page
-    .getByRole('button', { name: 'Cancel Analysis', exact: true })
+    .getByRole('button', { name: 'Pause Analysis', exact: true })
     .click();
   const before = await saved(page);
   expect(before.descriptors).toBe(1);
@@ -366,8 +373,14 @@ test('storage transactions are atomic, fenced, and reject changed inputs or engi
       descriptorWorkers: 1,
       alignmentWorkers: 1,
     };
-    const release = await store.acquireCheckpointLock();
-    const session = await store.openCheckpoint(input, { engine: 1 });
+    const id = crypto.randomUUID();
+    const release = await store.acquireCheckpointLock(id);
+    const session = await store.openCheckpoint(
+      input,
+      { engine: 1 },
+      undefined,
+      id
+    );
     await session.put('descriptors', 'model-001', {
       model: { id: 'model-001' },
       artifacts: [
@@ -417,6 +430,7 @@ test('storage transactions are atomic, fenced, and reject changed inputs or engi
       archive: new Uint8Array([8]).buffer,
     });
     const replacement = await store.openCheckpoint(input, { engine: 1 });
+    const retained = await store.readCheckpointCompletion(session.meta.id);
     let staleError = '';
     try {
       await session.put('descriptors', 'stale', {});
@@ -426,7 +440,9 @@ test('storage transactions are atomic, fenced, and reject changed inputs or engi
     const empty = await replacement.keys('descriptors');
     await release();
     await store.deleteCheckpoint(replacement.meta.id);
+    await store.deleteCheckpoint(session.meta.id);
     return {
+      retained: retained.archive.byteLength,
       lockError,
       versionError,
       inputError,
@@ -438,6 +454,7 @@ test('storage transactions are atomic, fenced, and reject changed inputs or engi
       deleted: await store.readCheckpointSummary(),
     };
   }, moduleURL);
+  expect(outcome.retained).toBe(1);
   expect(outcome.lockError).toContain('Another tab');
   expect(outcome.versionError).toContain('different analysis engine');
   expect(outcome.inputError).toContain('settings do not match');
@@ -471,22 +488,23 @@ for (const problem of ['engine', 'corrupt input']) {
           descriptorWorkers: 1,
           alignmentWorkers: 1,
         };
-        const release = await store.acquireCheckpointLock();
-        const run = await store.openCheckpoint(input, engine);
+        const id = crypto.randomUUID();
+        const release = await store.acquireCheckpointLock(id);
+        const run = await store.openCheckpoint(input, engine, undefined, id);
         if (problem === 'corrupt input')
           await new Promise<void>((resolve, reject) => {
             const request = indexedDB.open(
               'amyloid-analysis-checkpoints-v1',
-              1
+              2
             );
             request.onsuccess = () => {
               const db = request.result;
               const tx = db.transaction('inputs', 'readwrite');
               const inputStore = tx.objectStore('inputs');
-              const saved = inputStore.get('current');
+              const saved = inputStore.get([run.meta.id, 'current']);
               saved.onsuccess = () => {
                 new Uint8Array(saved.result.payload.files[0].bytes)[0] = 99;
-                inputStore.put(saved.result, 'current');
+                inputStore.put(saved.result, [run.meta.id, 'current']);
               };
               tx.oncomplete = () => {
                 db.close();

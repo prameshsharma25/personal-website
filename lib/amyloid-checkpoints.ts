@@ -3,10 +3,20 @@ export {
   deleteCheckpoint,
   readCheckpointSummary,
   readCheckpointInputs,
+  readCheckpointModels,
+  listCheckpoints,
+  setCheckpointActivity,
 } from '../public/tools/amyloid-device/v1/checkpoints.mjs';
 export type CheckpointSummary = {
   format: number;
   id: string;
+  name: string;
+  createdAt: number;
+  activity: 'running' | 'paused' | 'failed';
+  displayStatus?: 'running' | 'paused' | 'failed' | 'completed';
+  busy?: boolean;
+  hasErrors?: boolean;
+  error?: string;
   inputCount: number;
   inputBytes: number;
   descriptors: number;

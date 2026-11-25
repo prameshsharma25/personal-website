@@ -3,7 +3,7 @@ export const CHECKPOINT_DB = 'amyloid-analysis-checkpoints-v1';
 export const CHECKPOINT_LOCK = 'amyloid-analysis-checkpoint-writer-v1';
 const STORES = ['run', 'inputs', 'descriptors', 'alignments', 'completion'];
 let connection;
-let releasingLock = Promise.resolve();
+const releasingLocks = new Map();
 export async function digest(value) {
   async function canonical(item) {
     if (item instanceof ArrayBuffer || ArrayBuffer.isView(item)) {
@@ -31,29 +31,93 @@ async function hash(bytes) {
     .join('');
 }
 function database() {
-  if (!connection)
-    connection = new Promise((resolve, reject) => {
-      const request = indexedDB.open(CHECKPOINT_DB, 1);
-      request.onupgradeneeded = () => {
-        for (const name of STORES) request.result.createObjectStore(name);
-      };
-      request.onerror = () => reject(request.error);
-      request.onblocked = () =>
-        reject(
-          new Error('Local checkpoint storage is blocked by another tab.')
-        );
-      request.onsuccess = () => {
-        const db = request.result;
-        db.onversionchange = () => {
-          db.close();
-          connection = undefined;
+  if (!connection) {
+    const open = () =>
+      new Promise((resolve, reject) => {
+        const request = indexedDB.open(CHECKPOINT_DB, 2);
+        let blocked = false;
+        request.onupgradeneeded = (event) => {
+          if (event.oldVersion === 0) {
+            for (const name of STORES) request.result.createObjectStore(name);
+            return;
+          }
+          // Upgrade the previous single saved run in the same atomic transaction.
+          const tx = request.transaction;
+          const runs = tx.objectStore('run');
+          const old = runs.get('current');
+          old.onsuccess = () => {
+            if (!old.result) return;
+            const meta = old.result;
+            const input = tx.objectStore('inputs').get('current');
+            input.onsuccess = () => {
+              runs.put(
+                {
+                  ...meta,
+                  name: runName(input.result?.payload),
+                  createdAt: meta.updatedAt,
+                  activity: 'paused',
+                },
+                meta.id
+              );
+              runs.delete('current');
+            };
+            for (const name of STORES.filter((name) => name !== 'run')) {
+              const store = tx.objectStore(name);
+              const cursor = store.openCursor();
+              cursor.onsuccess = () => {
+                const item = cursor.result;
+                if (!item) return;
+                if (!Array.isArray(item.key)) {
+                  store.put(item.value, [meta.id, item.key]);
+                  item.delete();
+                }
+                item.continue();
+              };
+            }
+          };
         };
-        resolve(db);
-      };
-    }).catch((error) => {
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => {
+          blocked = true;
+          reject(
+            new Error(
+              'Close other analysis tabs and refresh to upgrade saved run storage.'
+            )
+          );
+        };
+        request.onsuccess = () => {
+          const db = request.result;
+          if (blocked) {
+            db.close();
+            return;
+          }
+          db.onversionchange = () => {
+            db.close();
+            connection = undefined;
+          };
+          resolve(db);
+        };
+      });
+    // Older releases hold this exclusive lock throughout calculation. New readers
+    // share a brief guard so migration cannot invalidate an active legacy writer.
+    const opening = globalThis.navigator?.locks
+      ? navigator.locks.request(
+          CHECKPOINT_LOCK,
+          { mode: 'shared', ifAvailable: true },
+          (lock) => {
+            if (!lock)
+              throw new Error(
+                'An older analysis tab is still running. Pause it or close that tab to load run history.'
+              );
+            return open();
+          }
+        )
+      : open();
+    connection = opening.catch((error) => {
       connection = undefined;
       throw error;
     });
+  }
   return connection;
 }
 async function transaction(stores, mode, action) {
@@ -122,23 +186,80 @@ async function verified(record, id) {
     );
   return record.payload;
 }
-export async function readCheckpointSummary() {
-  return read('run', 'current');
+function runName(input) {
+  const files = input?.files || [];
+  return files.length
+    ? `${files[0].name}${files.length > 1 ? ` + ${files.length - 1} More` : ''}`
+    : 'Saved Analysis';
+}
+function runRange(id) {
+  return IDBKeyRange.bound([id], [id, []]);
+}
+async function summaries() {
+  return transaction(['run'], 'readonly', (tx, done) => {
+    const request = tx.objectStore('run').getAll();
+    request.onsuccess = () =>
+      done(
+        request.result.sort(
+          (a, b) =>
+            (b.createdAt ?? b.updatedAt) - (a.createdAt ?? a.updatedAt) ||
+            a.id.localeCompare(b.id)
+        )
+      );
+  });
+}
+export async function readCheckpointSummary(id) {
+  return id ? read('run', id) : ((await summaries())[0] ?? null);
+}
+export async function listCheckpoints() {
+  const records = await summaries();
+  const locks = await navigator.locks.query();
+  const held = new Set(locks.held.map((lock) => lock.name));
+  return records.map((meta) => {
+    const busy = held.has(`${CHECKPOINT_LOCK}:${meta.id}`);
+    return {
+      ...meta,
+      busy,
+      displayStatus:
+        meta.status === 'complete'
+          ? 'completed'
+          : busy && meta.activity === 'running'
+            ? 'running'
+            : meta.activity === 'failed'
+              ? 'failed'
+              : 'paused',
+    };
+  });
 }
 export async function readCheckpointInputs(id) {
-  const meta = await readCheckpointSummary();
+  const meta = await readCheckpointSummary(id);
   checkRun(meta, id);
-  const record = await read('inputs', 'current');
+  const record = await read('inputs', [id, 'current']);
   if (!record || record.digest !== meta.inputDigest)
     throw new Error('The saved inputs are missing or inconsistent.');
   return verified(record, id);
 }
-export async function readCheckpointCompletion(id) {
-  checkRun(await readCheckpointSummary(), id);
-  return verified(await read('completion', 'current'), id);
+export async function readCheckpointModels(id) {
+  checkRun(await readCheckpointSummary(id), id);
+  const keys = await transaction(['descriptors'], 'readonly', (tx, done) => {
+    const request = tx.objectStore('descriptors').getAllKeys(runRange(id));
+    request.onsuccess = () => done(request.result);
+  });
+  const models = [];
+  for (const key of keys) {
+    const output = await verified(await read('descriptors', key), id);
+    if (output?.model) models.push(output.model);
+  }
+  return models.sort((a, b) => a.id.localeCompare(b.id));
 }
-export async function acquireCheckpointLock() {
-  await releasingLock;
+export async function readCheckpointCompletion(id) {
+  checkRun(await readCheckpointSummary(id), id);
+  return verified(await read('completion', [id, 'current']), id);
+}
+export async function acquireCheckpointLock(id) {
+  if (!id) throw new Error('A run ID is required to access saved progress.');
+  const name = `${CHECKPOINT_LOCK}:${id}`;
+  await releasingLocks.get(name);
   return new Promise((resolve, reject) => {
     if (!globalThis.navigator?.locks) {
       reject(
@@ -149,11 +270,11 @@ export async function acquireCheckpointLock() {
       return;
     }
     const request = navigator.locks
-      .request(CHECKPOINT_LOCK, { ifAvailable: true }, async (lock) => {
+      .request(name, { ifAvailable: true }, async (lock) => {
         if (!lock) {
           reject(
             new Error(
-              'Another tab is using the saved run. Stop that analysis or close its tab first.'
+              'Another tab is using this saved run. Pause that analysis or close its tab first.'
             )
           );
           return;
@@ -161,7 +282,11 @@ export async function acquireCheckpointLock() {
         await new Promise((release) =>
           resolve(() => {
             release();
-            releasingLock = request;
+            releasingLocks.set(name, request);
+            void request.finally(() => {
+              if (releasingLocks.get(name) === request)
+                releasingLocks.delete(name);
+            });
             return request;
           })
         );
@@ -169,32 +294,68 @@ export async function acquireCheckpointLock() {
       .catch(reject);
   });
 }
+export async function setCheckpointActivity(id, activity, error = '') {
+  return transaction(['run'], 'readwrite', (tx, done, fail, guard) => {
+    const store = tx.objectStore('run');
+    const request = store.get(id);
+    request.onsuccess = guard(() => {
+      if (!request.result) return done(null);
+      checkRun(request.result, id);
+      if (request.result.status === 'complete') return done(request.result);
+      const meta = {
+        ...request.result,
+        activity,
+        error,
+        updatedAt: Date.now(),
+      };
+      store.put(meta, id);
+      done(meta);
+    });
+  });
+}
 export async function deleteCheckpoint(id) {
-  const release = await acquireCheckpointLock();
+  const release = await acquireCheckpointLock(id);
   try {
-    await transaction(STORES, 'readwrite', (tx, done, fail, guard) => {
-      const request = tx.objectStore('run').get('current');
-      request.onsuccess = guard(() => {
-        if (request.result && request.result.id !== id) {
-          fail(new Error('The saved run changed. Refresh before deleting it.'));
-          return;
-        }
-        for (const name of STORES) tx.objectStore(name).clear();
-        done(null);
-      });
+    await transaction(STORES, 'readwrite', (tx, done) => {
+      tx.objectStore('run').delete(id);
+      for (const name of STORES.filter((name) => name !== 'run'))
+        tx.objectStore(name).delete(runRange(id));
+      done(null);
     });
   } finally {
     await release();
   }
 }
-export async function openCheckpoint(input, engine, resumeId) {
+export async function scienceDigest(engine) {
+  const { checkpoint_compatible_engines, ...settings } = engine;
+  const {
+    ['worker.mjs']: worker,
+    ['checkpoints.mjs']: storage,
+    ...files
+  } = engine.files || {};
+  return digest({ ...settings, files });
+}
+async function compatibleEngine(engine, previousDigest, currentDigest) {
+  if (previousDigest === currentDigest) return true;
+  const previous = engine.checkpoint_compatible_engines?.find(
+    (entry) => entry.engine === previousDigest
+  );
+  return !!previous && previous.science === (await scienceDigest(engine));
+}
+export async function openCheckpoint(
+  input,
+  engine,
+  resumeId,
+  newId = crypto.randomUUID()
+) {
   const engineDigest = await digest(engine);
   const inputDigest = await digest(input);
+  const attempt = crypto.randomUUID();
   let meta;
   if (resumeId) {
-    meta = await readCheckpointSummary();
+    meta = await readCheckpointSummary(resumeId);
     checkRun(meta, resumeId);
-    if (meta.engineDigest !== engineDigest)
+    if (!(await compatibleEngine(engine, meta.engineDigest, engineDigest)))
       throw new Error(
         'This saved run uses a different analysis engine. Its data is retained, but it cannot resume with this release. Delete the saved run to start again.'
       );
@@ -202,51 +363,62 @@ export async function openCheckpoint(input, engine, resumeId) {
       throw new Error(
         'Saved inputs or analysis settings do not match this run.'
       );
+    if (meta.status === 'complete')
+      throw new Error('This run is already complete. Open its saved results.');
+    meta = {
+      ...meta,
+      attempt,
+      activity: 'running',
+      error: '',
+      updatedAt: Date.now(),
+    };
   } else {
     meta = {
       format: 1,
-      id: crypto.randomUUID(),
+      id: newId,
+      attempt,
       engineDigest,
       inputDigest,
+      name: runName(input),
+      createdAt: Date.now(),
       inputCount: input.files.length,
       inputBytes: input.files.reduce((sum, f) => sum + f.bytes.byteLength, 0),
       descriptors: 0,
       alignments: 0,
       status: 'incomplete',
+      activity: 'running',
       updatedAt: Date.now(),
     };
-    await transaction(STORES, 'readwrite', (tx, done, fail, guard) => {
-      const request = tx.objectStore('run').get('current');
-      request.onsuccess = guard(() => {
-        if (request.result?.status === 'incomplete') {
-          fail(
-            new Error(
-              'A saved run is waiting. Resume or delete it before saving a new run.'
-            )
-          );
-          return;
-        }
-        for (const name of STORES) tx.objectStore(name).clear();
-        tx.objectStore('run').put(meta, 'current');
+  }
+  await transaction(['run', 'inputs'], 'readwrite', (tx, done, fail, guard) => {
+    const runs = tx.objectStore('run');
+    const request = runs.get(meta.id);
+    request.onsuccess = guard(() => {
+      if (resumeId) checkRun(request.result, resumeId);
+      else if (request.result)
+        throw new Error(
+          'A saved run already has this ID. Start a new analysis.'
+        );
+      runs.put(meta, meta.id);
+      if (!resumeId)
         tx.objectStore('inputs').put(
           { runId: meta.id, payload: input, digest: inputDigest },
-          'current'
+          [meta.id, 'current']
         );
-        done(meta);
-      });
+      done(meta);
     });
-  }
+  });
   const id = meta.id;
   return {
     meta,
     async keys(store) {
       return transaction([store], 'readonly', (tx, done) => {
-        const request = tx.objectStore(store).getAllKeys();
-        request.onsuccess = () => done(request.result);
+        const request = tx.objectStore(store).getAllKeys(runRange(id));
+        request.onsuccess = () => done(request.result.map((key) => key[1]));
       });
     },
     async get(store, key) {
-      return verified(await read(store, key), id);
+      return verified(await read(store, [id, key]), id);
     },
     async put(store, key, payload) {
       const sealed = { runId: id, payload, digest: await digest(payload) };
@@ -254,15 +426,17 @@ export async function openCheckpoint(input, engine, resumeId) {
         ['run', store],
         'readwrite',
         (tx, done, fail, guard) => {
-          const current = tx.objectStore('run').get('current');
+          const current = tx.objectStore('run').get(id);
           current.onsuccess = guard(() => {
-            try {
-              checkRun(current.result, id);
-            } catch (error) {
-              fail(error);
-              return;
-            }
-            const previous = tx.objectStore(store).getKey(key);
+            checkRun(current.result, id);
+            if (
+              current.result.attempt !== attempt ||
+              current.result.status === 'complete'
+            )
+              throw new Error(
+                'The saved run changed or finished. This writer can no longer update it.'
+              );
+            const previous = tx.objectStore(store).getKey([id, key]);
             previous.onsuccess = guard(() => {
               const updated = { ...current.result, updatedAt: Date.now() };
               if (
@@ -270,9 +444,20 @@ export async function openCheckpoint(input, engine, resumeId) {
                 (store === 'descriptors' || store === 'alignments')
               )
                 updated[store]++;
-              if (store === 'completion') updated.status = 'complete';
-              tx.objectStore(store).put(sealed, key);
-              tx.objectStore('run').put(updated, 'current');
+              if (store === 'completion') {
+                updated.status = 'complete';
+                updated.hasErrors =
+                  payload.result?.structures?.some(
+                    (model) =>
+                      model.state !== 'complete' || model.comparison_error
+                  ) ||
+                  payload.result?.groups?.some(
+                    (group) => group.clustering_status === 'failed'
+                  ) ||
+                  false;
+              }
+              tx.objectStore(store).put(sealed, [id, key]);
+              tx.objectStore('run').put(updated, id);
               done(updated);
             });
           });
