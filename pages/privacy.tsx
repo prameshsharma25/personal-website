@@ -114,7 +114,7 @@ export default function PrivacyPolicy() {
           </p>
           <p>
             Email:{' '}
-            <a href="mailto:contact@prameshsharma.com">contact@prameshsharma.com</a>
+            <a href="mailto:prameshsharma25@gmail.com">prameshsharma25@gmail.com</a>
           </p>
 
           <h2>Changes to This Privacy Policy</h2>

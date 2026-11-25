@@ -153,6 +153,32 @@
   border-color: #da969955;
   color: #ffb7b4;
 }
+.availability {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #99c9ae4a;
+  border-radius: 8px;
+  color: #c3d4c8;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+.directEmail {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1.4rem;
+  color: #abc0b2;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.directEmail a {
+  color: #b5f4d4;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  width: fit-content;
+}
+.directEmail p {
+  margin: 0;
+}
 @keyframes lineArrival {
   from {
     transform: scaleX(0);

@@ -91,6 +91,10 @@ test('contact form prevents repeat submission and preserves a failed draft', asy
   });
   const payloads: unknown[] = [];
   await page.route('**/api/sendMessage', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ json: { available: true } });
+      return;
+    }
     payloads.push(route.request().postDataJSON());
     if (payloads.length === 1) {
       await gate;
@@ -116,9 +120,23 @@ test('contact form prevents repeat submission and preserves a failed draft', asy
   } finally {
     release();
   }
-  await expect(page.locator('main').getByRole('alert')).toHaveText('Preview delivery failed.');
+  await expect(page.locator('main').getByRole('alert')).toHaveText(
+    'Preview delivery failed.'
+  );
   await expect(page.getByLabel('Message', { exact: true })).toHaveValue(
     'Checking the local form preview.'
+  );
+  const fallback = new URL(
+    (await page
+      .getByRole('link', { name: 'Email Me Directly' })
+      .getAttribute('href'))!
+  );
+  expect(fallback.pathname).toBe('prameshsharma25@gmail.com');
+  expect(fallback.searchParams.get('body')).toContain(
+    'Checking the local form preview.'
+  );
+  expect(fallback.searchParams.get('body')).toContain(
+    'preview@example.invalid'
   );
   await page.getByRole('button', { name: 'Send Message' }).click();
   await expect(page.getByRole('status')).toHaveText(
