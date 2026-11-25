@@ -15,8 +15,28 @@ export function createDiagnostics(clock = () => performance.now()) {
     firstStart: null,
     lastEnd: null,
   };
+  let descriptorPool = {
+    size: 0,
+    active: 0,
+    peakActive: 0,
+    stopped: true,
+    memoryBytes: 0,
+    peakMemoryBytes: 0,
+  };
+  let coordinatorMemory = null;
+  const updateMemory = () => {
+    memory =
+      coordinatorMemory === null && !descriptorPool.memoryBytes
+        ? null
+        : (coordinatorMemory || 0) + descriptorPool.memoryBytes;
+    if (memory !== null) peakMemory = Math.max(peakMemory || 0, memory);
+  };
   let pool = { size: 0, active: 0, peakActive: 0, stopped: true };
   return {
+    descriptors(state) {
+      descriptorPool = { ...state };
+      updateMemory();
+    },
     pool(state) {
       pool = { ...state };
     },
@@ -53,8 +73,8 @@ export function createDiagnostics(clock = () => performance.now()) {
         stage.endedAt = clock();
     },
     memory(bytes) {
-      memory = Number.isFinite(bytes) && bytes > 0 ? bytes : null;
-      if (memory !== null) peakMemory = Math.max(peakMemory || 0, memory);
+      coordinatorMemory = Number.isFinite(bytes) && bytes > 0 ? bytes : null;
+      updateMemory();
     },
     networkSupported(value) {
       network.supported = value;
@@ -130,6 +150,7 @@ export function createDiagnostics(clock = () => performance.now()) {
         pythonMemoryBytes: memory,
         peakPythonMemoryBytes: peakMemory,
         alignmentPool: pool,
+        descriptorPool,
         network: {
           supported: network.supported,
           requests: network.requests,

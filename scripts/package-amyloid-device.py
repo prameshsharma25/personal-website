@@ -88,6 +88,8 @@ manifest = {
             "run-mmalign.mjs",
             "diagnostics.mjs",
             "alignment-worker.mjs",
+            "descriptor-worker.mjs",
+            "descriptor-scheduler.mjs",
             "alignment-scheduler.mjs",
             "mmalign/mmalign.mjs",
             "mmalign/mmalign.wasm",

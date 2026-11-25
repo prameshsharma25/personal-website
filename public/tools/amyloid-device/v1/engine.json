@@ -23,17 +23,19 @@
   },
   "files": {
     "package.zip": "50c75cfea6969606660745c423836eb1b85a00573583278774e1c4526559dd08",
-    "analysis.py": "4f80888838f57fd7ecc690832074171f9342ad835cd9c01767c56a9766258761",
+    "analysis.py": "ae79d8e3e1ef2a2628f864693fe91ce5ed3b651ce5805ec8e3d37b22c92fa71f",
     "pipeline.zip": "da55461a9397708ae736bd1596c0c55722481c4799cb2bfe620bdac52b33cef4",
     "batch.py": "919442b38420844a8da98f3345f444549549d5df9cc6ee40534c52f8a948bea0",
     "run-mmalign.mjs": "9c8691dced10f6f9ac348a11614ea5d1f0838a8e1a2b46b27dd09f1822da2eea",
-    "diagnostics.mjs": "a2d75a3c699cf31fd5e05c4eb6e51029142dc8dac3e13509eb12624d45746b64",
+    "diagnostics.mjs": "402c8c4e7fd50c0691025e007aa86d7fc749c15b6f1117fbb0fbf339451f087b",
     "alignment-worker.mjs": "e587f1bd3ae33b343cc50b7111703498186967c618b7fed89a79eba5c71466a8",
     "alignment-scheduler.mjs": "bef75d2bf367fce1b97b134637dd4f308e8ec9a21d873374301ee2725c25df5b",
     "mmalign/mmalign.mjs": "e6c6b39e5f667234771b148f631c8b753b776ba25804e40a9778e489eb539754",
     "mmalign/mmalign.wasm": "0684c4f614263988fdf3a0656507fe30f9b40a0bb05c2f6954a7035077a72683",
     "mmalign/LICENSE.txt": "5bb88694391d0e0fef49ee8b60cd9208ce755d90213584c117bd8a21837bcdca",
-    "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9"
+    "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9",
+    "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
+    "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81"
   },
   "pipeline_files": {
     "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

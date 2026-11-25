@@ -265,6 +265,9 @@ test('browser MM-align, HDBSCAN, and ranking complete a synthetic six-structure 
     await page
       .getByRole('combobox', { name: 'Parallel Workers', exact: true })
       .selectOption(String(workerCount));
+    await page
+      .getByRole('combobox', { name: 'Descriptor Workers', exact: true })
+      .selectOption(String(workerCount));
     await page.getByLabel('Minimum Cluster Size', { exact: true }).fill('2');
     await page.getByLabel('Minimum Samples', { exact: true }).fill('1');
     await page
@@ -321,6 +324,8 @@ with zipfile.ZipFile(sys.argv[1]) as z:
     expect(
       output.result.structures.every((model) => model.state === 'complete')
     ).toBe(true);
+    expect(output.result.descriptor_execution.workers).toBe(workerCount);
+    expect(output.result.descriptor_execution.fallback).toBeNull();
     expect(output.result.alignment_execution.workers).toBe(workerCount);
     expect(output.result.alignment_execution.fallback).toBeNull();
     const scientific = { matrix: output.matrix, groups: output.result.groups };

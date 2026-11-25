@@ -77,10 +77,25 @@ export default function AnalysisDiagnostics({
       <div role="region" aria-label="Live Diagnostics" aria-live="off">
         <p className={styles.diagnosticIntro}>
           {inputCount} {inputCount === 1 ? 'Structure' : 'Structures'} ·{' '}
-          {formatBytes(inputBytes)} Of Input · One Python Worker · No Structure
-          Uploads
+          {formatBytes(inputBytes)} Of Input · No Structure Uploads
         </p>
         <dl className={styles.diagnosticGrid}>
+          <div>
+            <dt>Descriptor Workers</dt>
+            <dd>
+              <strong>
+                {data?.descriptorPool?.size
+                  ? `${running ? data.descriptorPool.active : 0} / ${data.descriptorPool.size} Active`
+                  : 'Not Started'}
+              </strong>
+              <p>
+                {data?.descriptorPool?.peakActive || 0} active at peak.{' '}
+                {!running || data?.descriptorPool?.stopped
+                  ? 'Descriptor calculations have stopped.'
+                  : 'Each worker calculates one structure at a time.'}
+              </p>
+            </dd>
+          </div>
           <div>
             <dt>Alignment Workers</dt>
             <dd>
@@ -148,7 +163,8 @@ export default function AnalysisDiagnostics({
                 {data?.peakPythonMemoryBytes
                   ? `${formatBytes(data.peakPythonMemoryBytes)} sampled peak. `
                   : ''}
-                Allocated Python engine memory.
+                Sampled allocation across active Python engines. Counts drop
+                when descriptor workers stop.
               </p>
             </dd>
           </div>
@@ -220,8 +236,9 @@ export default function AnalysisDiagnostics({
           Samples update between calculation steps; a long calculation can delay
           them. CPU utilization and total device RAM usage are unavailable.
           Python memory excludes MM-align, file storage, and other page memory.
-          Download measurements can be partial when the browser restricts timing
-          information.
+          Download measurements cover the coordinator only and can be partial
+          when the browser restricts timing information. Descriptor worker
+          downloads are excluded.
         </p>
       </div>
     </details>

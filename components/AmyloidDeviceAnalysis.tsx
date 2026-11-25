@@ -21,6 +21,12 @@ import {
   resolveAlignmentWorkers,
   type AlignmentWorkers,
 } from '../lib/amyloid-alignment-pool';
+import {
+  DescriptorPool,
+  resolveDescriptorWorkers,
+  type DescriptorWorkers,
+  type DescriptorState,
+} from '../lib/amyloid-descriptor-pool';
 import styles from '../styles/Tools.module.css';
 
 type Props = {
@@ -56,6 +62,10 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [minSamples, setMinSamples] = useState(3);
   const [alignmentWorkers, setAlignmentWorkers] =
     useState<AlignmentWorkers>('auto');
+  const [descriptorWorkers, setDescriptorWorkers] =
+    useState<DescriptorWorkers>('auto');
+  const descriptorPool = useRef<DescriptorPool | null>(null);
+  const descriptorState = useRef<DescriptorState | null>(null);
   const alignmentPool = useRef<AlignmentPool | null>(null);
   const worker = useRef<Worker | null>(null);
   const epoch = useRef(0);
@@ -68,12 +78,74 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     return ++epoch.current;
   }
   function terminate() {
+    descriptorPool.current?.dispose();
+    descriptorPool.current = null;
     alignmentPool.current?.dispose();
     alignmentPool.current = null;
     worker.current?.terminate();
     worker.current = null;
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
+  }
+  async function handleDescriptorRequest(
+    data: Extract<
+      DeviceMessage,
+      { type: 'descriptor-init' | 'descriptor-run' | 'descriptor-stop' }
+    >,
+    engine: Worker,
+    generation: number
+  ) {
+    try {
+      let value: unknown;
+      let transfers: Transferable[] = [];
+      if (data.type === 'descriptor-init') {
+        descriptorPool.current?.dispose();
+        const pool = new DescriptorPool(data.config, {
+          onState: (state) => {
+            descriptorState.current = state;
+            if (generation === epoch.current)
+              engine.postMessage({ type: 'descriptor-state', state });
+          },
+          onProgress: (index, stage, completed) => {
+            if (generation === epoch.current)
+              engine.postMessage({
+                type: 'descriptor-progress',
+                index,
+                stage,
+                completed,
+              });
+          },
+        });
+        descriptorPool.current = pool;
+        value = await pool.initialize(data.count);
+      } else if (data.type === 'descriptor-run') {
+        if (!descriptorPool.current)
+          throw new Error('The descriptor workers are unavailable.');
+        const output = await descriptorPool.current.run(
+          data.entry,
+          data.bytes,
+          data.index
+        );
+        value = output;
+        transfers = output.artifacts.map((file) => file.bytes);
+      } else {
+        descriptorPool.current?.dispose();
+        descriptorPool.current = null;
+        value = descriptorState.current;
+      }
+      if (generation === epoch.current)
+        engine.postMessage(
+          { type: 'descriptor-reply', requestId: data.requestId, value },
+          transfers
+        );
+    } catch (error) {
+      if (generation === epoch.current)
+        engine.postMessage({
+          type: 'descriptor-reply',
+          requestId: data.requestId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+    }
   }
   async function handleAlignmentRequest(
     data: Extract<
@@ -288,6 +360,12 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       engine.onmessage = ({ data }: MessageEvent<DeviceMessage>) => {
         if (generation !== epoch.current) return;
         if (
+          data.type === 'descriptor-init' ||
+          data.type === 'descriptor-run' ||
+          data.type === 'descriptor-stop'
+        ) {
+          void handleDescriptorRequest(data, engine, generation);
+        } else if (
           data.type === 'alignment-init' ||
           data.type === 'alignment-run' ||
           data.type === 'alignment-stop'
@@ -307,7 +385,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 : 300000
           );
         } else if (data.type === 'model') {
-          setModels((current) => [...current, data.model]);
+          setModels((current) =>
+            [...current, data.model].sort((a, b) => a.id.localeCompare(b.id))
+          );
         } else if (data.type === 'error') {
           fail(data.message);
         } else if (data.type === 'complete') {
@@ -356,6 +436,13 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           files: selected,
           compare,
           alignmentWorkers,
+          descriptorWorkers,
+          descriptorCount: resolveDescriptorWorkers(
+            descriptorWorkers,
+            navigator.hardwareConcurrency,
+            selected.length,
+            (navigator as Navigator & { deviceMemory?: number }).deviceMemory
+          ),
           confidence: confidenceBytes,
           settings: {
             min_cluster_size: minCluster,
@@ -449,6 +536,32 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         <details className={styles.batchSettings} open>
           <summary>Batch Analysis Settings</summary>
           <div className={styles.analysisSettings}>
+            <label>
+              Descriptor Workers
+              <select
+                value={descriptorWorkers}
+                disabled={running}
+                onChange={(event) =>
+                  setDescriptorWorkers(
+                    event.target.value === 'auto'
+                      ? 'auto'
+                      : (Number(event.target.value) as 1 | 2 | 4)
+                  )
+                }
+              >
+                <option value="auto">Auto (Up To 2)</option>
+                <option value="1">1 Worker</option>
+                <option value="2">2 Workers</option>
+                <option value="4">4 Workers</option>
+              </select>
+            </label>
+            <p>
+              Calculate geometry, packing, energetics, and warnings for
+              different structures at the same time. Each worker loads its own
+              Python engine and uses additional memory. Auto uses one worker for
+              fewer than four structures or devices reporting 4 GB of memory or
+              less. Descriptor workers finish before alignment begins.
+            </p>
             <label className={styles.compareToggle}>
               <input
                 type="checkbox"
@@ -496,8 +609,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   MM-align comparisons share a queue across the selected
                   workers. Auto leaves processor headroom and uses at most two.
                   Counts are capped by the processors reported by your browser.
-                  More workers use more memory; Python calculations stay in one
-                  worker.
+                  More workers use more memory. This setting controls
+                  comparisons; Descriptor Workers controls individual structure
+                  calculations.
                 </p>
                 <label>
                   Minimum Cluster Size

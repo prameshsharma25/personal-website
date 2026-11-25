@@ -1,5 +1,6 @@
 // No coordinates leave this browser. Network requests load only versioned engine assets.
 import { scheduleAlignments } from './alignment-scheduler.mjs';
+import { scheduleDescriptors } from './descriptor-scheduler.mjs';
 import { monitorDiagnostics } from './diagnostics.mjs';
 const BASE = new URL('./', import.meta.url);
 const RUNTIME = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
@@ -7,6 +8,7 @@ let started = false;
 let diagnostics;
 let requestId = 0;
 const requests = new Map();
+let descriptorSteps, descriptorNames;
 function alignmentRequest(type, payload = {}, transfers = []) {
   return new Promise((resolve, reject) => {
     const id = ++requestId;
@@ -46,7 +48,7 @@ function progress(stage, completed, total, filename = '', phase = 'setup') {
   diagnostics?.emit();
 }
 self.onmessage = async ({ data }) => {
-  if (data.type === 'alignment-reply') {
+  if (data.type === 'alignment-reply' || data.type === 'descriptor-reply') {
     const request = requests.get(data.requestId);
     requests.delete(data.requestId);
     if (data.error) request?.reject(new Error(data.error));
@@ -58,8 +60,34 @@ self.onmessage = async ({ data }) => {
     diagnostics?.emit();
     return;
   }
+  if (data.type === 'descriptor-state') {
+    diagnostics?.descriptors(data.state);
+    diagnostics?.emit();
+    return;
+  }
+  if (data.type === 'descriptor-progress') {
+    if (
+      descriptorSteps &&
+      data.index >= 0 &&
+      data.index < descriptorSteps.length
+    ) {
+      descriptorSteps[data.index] = Math.max(
+        descriptorSteps[data.index],
+        Math.min(6, Math.max(0, data.completed))
+      );
+      progress(
+        `Calculating Descriptors: ${data.stage}`,
+        descriptorSteps.reduce((a, b) => a + b, 0),
+        descriptorSteps.length * 6,
+        descriptorNames[data.index],
+        'descriptors'
+      );
+    }
+    return;
+  }
   if (started || data.type !== 'start') return;
   started = true;
+  const runStarted = performance.now();
   diagnostics = monitorDiagnostics(
     (message) => postMessage(message),
     BASE,
@@ -117,6 +145,107 @@ self.onmessage = async ({ data }) => {
       fallback: null,
       alignment_elapsed_seconds: 0,
     };
+    const descriptorChoice = data.descriptorWorkers ?? 1;
+    const descriptorCount = data.descriptorCount ?? 1;
+    if (
+      !['auto', 1, 2, 4].includes(descriptorChoice) ||
+      !Number.isInteger(descriptorCount) ||
+      descriptorCount < 1 ||
+      descriptorCount > 4 ||
+      descriptorCount > data.files.length
+    )
+      throw new Error('Invalid descriptor worker count.');
+    const descriptorExecution = {
+      requested_workers: descriptorChoice,
+      workers: 1,
+      fallback: null,
+      setup_seconds: 0,
+      calculation_seconds: 0,
+      merge_seconds: 0,
+      peak_python_memory_bytes: null,
+      structure_timings: [],
+    };
+    const entries = data.files.map((file, index) => {
+      const id = `model-${String(index + 1).padStart(3, '0')}`;
+      return {
+        id,
+        filename: file.name,
+        stored_name: `${id}.${file.name.match(/\.(pdb|cif|mmcif)$/i)[1].toLowerCase()}`,
+      };
+    });
+    let descriptorOutputs = null;
+    if (descriptorCount > 1) {
+      progress('Starting Descriptor Workers', 0, 0);
+      const setupStarted = performance.now();
+      const packageBytes = await asset(
+        'package.zip',
+        engine.files['package.zip']
+      );
+      const analysisBytes = await asset(
+        'analysis.py',
+        engine.files['analysis.py']
+      );
+      const pool = await alignmentRequest(
+        'descriptor-init',
+        {
+          count: descriptorCount,
+          config: { engine, packageBytes, analysisBytes },
+        },
+        [packageBytes, analysisBytes]
+      );
+      descriptorExecution.setup_seconds =
+        (performance.now() - setupStarted) / 1000;
+      descriptorExecution.workers = pool.workers;
+      descriptorExecution.fallback = pool.fallback;
+      descriptorSteps = new Array(entries.length).fill(0);
+      descriptorNames = data.files.map((file) => file.name);
+      diagnostics.phase('descriptors', entries.length);
+      diagnostics.emit(true);
+      const calculationStarted = performance.now();
+      try {
+        descriptorOutputs = await scheduleDescriptors(
+          entries,
+          pool.workers,
+          (entry, index) => {
+            const bytes = data.files[index].bytes;
+            data.files[index].bytes = null;
+            return alignmentRequest('descriptor-run', { entry, index, bytes }, [
+              bytes,
+            ]);
+          },
+          (output, index) => {
+            if (output.model.id !== entries[index].id)
+              throw new Error('Descriptor result identity mismatch.');
+            descriptorSteps[index] = 6;
+            diagnostics.operation(output.elapsedMs, {
+              failed: output.model.state === 'failed',
+            });
+            descriptorExecution.structure_timings.push({
+              id: entries[index].id,
+              elapsed_seconds: output.elapsedMs / 1000,
+            });
+            progress(
+              'Calculating Descriptors',
+              descriptorSteps.reduce((a, b) => a + b, 0),
+              entries.length * 6,
+              entries[index].filename,
+              'descriptors'
+            );
+            postMessage({ type: 'model', model: output.model });
+          }
+        );
+        descriptorExecution.calculation_seconds =
+          (performance.now() - calculationStarted) / 1000;
+        diagnostics.emit(true);
+      } finally {
+        // Release all descriptor runtimes before loading the coordinator runtime.
+        const state = await alignmentRequest('descriptor-stop');
+        descriptorExecution.peak_python_memory_bytes =
+          state.peakMemoryBytes || null;
+      }
+      progress('Preparing Collected Results', 0, 0);
+    }
+    const coordinatorStarted = performance.now();
     let currentIndex = 0;
     const { loadPyodide } = await import(`${RUNTIME}pyodide.mjs`);
     const python = await loadPyodide({
@@ -197,34 +326,99 @@ self.onmessage = async ({ data }) => {
         );
     }
     python.FS.mkdirTree('/device/inputs');
-    diagnostics.phase('descriptors', data.files.length);
-    diagnostics.emit(true);
-    for (let index = 0; index < data.files.length; index++) {
-      const operationStarted = performance.now();
-      currentIndex = index;
-      const file = data.files[index];
-      const id = `model-${String(index + 1).padStart(3, '0')}`;
-      const extension = file.name.match(/\.(pdb|cif|mmcif)$/i)[1].toLowerCase();
-      const entry = {
-        id,
-        filename: file.name,
-        stored_name: `${id}.${extension}`,
-      };
-      python.FS.writeFile(
-        `/device/inputs/${entry.stored_name}`,
-        new Uint8Array(file.bytes)
-      );
-      file.bytes = null;
-      python.globals.set('_entry_json', JSON.stringify(entry));
-      const model = JSON.parse(
-        await python.runPythonAsync('analyze_entry(_entry_json)')
-      );
-      diagnostics.operation(performance.now() - operationStarted, {
-        failed: model.state === 'failed',
+    const coordinatorSetupSeconds =
+      (performance.now() - coordinatorStarted) / 1000;
+    descriptorExecution.setup_seconds += coordinatorSetupSeconds;
+    const descriptorsStarted = performance.now();
+    if (descriptorOutputs) {
+      const mergeStarted = performance.now();
+      for (let index = 0; index < entries.length; index++) {
+        const output = descriptorOutputs[index],
+          entry = entries[index];
+        for (const file of output.artifacts) {
+          if (
+            !file.path.startsWith(entry.id + '/') ||
+            file.path.split('/').length !== 2 ||
+            file.path.includes('..') ||
+            file.path.includes('\\') ||
+            file.path.includes('\0')
+          )
+            throw new Error('Invalid descriptor artifact path.');
+          python.FS.mkdirTree(`/device/artifacts/${entry.id}`);
+          python.FS.writeFile(
+            `/device/artifacts/${file.path}`,
+            new Uint8Array(file.bytes)
+          );
+          file.bytes = null;
+        }
+        python.globals.set('_entry_json', JSON.stringify(entry));
+        python.globals.set('_model_json', JSON.stringify(output.model));
+        await python.runPythonAsync(
+          'accept_descriptor(_entry_json, _model_json)'
+        );
+        descriptorOutputs[index] = null;
+        progress(
+          'Collecting Descriptor Reports',
+          index + 1,
+          entries.length,
+          entry.filename,
+          'setup'
+        );
+      }
+      descriptorExecution.merge_seconds =
+        (performance.now() - mergeStarted) / 1000;
+      descriptorOutputs = null;
+    } else {
+      diagnostics.phase('descriptors', data.files.length);
+      diagnostics.descriptors({
+        size: 1,
+        active: 1,
+        peakActive: 1,
+        stopped: false,
+        memoryBytes: 0,
+        peakMemoryBytes: 0,
       });
-      diagnostics.emit();
-      postMessage({ type: 'model', model });
+      diagnostics.emit(true);
+      for (let index = 0; index < data.files.length; index++) {
+        const operationStarted = performance.now();
+        currentIndex = index;
+        const file = data.files[index],
+          entry = entries[index];
+        python.FS.writeFile(
+          `/device/inputs/${entry.stored_name}`,
+          new Uint8Array(file.bytes)
+        );
+        file.bytes = null;
+        python.globals.set('_entry_json', JSON.stringify(entry));
+        const model = JSON.parse(
+          await python.runPythonAsync('analyze_entry(_entry_json)')
+        );
+        const elapsedMs = performance.now() - operationStarted;
+        descriptorExecution.structure_timings.push({
+          id: entry.id,
+          elapsed_seconds: elapsedMs / 1000,
+        });
+        diagnostics.operation(elapsedMs, { failed: model.state === 'failed' });
+        diagnostics.emit();
+        postMessage({ type: 'model', model });
+      }
+      descriptorExecution.calculation_seconds =
+        (performance.now() - descriptorsStarted) / 1000;
+      diagnostics.emit(true);
+      descriptorExecution.peak_python_memory_bytes =
+        diagnostics.snapshot().peakPythonMemoryBytes;
+      diagnostics.descriptors({
+        size: 1,
+        active: 0,
+        peakActive: 1,
+        stopped: true,
+        memoryBytes: 0,
+        peakMemoryBytes: 0,
+      });
     }
+    descriptorExecution.structure_timings.sort((a, b) =>
+      a.id.localeCompare(b.id)
+    );
     if (batch) {
       const plan = JSON.parse(await python.runPythonAsync('alignment_plan()'));
       if (plan.tasks.length > limits.max_files ** 2)
@@ -315,6 +509,14 @@ self.onmessage = async ({ data }) => {
     diagnostics.emit(true);
     progress('Preparing Your Download', 0, 0, '', 'export');
     python.globals.set('_alignment_execution_json', JSON.stringify(execution));
+    python.globals.set(
+      '_descriptor_execution_json',
+      JSON.stringify(descriptorExecution)
+    );
+    python.globals.set(
+      '_run_elapsed_seconds',
+      (performance.now() - runStarted) / 1000
+    );
     const result = JSON.parse(await python.runPythonAsync('finish()'));
     const artifacts = {};
     const transfers = [];

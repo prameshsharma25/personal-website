@@ -90,11 +90,12 @@ export default function AmyloidTool() {
           <p>
             On My Device runs the pinned Amyloid Candidates package inside your
             browser, with NumPy, Biopython, and FreeSASA. Each structure
-            receives descriptors and warnings. With batch comparisons enabled,
-            MM-align runs as WebAssembly and scikit-learn HDBSCAN clusters
-            comparable assemblies. Downloads include coordinates, component
-            outputs, distance matrices, cluster representatives, shortlist
-            eligibility, and calculation provenance.
+            receives descriptors and warnings. Descriptor Workers can process
+            several structures at once, with separate Python engines. With batch
+            comparisons enabled, MM-align runs as WebAssembly and scikit-learn
+            HDBSCAN clusters comparable assemblies. Downloads include
+            coordinates, component outputs, distance matrices, cluster
+            representatives, shortlist eligibility, and calculation provenance.
           </p>
           <p>
             Comparisons use matching chain sequences and stoichiometries.

@@ -192,7 +192,36 @@ def analyze_entry(entry_json):
     return json.dumps(clean(result), allow_nan=False)
 
 
-def finish():
+def descriptor_paths(entry_json):
+    entry = json.loads(entry_json)
+    folder = ARTIFACTS / entry["id"]
+    return json.dumps([str(p.relative_to(ARTIFACTS)) for p in sorted(folder.glob("*")) if p.is_file()])
+
+
+def release_descriptor(entry_json):
+    entry = json.loads(entry_json)
+    shutil.rmtree(ARTIFACTS / entry["id"], ignore_errors=True)
+    RESULTS.clear()
+
+
+def accept_descriptor(entry_json, model_json):
+    """Collect unchanged component files and prepare shared batch normalization."""
+    entry, result = json.loads(entry_json), json.loads(model_json)
+    if result["id"] != entry["id"] or result["filename"] != entry["filename"]:
+        raise ValueError("Descriptor result identity does not match the input.")
+    if result["state"] == "complete" and BATCH:
+        REPORTS[entry["id"]] = json.loads((ARTIFACTS / result["files"]["report"]).read_text())
+        try:
+            prepare_alignment(entry, ARTIFACTS / result["files"]["structure"])
+            result["alignment"] = entry["alignment"]
+            result["confidence"] = entry["confidence"]
+        except Exception as error:
+            result["comparison_error"] = str(error)
+    RESULTS.append(result)
+    return json.dumps(clean(result), allow_nan=False)
+
+
+def validate_versions():
     versions = {
         name: importlib.metadata.version(name)
         for name in [
@@ -209,12 +238,18 @@ def finish():
             raise ValueError(
                 f"Unexpected {name} version; this engine needs to be revalidated."
             )
+    return versions
+
+
+def finish():
+    versions = validate_versions()
     summary = {
         "schema_version": "amyloid-device-results-1.0",
         "execution": "browser_web_worker",
         "alignment_execution": json.loads(_alignment_execution_json),
+        "descriptor_execution": json.loads(_descriptor_execution_json),
         "structures": RESULTS,
-        "elapsed_seconds": time.perf_counter() - STARTED,
+        "elapsed_seconds": float(_run_elapsed_seconds),
         "clustering_status": "requested" if BATCH else "not_requested",
         "groups": GROUP_RESULTS if BATCH else [],
         "settings": SETTINGS if BATCH else None,
@@ -251,6 +286,8 @@ def finish():
     }
     if summary["alignment_execution"].get("fallback"):
         summary["warnings"].append(summary["alignment_execution"]["fallback"])
+    if summary["descriptor_execution"].get("fallback"):
+        summary["warnings"].append(summary["descriptor_execution"]["fallback"])
     save(ARTIFACTS / "results.json", summary)
     shutil.copytree("/research/licenses", ARTIFACTS / "licenses", dirs_exist_ok=True)
     if BATCH:
@@ -265,8 +302,8 @@ def finish():
         "See results.json for requested comparisons, clustering backend/settings, and group-level success or failure.\n"
         "MM-align compares only matching chain sequences and stoichiometries. Missing confidence is not inferred.\n"
         "Known-positive compatibility is not a probability of amyloid formation.\n\n"
-        "For each successful structure, open its .gates.json, .manifest.json, and coordinate file\n"
-        "together in Open Existing Reports. Original filenames and byte hashes are recorded in results.json.\n"
+        "Each successful structure includes its .gates.json, .manifest.json, and coordinate file.\n"
+        "Original filenames and byte hashes are recorded in results.json.\n"
         "Component outputs accompany the portable manifests. Removed machine provenance is replaced\n"
         "by the source, adapter checksums, runtime, and dependency versions in results.json.\n\n"
         "Amyloid Candidates: Dr. Devlina Chakravarty, Pramesh Sharma, and Dr. Lauren L. Porter.\n"

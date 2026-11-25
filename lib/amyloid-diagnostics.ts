@@ -1,4 +1,6 @@
+import type { DescriptorState } from './amyloid-descriptor-pool';
 export type DeviceDiagnostics = {
+  descriptorPool?: DescriptorState;
   alignmentPool: {
     size: number;
     active: number;

@@ -1,6 +1,11 @@
 import type { InputFile } from './amyloid-inspector';
 import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
 import type { DeviceDiagnostics } from './amyloid-diagnostics';
+import type {
+  DescriptorEntry,
+  DescriptorInit,
+  DescriptorWorkers,
+} from './amyloid-descriptor-pool';
 import type { AlignmentWorkers } from './amyloid-alignment-pool';
 
 export const DEVICE_LIMITS = {
@@ -14,6 +19,16 @@ export type DeviceResult = {
   clustering_status: 'not_requested' | 'requested';
   groups: AnalysisGroup[];
   warnings: string[];
+  descriptor_execution: {
+    requested_workers: DescriptorWorkers;
+    workers: number;
+    fallback: string | null;
+    setup_seconds: number;
+    calculation_seconds: number;
+    merge_seconds: number;
+    peak_python_memory_bytes: number | null;
+    structure_timings: { id: string; elapsed_seconds: number }[];
+  };
   alignment_execution: {
     requested_workers: AlignmentWorkers;
     workers: number;
@@ -22,6 +37,20 @@ export type DeviceResult = {
   };
 };
 export type DeviceMessage =
+  | {
+      type: 'descriptor-init';
+      requestId: number;
+      count: number;
+      config: DescriptorInit;
+    }
+  | {
+      type: 'descriptor-run';
+      requestId: number;
+      index: number;
+      entry: DescriptorEntry;
+      bytes: ArrayBuffer;
+    }
+  | { type: 'descriptor-stop'; requestId: number }
   | {
       type: 'alignment-init';
       requestId: number;

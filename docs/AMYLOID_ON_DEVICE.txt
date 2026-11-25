@@ -3,8 +3,9 @@ Amyloid Structure Analysis — On-Device Pipeline
 Default route: /tools/amyloid-inspector
 No AMYLOID_API_URL, account, local Python installation, or analysis server is
 required. Selecting files alone previews a single structure. Analyze On My Device
-starts calculations in a dedicated Python module Web Worker. Batch comparisons
-use a separate pool of MM-align Web Workers. No coordinates, filenames,
+starts calculations in Python module Web Workers. Descriptor Workers controls
+parallel structure calculations. Batch comparisons use a separate pool of
+MM-align Web Workers after the descriptor pool is released. No coordinates, filenames,
 confidence metadata, or results are uploaded.
 
 CALCULATIONS
@@ -29,7 +30,10 @@ not completion guarantees. Completed-stage statistics freeze when that stage end
 
 Python memory is allocated WebAssembly linear memory, read using the public
 Pyodide PyBuffer.getBuffer API on a one-byte probe. Views are refreshed and released
-for every sample to accommodate growth. The sampled peak is not total browser or
+for every sample to accommodate growth. Descriptor workers report allocation at
+component boundaries; the coordinator sums the latest samples from active
+runtimes. The coordinator runtime is created after the descriptor pool stops,
+so their allocations do not overlap. The sampled peak is not total browser or
 device memory: it excludes the independent MM-align runtimes, MEMFS file storage,
 JavaScript objects, and other page allocations. CPU utilization is not estimated.
 https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.ffi.PyBuffer.getBuffer
@@ -37,7 +41,7 @@ https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.ffi.PyBuffer.getBuff
 A resource PerformanceObserver in the Python worker counts engine/runtime requests
 made by that worker. The MM-align binary and wrapper are fetched once there and
 passed to the pool. Worker entry scripts and imports fetched by the page or the
-alignment workers are outside this measurement; it is not a complete network log.
+alignment and descriptor workers are outside this measurement; it is not a complete network log.
 Transfer bytes use the browser's transferSize including its header-size estimate.
 Average download rate is observed bytes divided by the span from the earliest
 measured request start to the latest measured response end (overlap counted once).
@@ -90,6 +94,38 @@ progress bar uses the actual count after grouping. Smaller batches may still
 exhaust memory on some devices. The cluster-size control allows 2-125 members,
 and minimum samples allows 1-124 neighbors; scientific defaults remain unchanged.
 
+PARALLEL DESCRIPTORS
+Descriptor Workers offers Auto, 1, 2, and 4. Manual choices are capped by input
+count and browser-reported logical cores. Auto uses up to two workers with one
+logical core of headroom. It uses one for fewer than four inputs, unavailable
+core information, or browser-reported deviceMemory of 4 GB or less. Memory
+reporting is optional and approximate; this is not a guarantee against exhaustion.
+
+One worker preserves the original sequential coordinator path. Parallel runs
+start independent Pyodide runtimes with NumPy, Biopython, FreeSASA, and the same
+unchanged pinned package. Workers take the next structure from a bounded queue,
+use fixed input IDs, and return unchanged component artifacts. Intermediates are
+released between inputs. Completion order cannot reorder results. Invalid PDBs
+remain failed entries while other structures continue. A worker crash or timeout
+stops the run explicitly; partial results are not presented as a completed run.
+
+All descriptor runtimes stop before the coordinator Python runtime loads. The
+coordinator imports component files in input order, prepares the original batch
+normalization/confidence metadata, and runs the existing alignment, clustering,
+ranking and export stages. Only one stage's worker pool is active at a time.
+Every worker belongs to the page and is terminated on cancellation/navigation.
+Startup failure retries once with one worker and records the fallback.
+
+Live diagnostics show active and peak descriptor workers, aggregate sampled
+Python allocation, stage throughput and ETA. results.json records the requested
+and actual descriptor counts, fallback, setup time (including coordinator setup),
+calculation wall time, merge time, per-structure durations, and descriptor memory
+peak. Parallel calculation time includes output transfer; batch normalization
+is done during merge. Summary elapsed_seconds starts at job receipt and is sampled
+before archive creation. The benchmark also measures end-to-end completion time,
+including startup, result collection and export. More workers can be slower on
+small batches because each runtime must start separately.
+
 PARALLEL ALIGNMENT
 The Parallel Workers setting offers Auto, 1, 2, and 4. Auto uses at most two
 alignment workers and leaves one reported logical core available when possible:
@@ -98,9 +134,9 @@ logical cores and all choices are capped by the actual comparison count. When
 hardwareConcurrency is unavailable, the fallback assumes two logical cores.
 This is a conservative scheduling policy, not a measured optimum for every device.
 
-The page owns the Python worker and every alignment worker. Only one Pyodide
-runtime loads the scientific libraries; descriptors, result acceptance, clustering,
-ranking, and report generation remain serial. A bounded queue dispatches at most
+The page owns the coordinator and every alignment worker. After descriptor
+processing, one Pyodide runtime handles result acceptance, clustering, ranking,
+and report generation serially. A bounded queue dispatches at most
 one directed MM-align comparison per alignment worker. Coordinate buffers are
 transferred between workers; the queue does not copy the entire batch into every
 runtime. Results are accepted into Python serially, and matrix entries retain
@@ -118,11 +154,13 @@ comparisons in that group are skipped, with no distances imputed.
 Each MM-align invocation gets a fresh Emscripten instance to avoid cross-pair state.
 Its memory may grow to 1 GiB; this is a ceiling, not an allocated amount or an
 estimate for the whole browser job. Memory exhaustion can still stop a job.
-Initialization inactivity timeout: three minutes. Each descriptor/report phase:
+Descriptor worker startup: one minute per attempt. Each descriptor job has a
+five-minute timeout independent of progress or diagnostics. Coordinator
+initialization inactivity timeout: three minutes. Each descriptor/report phase:
 five minutes without a stage update. Each alignment worker startup: 30 seconds.
 Each directed alignment: two minutes. The overall alignment inactivity watchdog
 allows three minutes so individual timeouts and replacement can report failure.
-Cancel terminates the Python worker and all alignment workers immediately and
+Cancel terminates the coordinator, descriptor workers, and alignment workers immediately and
 discards that run. Completion and navigation also terminate every worker. The
 alignment pool is released before clustering. Results live only in page
 memory; download before leaving/reloading. Switching inspector modes retains the
@@ -198,3 +236,23 @@ The 125-file limit is checked through actual browser selection, worker startup,
 and cancellation. A 21-input single-chain fixture completes all 441 directed
 alignments, clustering, and a checksum-verified ZIP, exercising the former
 400-alignment ceiling. This is not a full 125-assembly capacity benchmark.
+
+DESCRIPTOR BENCHMARK REPRODUCTION
+With the production preview running on port 3844:
+.local/node/bin/node --import tsx scripts/benchmark-amyloid-descriptors.ts
+
+TEST_BASE_URL accepts the preview base URL. BENCHMARK_FILES defaults to 12,
+BENCHMARK_REPEATS to 3, and BENCHMARK_WORKERS to 1,2,4. BENCHMARK_COMPARE=true
+also runs the batch pipeline with two alignment workers held constant.
+BENCHMARK_OUTPUT defaults to .local/descriptor-benchmark. The benchmark uses
+repeated public 2BEG and 6QJH prediction fixtures, one unmeasured cache warmup,
+rotating worker-count order, new runtimes each run, and one browser at a time.
+It verifies every downloaded checksum and compares all scientific component
+files, result structures, and groups. Only energy metadata.created_utc and the
+corresponding gate component digest are normalized for comparison. The actual
+exported reports and checksums remain intact. Numerical values are compared
+exactly without rounding. Coordinates and CSV component files are byte-identical.
+Raw ZIPs and diagnostic screenshots stay in the chosen local output directory.
+Timing excludes file selection/read and page rendering; engine initialization,
+calculation, transfers, coordinator setup, merge and ZIP export are included.
+Results do not establish capacity or speedup for 125 large or diverse assemblies.

@@ -1,0 +1,47 @@
+Amyloid Descriptor Parallelism Benchmark
+November 25, 2026
+
+Machine: Apple M2, 8 logical processors, 16 GiB RAM
+Browser: Chromium 157.0.8103.79
+Inputs: 12 structures, six copies each of the public 2BEG and 6QJH prediction fixtures.
+Method: three trials per worker count, rotating order, one unmeasured warmup.
+New Python runtimes each run. No concurrent benchmark jobs.
+Comparisons disabled to isolate the descriptor stage.
+
+Median measurements:
+Workers | Descriptor Calculation | Complete Run | Peak Python WASM | Complete Run Speedup
+      1 |                67.69s |       70.46s |        62.38 MiB | 1.00x
+      2 |                38.54s |       43.69s |       124.75 MiB | 1.61x
+      4 |                26.32s |       31.96s |       239.06 MiB | 2.20x
+
+Four workers reduced complete run time by 54.6% on this fixture.
+Descriptor calculation alone improved by 2.57x.
+Complete run includes engine startup, computation, output transfer, coordinator startup,
+result collection and ZIP export. File selection/read and display rendering are excluded.
+Scientific outputs matched across every trial. Only generated timestamps and their
+derived energy-file checksum were normalized for comparison. No numbers were rounded.
+Every exported checksum was validated. Actual reports preserve their timestamps.
+All workers terminated after every run, and no input files were uploaded.
+
+Python memory is sampled allocated WASM memory. Other browser memory, file storage,
+and alignment runtimes are excluded. Network diagnostics cover the coordinator only.
+This result does not establish performance or memory capacity for 125 full assemblies,
+larger structures, different inputs, other browsers, or other machines.
+
+Implementation:
+Descriptor Workers now offers Auto, 1, 2, and 4. Auto uses up to two workers, with
+one worker for batches under four files or devices reporting at most 4 GB of RAM.
+The descriptor pool is released before the coordinator and alignment runtimes load.
+Scientific package, shared pipeline archive, and MM-align binary are unchanged.
+
+Reproduce:
+.local/node/bin/node --import tsx scripts/benchmark-amyloid-descriptors.ts
+See docs/AMYLOID_ON_DEVICE.txt for preview setup, options and scientific checks.
+Raw measurements: amyloid-descriptors-2026-11-25.json
+Diagnostic screenshot: amyloid-descriptors-4-workers.png
+
+Validation: production build including TypeScript and lint, 30 targeted unit tests,
+and 9 browser tests passed. Browser checks include native numerical parity,
+PDB/mmCIF inputs, invalid-file partial results, both pool cancellation/restart
+paths, 125-file selection, a 441-alignment run, and full-pipeline parity across
+1, 2 and 4 descriptor/alignment workers with optional confidence metadata.

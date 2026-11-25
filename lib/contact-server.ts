@@ -1,7 +1,9 @@
 import { validEmail, type ContactMessage } from './contact';
 import { CONTACT_EMAIL } from './site';
 
-export function contactConfig(env: NodeJS.ProcessEnv = process.env) {
+export function contactConfig(
+  env: Record<string, string | undefined> = process.env
+) {
   const sender = env.USER_EMAIL?.trim() || '';
   // Google displays app passwords in groups separated by spaces.
   const password = env.GMAIL_APP_PASSWORD?.replace(/\s/g, '') || '';
