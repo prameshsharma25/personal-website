@@ -107,3 +107,15 @@ records each PDF's page count and checksum.
 - [Vercel private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
 - [Google ads.txt guidance](https://support.google.com/adsense/answer/12171612)
 - [Google Search Console](https://developers.google.com/search/docs/monitor-debug/search-console-start)
+
+## Gumroad products and the UC annotation paywall
+
+The public UC guide contains only the original essay. Commentary lives in the ignored `private-products/uc-essay-annotations/source.md`; it is not imported into the site, serialized into page data, or included in public downloads. `scripts/package_uc_annotations.py` generates the paid PDF, and `scripts/prepare_gumroad_assets.py` prepares separate UC and PhD upload folders under `private-products/gumroad/`. Both scripts require ReportLab and PyMuPDF. Back up the ignored source and buyer files privately; Git does not contain them.
+
+The two published products are $5 each. The PhD product includes the original three-PDF ZIP; the UC product is a PDF containing the free essay and paid commentary. Upload only the designated buyer files to Gumroad’s Content tab, using the matching PNG covers, thumbnails, and listing copy. The published PhD product is `https://pramesh6.gumroad.com/l/phd-application-essays`; the published UC product is `https://pramesh6.gumroad.com/l/uc-essay-annotations`. Both public listings were verified at $5 on November 25, 2026.
+
+The published URLs are built into `lib/gumroad.ts`, so both purchase buttons work on deployment without Stripe credentials or Gumroad environment variables. `GumroadPurchase` loads the official overlay script once; Gumroad detects links added during client-side navigation. Buttons remain ordinary links when JavaScript is unavailable or the script is blocked. Product previews open on the site; Gumroad handles checkout, receipts, and file delivery. No Gumroad API secret or Gmail transport is required. Optional `PHD_ESSAYS_GUMROAD_URL` / `UC_ANNOTATIONS_GUMROAD_URL` overrides accept only HTTPS product URLs on `pramesh6.gumroad.com`. An empty override disables that product, and `GUMROAD_SALES_ENABLED=false` pauses all Gumroad buttons. Remove any old disabled setting or set it to true when launching. Redeploy after changing these settings; the UC guide is statically generated. The PhD page prefers an available Gumroad URL over the existing Stripe checkout. Live product availability has been checked; the seller should still use Gumroad’s test-purchase flow to verify the uploaded buyer files.
+
+Removing the commentary from the current site does not erase copies already published in old deployments, Git history, or search caches. This change does not rewrite repository history.
+
+Gumroad references: [product setup](https://gumroad.com/help/article/149-adding-a-product), [cover specifications](https://gumroad.com/help/article/60-adding-a-cover-image), [test purchases](https://gumroad.com/help/article/62-testing-a-purchase).

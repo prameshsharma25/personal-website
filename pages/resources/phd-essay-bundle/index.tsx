@@ -2,9 +2,11 @@ import Link from 'next/link';
 import { useRef, useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import Seo from '../../../components/Seo';
+import GumroadPurchase from '../../../components/GumroadPurchase';
 import { recordAction } from '../../../components/ActionLink';
 import { ESSAY_PRODUCT, SITE_URL } from '../../../lib/site';
 import { commerceConfig } from '../../../lib/commerce';
+import { gumroadProductUrl } from '../../../lib/gumroad';
 import resource from '../../../styles/Resources.module.css';
 import styles from '../../../styles/Essays.module.css';
 
@@ -12,7 +14,7 @@ const excerpts = [
   { label: 'Statement Of Purpose', text: 'I want to investigate how sequence variation alters protein structure and molecular function, and how these changes propagate to cellular behavior and responses to treatment.' },
   { label: 'Personal Statement', text: 'Through code, I could create a figure that was immune to restrictions. Regardless of the anxiety-inducing setbacks that creating successful code involved, computer science became my new track - one in which I could run forever.' },
 ];
-export default function EssayBundle({ available, cancelled }: { available: boolean; cancelled: boolean }) {
+export default function EssayBundle({ available, cancelled, gumroadUrl }: { available: boolean; cancelled: boolean; gumroadUrl: string | null }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [excerpt, setExcerpt] = useState(0);
   const checkoutKey = useRef('');
@@ -60,9 +62,9 @@ export default function EssayBundle({ available, cancelled }: { available: boole
         <aside className={styles.purchase} aria-label="Purchase The Essay Collection">
           <p className={styles.kicker}>THE COMPLETE COLLECTION</p><p className={styles.price}>$5<span>USD · One-Time Purchase</span></p>
           <p>Two essays and a reading note.<br />Three PDF files in one ZIP.</p>
-          {available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening Secure Checkout…' : 'Buy The Essay Bundle — $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
+          {gumroadUrl ? <GumroadPurchase href={gumroadUrl} className={resource.primaryButton}>Buy The Essay Bundle — $5</GumroadPurchase> : available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening Secure Checkout…' : 'Buy The Essay Bundle — $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
           {error && <p className={resource.error} role="alert">{error}</p>}
-          <p className={styles.finePrint}>{available ? 'Secure payment through Stripe. Download after purchase, with a link sent to your receipt email.' : 'Explore the contents and selected passages below. Sales will open here when checkout is available.'}</p>
+          <p className={styles.finePrint}>{gumroadUrl ? 'Checkout and file delivery through Gumroad. Your receipt includes a download link.' : available ? 'Secure payment through Stripe. Download after purchase, with a link sent to your receipt email.' : 'Explore the contents and selected passages below. Sales will open here when checkout is available.'}</p>
         </aside>
       </section>
       <section data-reveal className={styles.excerpts} aria-labelledby="excerpt-heading">
@@ -79,5 +81,6 @@ export default function EssayBundle({ available, cancelled }: { available: boole
 }
 export const getServerSideProps: GetServerSideProps = async ({ query, res }) => {
   res.setHeader('Cache-Control','private, no-store');
-  return { props: { available: Boolean(commerceConfig()), cancelled: query.checkout === 'cancelled' } };
+  const gumroadUrl = gumroadProductUrl('phd-essays');
+  return { props: { gumroadUrl, available: Boolean(gumroadUrl || commerceConfig()), cancelled: query.checkout === 'cancelled' } };
 };

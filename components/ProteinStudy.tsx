@@ -91,7 +91,7 @@ export default function ProteinStudy() {
     <div className={styles.stage}>
       <div className={styles.orbit} aria-hidden="true" />
       <div ref={viewport} className={styles.canvas} role="img" aria-hidden={!displayReady} aria-label={`3D structure of the RfaH C-terminal domain: ${structure.label}, PDB ${structure.pdb}`} />
-      {!displayReady && <svg className={styles.fallback} viewBox="0 0 420 350" role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>RfaH {structure.label}: backbone trace from {structure.pdb}</title><path d={structure.previewPath} fill="none" stroke={fold === 'alpha' ? '#91ffcf' : '#6edbff'} strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" /></svg>}
+      {!displayReady && <svg className={styles.fallback} viewBox="0 0 420 350" role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>{`RfaH ${structure.label}: backbone trace from ${structure.pdb}`}</title><path d={structure.previewPath} fill="none" stroke={fold === 'alpha' ? '#91ffcf' : '#6edbff'} strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" /></svg>}
       <div className={styles.scan} key={fold} aria-hidden="true" />
       <span className={styles.structureTag}>{structure.pdb} / CHAIN A</span>
       <span className={styles.stageHint}>{failed ? 'Backbone Preview' : displayReady ? 'Drag To Rotate · Scroll To Zoom' : 'Experimental Structure'}</span>
