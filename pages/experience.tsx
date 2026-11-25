@@ -10,7 +10,7 @@ const experiences = [
     role: 'Postbaccalaureate Fellow',
     organization: 'National Institutes of Health',
     dates: 'Aug 2025 – Present',
-    detail: 'Lauren Porter’s lab · Computational Biology Branch',
+    detail: 'Dr. Lauren Porter’s lab · Computational Biology Branch',
     summary:
       'Developing tools to interpret AlphaFold predictions and identify fold-switching proteins, with an emphasis on reproducible analysis and research software.',
   },
@@ -70,7 +70,7 @@ const publications = [
       'AlphaFold reveals but sometimes distorts an organizational principle of protein folding',
     source: 'bioRxiv version · 2026',
     authors:
-      'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Lauren L. Porter',
+      'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Dr. Lauren L. Porter',
     url: 'https://www.biorxiv.org/content/10.64898/2025.12.30.697132v4',
   },
   {
@@ -120,13 +120,13 @@ export default function Experience() {
         <PageIntro
           eyebrow="About / Computational Biologist"
           title="Pramesh Sharma"
-          description="I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Lauren Porter’s lab at the National Institutes of Health."
+          description="I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Dr. Lauren Porter’s lab at the National Institutes of Health."
           aside={
             <>
               <p className={ui.miniLabel}>Current Research</p>
               <h2>Protein Structure &amp; Fold Switching</h2>
               <p>
-                Lauren Porter’s Lab
+                Dr. Lauren Porter’s Lab
                 <br />
                 National Institutes of Health
               </p>

@@ -109,7 +109,7 @@ export const researchProjects: ResearchProject[] = [
     status: 'Ongoing',
     question: 'Which predicted assemblies deserve a closer look?',
     description:
-      'I’m working with Devlina Chakravarty and Lauren Porter on ways to sort through predicted amyloid assemblies. We combine structural evidence with clustering to build a diverse shortlist of candidates for further review.',
+      'I’m working with Dr. Devlina Chakravarty and Dr. Lauren Porter on ways to sort through predicted amyloid assemblies. We combine structural evidence with clustering to build a diverse shortlist of candidates for further review.',
     methods: ['Assembly Geometry', 'MM-align', 'Candidate Selection'],
     link: {
       label: 'Explore Amyloid Candidates',
