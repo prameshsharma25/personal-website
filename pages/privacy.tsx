@@ -85,7 +85,7 @@ export default function PrivacyPolicy() {
           </p>
 
           <h2>Newsletter signup and free downloads</h2>
-          <p>The lab-search tracker can be downloaded without providing an email address. The spreadsheet stays on your device; this site does not receive its contents. Newsletter signup is optional and takes place through Substack. Opening the embedded signup form connects your browser to Substack. Substack handles subscription information and unsubscribe requests under its own privacy policy.</p>
+          <p>The lab-search tracker can be downloaded without providing an email address. The spreadsheet stays on your device; this site does not receive its contents. When email signup is available, its link opens an external signup form. The email provider collects the information you enter and handles subscriptions and unsubscribe requests under its own privacy policy. This website does not embed a signup form or store a subscriber list.</p>
           <h2>Digital purchases</h2>
           <p>When checkout is available, Stripe handles payment details. This site does not receive or store your full card number. Your checkout email address is used to deliver files and handle purchase support; buying does not subscribe you to a newsletter. Payment status is checked before downloads are released. Private files are stored using Vercel Blob, and transactional emails are sent through the seller’s email service. Stripe checkout metadata records completed email delivery.</p>
           <p>The purchase-download page does not run this site’s analytics. It keeps your purchase reference in browser session storage so you can retry a download in the same browser session. Keep your purchase email and access link private.</p>

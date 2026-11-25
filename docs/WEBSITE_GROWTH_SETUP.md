@@ -1,11 +1,11 @@
 # Website resources, checkout, and search setup
 
-The implementation adds a free lab-search tracker, Substack signup invitations, a resources hub, the $5 essay bundle, article navigation, social cards, and an RSS feed. Existing article URLs are preserved.
+The implementation adds a free lab-search tracker, email signup invitations, a resources hub, the $5 essay bundle, article navigation, social cards, and an RSS feed. Existing article URLs are preserved.
 
 ## Files and pages
 
 - `/resources` — guides and downloads.
-- `/resources/lab-search-tracker` — free XLSX and ZIP download; optional Substack signup.
+- `/resources/lab-search-tracker` — free XLSX and ZIP download; optional email signup.
 - `/resources/phd-essay-bundle` — $5 product page and short preview.
 - `/resources/phd-essay-bundle/thanks` — private purchase reference handled in a URL fragment and browser session storage, never in analytics.
 - `private-products/Pramesh_Sharma_PhD_Essays.zip` — buyer bundle. This folder is gitignored and must never be copied into `public/`.
@@ -30,11 +30,39 @@ Downloads verify Stripe's current payment state, product marker, line item, curr
 
 This version charges a fixed $5 and does not calculate sales tax, discounts, or multi-item orders. Configure the appropriate business/tax treatment in consultation with your payment-account setup before live sales. Refunds are managed in Stripe; refunded or disputed purchases lose download access. Do not promise a refund policy on the site that you have not chosen.
 
-## Substack
+## Email signup without Substack
 
-The newsletter uses `https://prameshsharma.substack.com/subscribe`. The tracker page loads the official embed only when the reader chooses **Open signup form**, and provides a direct link as a fallback. There is no custom subscriber database or automatic enrollment. Purchases do not subscribe buyers.
+The site uses a public HTTPS link to a hosted signup form. It works with Kit,
+MailerLite, or another provider that supplies a signup URL. No email API key,
+subscriber database, or embedded third-party script is needed on the website.
 
-Analytics events record tracker clicks/downloads, signup-link clicks/form opens, and successful opening of checkout. They do not claim a completed newsletter signup or completed purchase. Purchase totals remain in Stripe. No email address, purchase reference, or private data is included in custom events.
+1. Create a signup form with your chosen provider. For Kit, choose the **Free**
+   plan, then **Audience growth → Landing Pages & Forms → New → Form → Inline**.
+2. Save and publish the form. Under **Embed → Share**, copy its public URL and
+   open it to check the form. Configure the sender identity and confirmation
+   email in your provider account.
+3. Add the URL as `NEXT_PUBLIC_NEWSLETTER_URL` in `.env.local` and your hosting
+   environment. This is a public form URL, never an API key.
+4. Restart local development or rebuild the deployment. The Subscribe button
+   and article email invitations will use the new destination.
+5. Subscribe with an email address you own and verify confirmation,
+   delivery, and unsubscribe behavior before announcing the list.
+
+When the setting is empty or invalid, email invitations are hidden. There is no
+fallback to Substack or a form that pretends to collect addresses. The tracker
+remains freely downloadable. Existing Substack article links and publishing
+workflows remain in place; no subscribers have been migrated or contacted.
+
+As checked on November 24, 2026, Kit's Free plan includes up to 10,000 subscribers,
+forms, and email broadcasts. Email sequences and RSS campaigns require a paid
+plan. With the free setup, publish your website post and send a broadcast from
+Kit yourself; publishing an MDX file does not automatically email subscribers.
+Kit branding remains on the free plan. Verify current terms when choosing a plan.
+
+Analytics events record tracker downloads, signup-link clicks, and successful
+opening of checkout. A link click is not a confirmed subscription. There is no
+automatic enrollment on purchase, and no email address or purchase reference is
+included in custom analytics events. Stripe handles purchase totals.
 
 ## Future advertisement placement
 
@@ -63,7 +91,7 @@ npm run build
 npm run start -- -p 3817
 ```
 
-In another terminal, run `npm run test:browser`. Install a Playwright browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to your installed Chrome executable. The browser suite assumes checkout and ads are unconfigured and uses `http://127.0.0.1:3817` unless `TEST_BASE_URL` is set. Screenshots are written under ignored `.local/`.
+In another terminal, run `npm run test:browser`. Install a Playwright browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to your installed Chrome executable. The browser suite assumes checkout, email signup, and ads are unconfigured and uses `http://127.0.0.1:3817` unless `TEST_BASE_URL` is set. Screenshots are written under ignored `.local/`. If testing with a configured signup URL, set `TEST_NEWSLETTER_URL` to the same URL used for `NEXT_PUBLIC_NEWSLETTER_URL` at build time.
 
 To regenerate downloads and social cards, install Python dependencies `XlsxWriter reportlab Pillow openpyxl formulas`, then run:
 
@@ -80,6 +108,8 @@ The `--paid` option requires the ignored source files. Font rendering uses Arial
 - [Stripe fulfillment](https://docs.stripe.com/checkout/fulfillment)
 - [Stripe webhook signatures](https://docs.stripe.com/webhooks)
 - [Vercel private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
-- [Substack's signup embed](https://support.substack.com/hc/en-us/articles/360041759232-Can-I-embed-a-signup-form-for-my-Substack-publication)
+- [Kit Free plan](https://help.kit.com/en/articles/16627071-the-kit-free-plan)
+- [Kit pricing](https://kit.com/pricing)
+- [Kit form embedding and share links](https://help.kit.com/en/articles/4009572-form-embedding-basics)
 - [Google ads.txt guidance](https://support.google.com/adsense/answer/12171612)
 - [Google Search Console](https://developers.google.com/search/docs/monitor-debug/search-console-start)

@@ -1,12 +1,18 @@
 import { test, expect } from '@playwright/test';
 test('homepage leads to a working free download and optional signup',async({page})=>{
-  await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Find your own');
+  await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Hi, I’m Pramesh.');
   await page.getByRole('link',{name:'Get the free lab-search tracker'}).click();
   await expect(page).toHaveURL(/resources\/lab-search-tracker/);
   const downloadPromise=page.waitForEvent('download');await page.getByRole('link',{name:'Download the Excel tracker'}).click();
   const download=await downloadPromise;expect(download.suggestedFilename()).toBe('lab-search-tracker.xlsx');expect(await download.failure()).toBeNull();
-  await expect(page.getByRole('link',{name:'Subscribe on Substack'})).toHaveAttribute('href','https://prameshsharma.substack.com/subscribe');
-  await expect(page.locator('iframe')).toHaveCount(0);await page.getByRole('button',{name:'Open signup form'}).click();await expect(page.getByTitle('Subscribe to Pramesh Sharma on Substack')).toHaveAttribute('src','https://prameshsharma.substack.com/embed');
+  const signupUrl=process.env.TEST_NEWSLETTER_URL;
+  if(signupUrl){
+    await expect(page.getByRole('link',{name:'Subscribe →',exact:true})).toHaveAttribute('href',signupUrl);
+  } else {
+    await expect(page.getByRole('region',{name:'Newsletter signup'})).toHaveCount(0);
+  }
+  await expect(page.locator('iframe')).toHaveCount(0);
+  await expect(page.locator('a[href*="substack.com/subscribe"]')).toHaveCount(0);
 });
 test('NIH and cold-email articles have tracker invitations and usable contents links',async({page})=>{
   for(const url of ['/posts/how-i-found-an-nih-postbac-lab','/mentorship/cold-emailing']){

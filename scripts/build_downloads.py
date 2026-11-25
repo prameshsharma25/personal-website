@@ -79,7 +79,7 @@ def tracker():
     wb.close()
     flow=[para('Lab-search tracker',TITLE),para('A quick start / Pramesh Sharma',HEAD)]
     for label,body in steps:flow += [para(label,HEAD),para(body)]
-    flow += [para('An example of a specific research connection',HEAD),para('After reading a lab’s recent paper, write one sentence about the question that interests you and one about an experience or skill that connects to it. Keep the lab’s official application route beside your outreach notes.'),para('The free workbook is for your own use. You may share the resource-page link with others. Newsletter signup is optional at prameshsharma.substack.com.')]
+    flow += [para('An example of a specific research connection',HEAD),para('After reading a lab’s recent paper, write one sentence about the question that interests you and one about an experience or skill that connects to it. Keep the lab’s official application route beside your outreach notes.'),para('The free workbook is for your own use. You may share the resource-page link with others. More guides and updates at prameshsharma.com.')]
     pdf(PUBLIC/'lab-search-quick-start.pdf',flow,'Lab-search tracker')
     with zipfile.ZipFile(PUBLIC/'lab-search-tracker.zip','w',zipfile.ZIP_DEFLATED) as z:
         for name in ['lab-search-tracker.xlsx','lab-shortlist.csv','outreach-log.csv','mentor-fit.csv','lab-search-quick-start.pdf']:z.write(PUBLIC/name,name)
@@ -110,7 +110,7 @@ def essays():
 
 def social_cards():
     folder=ROOT/'public/images/social';folder.mkdir(parents=True,exist_ok=True)
-    cards={'site':('RESEARCH / WRITING / RESOURCES','Find your own way into research.'),'lab-search-tracker':('FREE SPREADSHEET + GUIDE','A little structure for your lab search.'),'phd-essay-bundle':('PERSONAL EXAMPLES / $5 BUNDLE','My PhD application essays.')}
+    cards={'site':('COMPUTATIONAL BIOLOGIST','Protein structure & fold switching'),'lab-search-tracker':('FREE SPREADSHEET + GUIDE','A little structure for your lab search.'),'phd-essay-bundle':('PERSONAL EXAMPLES / $5 BUNDLE','My PhD application essays.')}
     for group in ['posts','guides']:
         for p in (ROOT/group).glob('*.mdx'):
             front=p.read_text().split('---',2)[1]
