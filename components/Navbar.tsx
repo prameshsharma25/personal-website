@@ -16,7 +16,7 @@ export default function Navbar() {
   const { pathname } = useRouter();
 
   return (
-    <nav className={styles.navbar} aria-label="Main navigation">
+    <nav className={styles.navbar} aria-label="Main Navigation">
       <div className={styles.container}>
         <div className={styles.logo}>
           <Link href="/" className={styles.logoLink}>Pramesh Sharma</Link>

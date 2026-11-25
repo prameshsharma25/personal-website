@@ -17,8 +17,8 @@ export default function Home() {
         <p className={styles.description}>At NIH, I study proteins that can switch between different shapes. My work uses code and machine learning to understand these changes and the limits of protein structure prediction.</p>
         <p className={styles.description}>Getting here took a few changes of direction. I’ve shared what helped me find a lab, reach out to mentors, and move from software engineering into research.</p>
         <div className={resource.actions}>
-          <ActionLink href="/resources/lab-search-tracker" event="tracker_invitation_click" source="home" className={resource.primaryButton}>Get the free lab-search tracker →</ActionLink>
-          <Link href="/experience" className={resource.secondaryButton}>About my work</Link>
+          <ActionLink href="/resources/lab-search-tracker" event="tracker_invitation_click" source="home" className={resource.primaryButton}>Get The Free Lab-Search Tracker →</ActionLink>
+          <Link href="/experience" className={resource.secondaryButton}>About My Work</Link>
         </div>
         </div>
         <ProteinStudy />
@@ -36,16 +36,16 @@ export default function Home() {
           </Link>
         )}</div>
       </section>
-      <section data-reveal className={styles.about} aria-label="Background and application essays">
+      <section data-reveal className={styles.about} aria-label="Background And Application Essays">
         <div>
           <h2>Why biology?</h2>
           <p>I was born with Pyruvate Kinase Deficiency, and questions about my own health drew me toward biology. I studied computer science at UC Davis after starting at community college, then found my way into research through internships and software engineering.</p>
-          <Link href="/posts/quitting-100k-software-job" className={resource.textLink}>Why I left software engineering →</Link>
+          <Link href="/posts/quitting-100k-software-job" className={resource.textLink}>Why I Left Software Engineering →</Link>
         </div>
         <div className={styles.note}>
-          <h2>My PhD application essays</h2>
+          <h2>My PhD Application Essays</h2>
           <p>Two essays about becoming a researcher: the questions I wanted to pursue and the experiences that brought me to them. Available together as a $5 PDF collection.</p>
-          <Link href="/resources/phd-essay-bundle" className={resource.textLink}>Read an excerpt →</Link>
+          <Link href="/resources/phd-essay-bundle" className={resource.textLink}>Read An Excerpt →</Link>
         </div>
       </section>
 

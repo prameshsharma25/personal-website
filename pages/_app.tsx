@@ -14,7 +14,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter();
   return <div className={`${bodyFont.variable} ${displayFont.variable} siteShell`}>
     <div className="ambientField" aria-hidden="true"><span /><span /></div>
-    <a href="#main-content" className="skipLink">Skip to content</a>
+    <a href="#main-content" className="skipLink">Skip To Content</a>
     <Navbar />
     <PageMotion><Component {...pageProps} /></PageMotion>
     <Footer />

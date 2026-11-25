@@ -66,7 +66,7 @@ export default function Mentorship({ guides }: MentorshipPageProps) {
         {/* Calendly Section */}
         <section className={styles.section}>
           <div className={styles.sectionContent}>
-            <h2 className={styles.sectionTitle}>Book a Session</h2>
+            <h2 className={styles.sectionTitle}>Book A Session</h2>
             <p className={styles.sectionDescription}>
               I&apos;ve navigated community college, two NASA internships, two Genentech internships, a Walmart SWE role,
               and the NIH — all without a traditional path. I know what it takes to cold email a PI, reframe an engineering

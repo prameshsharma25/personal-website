@@ -26,9 +26,9 @@ export default function PurchaseDownload() {
   }
   return <><Seo title="Your Essay Bundle Download" description="Access the essay bundle after your purchase." path={`${ESSAY_PRODUCT.path}/thanks`} noindex />
     <main className={`${styles.page} ${styles.narrow}`}><p className={styles.eyebrow}>YOUR DIGITAL DOWNLOAD</p><h1 className={styles.title}>Your essay bundle.</h1><p className={styles.lead}>Use the button below to verify your payment and download the PDF, editable essays, and reading guide.</p>
-      {sessionId ? <button className={styles.primaryButton} disabled={busy} onClick={download}>{busy ? 'Verifying payment…' : 'Download my essay bundle ↓'}</button> : <p className={styles.status}>Open the download link in your purchase email, or return here directly from Stripe after payment.</p>}
+      {sessionId ? <button className={styles.primaryButton} disabled={busy} onClick={download}>{busy ? 'Verifying Payment…' : 'Download My Essay Bundle ↓'}</button> : <p className={styles.status}>Open the download link in your purchase email, or return here directly from Stripe after payment.</p>}
       {downloaded && <p role="status" className={styles.status}>Your download is ready. Unzip the file and start with the reading guide.</p>}
       {error && <p className={styles.error} role="alert">{error}</p>}
-      <p className={styles.small}>Keep your purchase email to return to this download. Your access link is private. If your payment is still processing, wait a moment and try again.</p><p><Link className={styles.textLink} href="/contact">Need help with your purchase?</Link></p>
+      <p className={styles.small}>Keep your purchase email to return to this download. Your access link is private. If your payment is still processing, wait a moment and try again.</p><p><Link className={styles.textLink} href="/contact">Need Help With Your Purchase?</Link></p>
     </main></>;
 }

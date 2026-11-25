@@ -1,3 +1,4 @@
+import { labelCase } from '../../lib/labels';
 import Link from 'next/link';
 import type { GetStaticPaths, GetStaticProps } from 'next';
 import { MDXRemote, type MDXRemoteSerializeResult } from 'next-mdx-remote';
@@ -16,20 +17,20 @@ export default function PostPage({ post, source, headings, readingMinutes }: Pro
   return <>
     <Seo title={post.seoTitle || post.title} description={post.description} path={`/posts/${post.slug}`} date={post.date} article noindex={post.draft} image={`/images/social/posts-${post.slug}.png`} breadcrumbs={[{name:'Home',path:'/'},{name:'Posts',path:'/posts'},{name:post.title,path:`/posts/${post.slug}`}]} />
     <main className={styles.container}><div className={styles.postsList}>
-      <nav className={resource.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href="/posts">Posts</Link><span>/ {post.category}</span></nav>
+      <nav className={resource.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href="/posts">Posts</Link><span>/ {labelCase(post.category)}</span></nav>
       <article>
-        {post.draft && <p className={styles.draftNotice}>Draft preview</p>}
-        <header className={styles.postHeader}><p className={resource.badge}>{post.category}</p><h1 className={styles.title}>{post.title}</h1><p className={styles.postDescription}>{post.description}</p>
+        {post.draft && <p className={styles.draftNotice}>Draft Preview</p>}
+        <header className={styles.postHeader}><p className={resource.badge}>{labelCase(post.category)}</p><h1 className={styles.title}>{post.title}</h1><p className={styles.postDescription}>{post.description}</p>
           <p className={resource.meta}>By <Link href="/experience">Pramesh Sharma</Link> · {readingMinutes} min read{post.date && <> · <time dateTime={post.date}>{new Date(post.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})}</time></>}</p>
           {post.substackUrl && <p className={styles.substackNote}>Also published on <a href={post.substackUrl}>Substack</a>.</p>}
         </header>
         {post.slug === 'how-i-found-an-nih-postbac-lab' && <LabTrackerInvitation source={`post_${post.slug}`} />}
         <ReadingProgress /><ArticleContents headings={headings} />
         <div className={styles.postContent}><MDXRemote {...source} /></div>
-        {post.relatedLinks.length > 0 && <nav className={styles.relatedTopics} aria-label="Related reading"><h2 className={styles.postTitle}>Continue exploring</h2><ul>{post.relatedLinks.map(link=><li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul></nav>}
+        {post.relatedLinks.length > 0 && <nav className={styles.relatedTopics} aria-label="Related Reading"><h2 className={styles.postTitle}>Continue Exploring</h2><ul>{post.relatedLinks.map(link=><li key={link.href}><Link href={link.href}>{labelCase(link.label)}</Link></li>)}</ul></nav>}
       </article>
       {career && post.slug !== 'how-i-found-an-nih-postbac-lab' && <LabTrackerInvitation source={`post_${post.slug}`} />}
-      <AdSlot /><Link href="/posts" className={resource.textLink}>← Read more essays</Link>
+      <AdSlot /><Link href="/posts" className={resource.textLink}>← Read More Essays</Link>
     </div></main>
   </>;
 }

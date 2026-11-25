@@ -1,3 +1,4 @@
+import { labelCase } from '../lib/labels';
 import { useEffect, useId, useRef, useState } from 'react';
 import structures from '../data/rfah.json';
 import { loadMolecularViewer, type MolecularViewer } from '../lib/molecular-viewer';
@@ -83,9 +84,9 @@ export default function ProteinStudy() {
   function reset() { setSpinning(false); if (initialView.current.length) viewer.current?.setView(initialView.current); }
   return <figure className={styles.study} data-fold={fold} data-rendered-fold={loadedFold ?? undefined} data-viewer={failed ? 'fallback' : displayReady ? 'ready' : 'loading'} data-spinning={spinning && !reduced && inView && tabVisible && displayReady}>
     <header className={styles.header}><span className={styles.liveDot} aria-hidden="true" /><span>MOLECULAR EXPLORER</span><span className={styles.proteinName}>RfaH</span></header>
-    <div className={styles.switcher} role="group" aria-label="Choose RfaH structure">
-      <button type="button" aria-pressed={fold === 'alpha'} onClick={() => setFold('alpha')}><span>01</span> α-helical state</button>
-      <button type="button" aria-pressed={fold === 'beta'} onClick={() => setFold('beta')}><span>02</span> β-barrel state</button>
+    <div className={styles.switcher} role="group" aria-label="Choose RfaH Structure">
+      <button type="button" aria-pressed={fold === 'alpha'} onClick={() => setFold('alpha')}><span>01</span> α-Helical State</button>
+      <button type="button" aria-pressed={fold === 'beta'} onClick={() => setFold('beta')}><span>02</span> β-Barrel State</button>
     </div>
     <div className={styles.stage}>
       <div className={styles.orbit} aria-hidden="true" />
@@ -93,17 +94,17 @@ export default function ProteinStudy() {
       {!displayReady && <svg className={styles.fallback} viewBox="0 0 420 350" role="img" aria-labelledby={`${id}-title`}><title id={`${id}-title`}>RfaH {structure.label}: backbone trace from {structure.pdb}</title><path d={structure.previewPath} fill="none" stroke={fold === 'alpha' ? '#91ffcf' : '#6edbff'} strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" /></svg>}
       <div className={styles.scan} key={fold} aria-hidden="true" />
       <span className={styles.structureTag}>{structure.pdb} / CHAIN A</span>
-      <span className={styles.stageHint}>{failed ? 'Backbone preview' : displayReady ? 'Drag to rotate · scroll to zoom' : 'Experimental structure'}</span>
+      <span className={styles.stageHint}>{failed ? 'Backbone Preview' : displayReady ? 'Drag To Rotate · Scroll To Zoom' : 'Experimental Structure'}</span>
     </div>
-    <div className={styles.controls} aria-label="Structure controls">
-      <button type="button" disabled={!displayReady || reduced} onClick={() => setSpinning(!spinning)} aria-pressed={spinning && !reduced}>{reduced ? 'Rotation paused' : spinning ? 'Pause rotation' : 'Auto-rotate'}</button>
-      <button type="button" disabled={!displayReady} aria-label="Rotate structure left" onClick={() => rotate(-25)}>↶</button>
-      <button type="button" disabled={!displayReady} aria-label="Rotate structure right" onClick={() => rotate(25)}>↷</button>
-      <button type="button" disabled={!displayReady} aria-label="Zoom in" onClick={() => { viewer.current?.zoom(1.2); viewer.current?.render(); }}>+</button>
-      <button type="button" disabled={!displayReady} aria-label="Zoom out" onClick={() => { viewer.current?.zoom(.8); viewer.current?.render(); }}>−</button>
-      <button type="button" disabled={!displayReady} onClick={reset}>Reset view</button>
+    <div className={styles.controls} aria-label="Structure Controls">
+      <button type="button" disabled={!displayReady || reduced} onClick={() => setSpinning(!spinning)} aria-pressed={spinning && !reduced}>{reduced ? 'Rotation Paused' : spinning ? 'Pause Rotation' : 'Auto-Rotate'}</button>
+      <button type="button" disabled={!displayReady} aria-label="Rotate Structure Left" onClick={() => rotate(-25)}>↶</button>
+      <button type="button" disabled={!displayReady} aria-label="Rotate Structure Right" onClick={() => rotate(25)}>↷</button>
+      <button type="button" disabled={!displayReady} aria-label="Zoom In" onClick={() => { viewer.current?.zoom(1.2); viewer.current?.render(); }}>+</button>
+      <button type="button" disabled={!displayReady} aria-label="Zoom Out" onClick={() => { viewer.current?.zoom(.8); viewer.current?.render(); }}>−</button>
+      <button type="button" disabled={!displayReady} onClick={reset}>Reset View</button>
     </div>
-    <figcaption className={styles.description}><strong>One protein. Two folds.</strong><p>RfaH’s C-terminal domain can form an α-helical hairpin or a β-barrel.</p><p className={styles.stateLabel} aria-live="polite">{structure.label} · {structure.method}</p></figcaption>
-    <details className={styles.details}><summary>Structures &amp; sources</summary><p>Deposited coordinates from <a href="https://www.rcsb.org/structure/2OUG" target="_blank" rel="noreferrer">2OUG</a> (α: chain A, residues 115–156) and <a href="https://www.rcsb.org/structure/2LCL" target="_blank" rel="noreferrer">2LCL</a> (β: chain A, residues 115–162, NMR model 1 of 20).</p><p>The α state is cropped from full-length RfaH; the β state was determined for the isolated domain. Unresolved crystal residues are omitted. Switching views compares structures; it does not simulate a folding pathway.</p><p><a href={structure.file} download>Download the displayed coordinates</a> · <a href="https://doi.org/10.1016/j.cell.2012.05.042" target="_blank" rel="noreferrer">Read the study</a> · Rendering by <a href="https://3dmol.org" target="_blank" rel="noreferrer">3Dmol.js</a></p></details>
+    <figcaption className={styles.description}><strong>One protein. Two folds.</strong><p>RfaH’s C-terminal domain can form an α-helical hairpin or a β-barrel.</p><p className={styles.stateLabel} aria-live="polite">{labelCase(structure.label)} · {labelCase(structure.method)}</p></figcaption>
+    <details className={styles.details}><summary>Structures &amp; Sources</summary><p>Deposited coordinates from <a href="https://www.rcsb.org/structure/2OUG" target="_blank" rel="noreferrer">2OUG</a> (α: chain A, residues 115–156) and <a href="https://www.rcsb.org/structure/2LCL" target="_blank" rel="noreferrer">2LCL</a> (β: chain A, residues 115–162, NMR model 1 of 20).</p><p>The α state is cropped from full-length RfaH; the β state was determined for the isolated domain. Unresolved crystal residues are omitted. Switching views compares structures; it does not simulate a folding pathway.</p><p><a href={structure.file} download>Download The Displayed Coordinates</a> · <a href="https://doi.org/10.1016/j.cell.2012.05.042" target="_blank" rel="noreferrer">Read The Study</a> · Rendering by <a href="https://3dmol.org" target="_blank" rel="noreferrer">3Dmol.js</a></p></details>
   </figure>;
 }

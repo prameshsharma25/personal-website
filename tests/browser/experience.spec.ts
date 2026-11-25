@@ -10,26 +10,26 @@ test('RfaH viewer switches experimental states and offers keyboard controls', as
   const figure = page.locator('figure[data-fold]');
   await expect(figure).toHaveAttribute('data-viewer', 'ready', { timeout: 20000 });
   await expect(figure.locator('canvas')).toBeVisible();
-  await page.getByRole('button', { name: 'Pause rotation', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause Rotation', exact: true }).click();
   await expect(figure).toHaveAttribute('data-spinning', 'false');
-  await page.getByRole('button', { name: /β-barrel state/ }).focus(); await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: /β-Barrel State/ }).focus(); await page.keyboard.press('Enter');
   await expect(figure).toHaveAttribute('data-fold', 'beta');
   try {
     await expect(figure).toHaveAttribute('data-viewer', 'loading');
     await expect(figure.locator('canvas')).not.toBeVisible();
     await expect(figure.locator('svg')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Zoom In' })).toBeDisabled();
   } finally { releaseStructure(); }
   await expect(figure).toHaveAttribute('data-viewer', 'ready');
   await expect(figure).toHaveAttribute('data-rendered-fold', 'beta');
   await expect(figure).toContainText('2LCL / CHAIN A');
-  await page.getByRole('button', { name: 'Rotate structure left' }).click();
-  await page.getByRole('button', { name: 'Zoom in' }).click();
-  await page.getByRole('button', { name: 'Reset view', exact: true }).click();
-  await page.getByText('Structures & sources', { exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Download the displayed coordinates' })).toHaveAttribute('href', '/structures/rfah/2LCL-CTD.pdb');
+  await page.getByRole('button', { name: 'Rotate Structure Left' }).click();
+  await page.getByRole('button', { name: 'Zoom In' }).click();
+  await page.getByRole('button', { name: 'Reset View', exact: true }).click();
+  await page.getByText('Structures & Sources', { exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Download The Displayed Coordinates' })).toHaveAttribute('href', '/structures/rfah/2LCL-CTD.pdb');
   expect(externalFonts).toEqual([]);
-  await page.getByRole('link', { name: 'About my work', exact: true }).click();
+  await page.getByRole('link', { name: 'About My Work', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pramesh Sharma');
   await expect(page.locator('.routeProgress')).toHaveAttribute('data-loading', 'false');
 });
@@ -56,10 +56,10 @@ test('editorial collection offers PDF details and selectable excerpts without sc
   await expect(page.getByText('Three PDF files in one ZIP.', { exact: false })).toBeVisible();
   await expect(page.locator('main')).not.toContainText(/CBBG|University of Maryland|DOCX|editable/);
   await expect(page.locator('blockquote')).toContainText('sequence variation');
-  await page.getByRole('button', { name: 'Personal statement', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Personal statement', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Personal Statement', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Personal Statement', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('blockquote')).toContainText('Through code');
-  await page.getByRole('button', { name: 'Statement of purpose', exact: true }).click();
+  await page.getByRole('button', { name: 'Statement Of Purpose', exact: true }).click();
   await expect(page.locator('blockquote')).toContainText('sequence variation');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({ path: '.local/essay-editorial-desktop.png', fullPage: true, animations: 'disabled' });
@@ -84,10 +84,10 @@ test('newsletter pages and APIs are removed and do not trigger background reques
 test('reduced motion suppresses effects while reading progress and controls remain usable', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await page.getByRole('button', { name: /β-barrel state/ }).click();
+  await page.getByRole('button', { name: /β-Barrel State/ }).click();
   await expect(page.locator('figure[data-fold]')).toHaveAttribute('data-fold', 'beta');
   await expect(page.locator('figure[data-fold]')).toHaveAttribute('data-spinning', 'false');
-  await expect(page.getByRole('button', { name: 'Rotation paused', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Rotation Paused', exact: true })).toBeDisabled();
   expect(await page.evaluate(() => document.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
   await page.goto('/posts/how-i-found-an-nih-postbac-lab');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
@@ -113,7 +113,7 @@ test('actual-coordinate fallback remains usable when the viewer cannot load', as
   await expect(figure).toHaveAttribute('data-viewer', 'fallback');
   await expect(figure.locator('svg')).toBeVisible();
   const before = await figure.locator('svg path').getAttribute('d');
-  await page.getByRole('button', { name: /β-barrel state/ }).click();
+  await page.getByRole('button', { name: /β-Barrel State/ }).click();
   expect(await figure.locator('svg path').getAttribute('d')).not.toBe(before);
   await expect(figure).toContainText('2LCL / CHAIN A');
 });

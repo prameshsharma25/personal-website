@@ -24,12 +24,12 @@ function Authors({ names }: { names: string }) {
 
 export default function Experience() {
   return <>
-    <Seo title="About — Computational Biologist" description="Computational biologist at NIH studying protein structure and fold switching. Research, papers, and experience at NIH, NASA, Genentech, and Walmart." path="/experience" schema={{ '@type': 'ProfilePage', mainEntity: { '@type': 'Person', name: 'Pramesh Sharma', jobTitle: 'Computational biologist', url: 'https://prameshsharma.com/experience', sameAs: ['https://github.com/prameshsharma25'], alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of California, Davis' } } }} />
+    <Seo title="About — Computational Biologist" description="Computational biologist at NIH studying protein structure and fold switching. Research, papers, and experience at NIH, NASA, Genentech, and Walmart." path="/experience" schema={{ '@type': 'ProfilePage', mainEntity: { '@type': 'Person', name: 'Pramesh Sharma', jobTitle: 'Computational Biologist', url: 'https://prameshsharma.com/experience', sameAs: ['https://github.com/prameshsharma25'], alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of California, Davis' } } }} />
     <main className={styles.page}>
       <header className={styles.header}>
         <p className={styles.eyebrow}>ABOUT</p>
         <h1>Pramesh Sharma</h1>
-        <p className={styles.role}>Computational biologist</p>
+        <p className={styles.role}>Computational Biologist</p>
         <p className={styles.introduction}>I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Lauren Porter’s lab at the National Institutes of Health.</p>
         <div className={styles.links}>
           <a href="/resume.pdf" className={styles.resumeLink} target="_blank" rel="noopener noreferrer">Download CV <span>PDF ↗</span></a>
@@ -37,7 +37,7 @@ export default function Experience() {
           <Link href="/contact">Contact</Link>
         </div>
       </header>
-      <nav className={styles.sectionNav} aria-label="About page sections">
+      <nav className={styles.sectionNav} aria-label="About Page Sections">
         <a href="#research">Research</a><a href="#publications">Papers</a><a href="#experience">Experience</a><a href="#background">Background</a>
       </nav>
       <section data-reveal id="research" className={styles.section} aria-labelledby="research-heading">
@@ -46,11 +46,11 @@ export default function Experience() {
           <p className={styles.lead}>How can the same protein sequence support different structures?</p>
           <p>My research focuses on fold-switching proteins: proteins that can adopt different structures. I’m interested in how their sequences support those changes, and in what models such as AlphaFold capture or miss.</p>
           <p>I bring a software engineering background to these questions, building analysis pipelines and tools that help researchers examine model predictions.</p>
-          <ul className={styles.topics} aria-label="Research interests"><li>Protein structure</li><li>Fold switching</li><li>Interpretable machine learning</li><li>Research software</li></ul>
+          <ul className={styles.topics} aria-label="Research Interests"><li>Protein Structure</li><li>Fold Switching</li><li>Interpretable Machine Learning</li><li>Research Software</li></ul>
         </div>
       </section>
       <section data-reveal id="publications" className={styles.section} aria-labelledby="papers-heading">
-        <div className={styles.sectionLabel}><p className={styles.eyebrow}>02</p><h2 id="papers-heading">Papers &amp; preprints</h2></div>
+        <div className={styles.sectionLabel}><p className={styles.eyebrow}>02</p><h2 id="papers-heading">Papers &amp; Preprints</h2></div>
         <div className={styles.sectionBody}>
           <ol className={styles.publicationList}>{publications.map(paper =>
             <li data-reveal key={paper.url}>
@@ -79,7 +79,7 @@ export default function Experience() {
           <div className={styles.education}><h3>University of California, Davis</h3><p>B.S. in Computer Science · 2024</p></div>
           <p>I started at community college before transferring to UC Davis. Internships at Genentech and NASA introduced me to biological research; a year in software engineering strengthened the skills I now bring to it.</p>
           <p>I was born with Pyruvate Kinase Deficiency. Living with a rare genetic disease shaped the questions I wanted to ask, and helped me see why I wanted to return to biology. I’m interested in understanding how molecular changes affect the way biological systems work.</p>
-          <Link href="/posts/quitting-100k-software-job" className={styles.textLink}>Read about my move from software to research →</Link>
+          <Link href="/posts/quitting-100k-software-job" className={styles.textLink}>Read About My Move From Software To Research →</Link>
         </div>
       </section>
     </main>
