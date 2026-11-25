@@ -10,8 +10,8 @@ export default function AmyloidTool() {
   return (
     <>
       <Seo
-        title="Amyloid Warning Inspector — Structure Analysis & Clustering"
-        description="Analyze PDB and mmCIF assemblies with Amyloid Candidates: structural warnings, descriptors, MM-align comparisons, clustering, and downloadable research reports."
+        title="Amyloid Warning Inspector — Analyze Structures On Your Device"
+        description="Calculate amyloid warnings and structural descriptors from PDB and mmCIF files in your browser. Private on-device analysis with downloadable research reports."
         path="/tools/amyloid-inspector"
         breadcrumbs={[
           { name: 'Home', path: '/' },
@@ -29,7 +29,7 @@ export default function AmyloidTool() {
           isAccessibleForFree: true,
           url: 'https://prameshsharma.com/tools/amyloid-inspector',
           description:
-            'Analyze uploaded assemblies with Amyloid Candidates and inspect local reports in an interactive molecular viewer.',
+            'Analyze assemblies on your own device with Amyloid Candidates and inspect local reports in an interactive molecular viewer.',
         }}
       />
       <main className={ui.page}>
@@ -41,7 +41,7 @@ export default function AmyloidTool() {
           eyebrow="Amyloid Candidates / Structure Assessment"
           title="Amyloid Warning"
           accent="Inspector."
-          description="Upload predicted structures to calculate amyloid descriptors, compare assemblies, and inspect the warnings alongside the evidence."
+          description="Explore your predicted structures, calculate amyloid descriptors on your own device, and inspect the warnings alongside the evidence."
         />
         <AmyloidInspector />
         <section
@@ -88,12 +88,19 @@ export default function AmyloidTool() {
           <p className={styles.kicker}>04 / Use The Current Package</p>
           <h2 id="package-heading">Your Pipeline. A Clearer View.</h2>
           <p>
-            The analysis service runs Amyloid Candidates on your uploaded
-            coordinates. Comparable assemblies are aligned with MM-align and
-            clustered with HDBSCAN. Results include individual warning reports,
-            distance matrices, cluster memberships, and shortlist eligibility.
-            You can also run the package locally and open its reports using Open
-            Existing Reports.
+            On My Device runs the pinned Amyloid Candidates package inside your
+            browser, with NumPy, Biopython, and FreeSASA. Structures are
+            processed independently; the download includes descriptors,
+            warnings, original coordinates, and calculation provenance. The
+            scientific calculations use the package’s Python code.
+          </p>
+          <p>
+            For comparisons across a prediction pool, the full Python pipeline
+            adds MM-align, HDBSCAN clustering, and shortlist eligibility. Server
+            Analysis requires a separately configured worker; these steps are
+            not available in the browser engine yet. You can also run the
+            package on your computer and open its reports using Open Existing
+            Reports.
           </p>
           <pre className={styles.code}>
             <code>{`# In an environment with Amyloid Candidates installed:\namyloid-structural-pipeline --structure candidate.pdb \\\n  --prediction-id candidate --output-directory results\namyloid-gates --manifest results/candidate/candidate.manifest.json \\\n  --output results/candidate/candidate.gates.json`}</code>

@@ -12,10 +12,12 @@ import {
 } from '../lib/amyloid-inspector';
 import AmyloidStructureViewer from './AmyloidStructureViewer';
 import AmyloidBatchAnalysis from './AmyloidBatchAnalysis';
+import AmyloidDeviceAnalysis from './AmyloidDeviceAnalysis';
 import styles from '../styles/Tools.module.css';
 
 export default function AmyloidInspector() {
-  const [mode, setMode] = useState('analysis');
+  const [mode, setMode] = useState('device');
+  const [serverOpened, setServerOpened] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   const [inspection, setInspection] = useState<Inspection | null>(null);
@@ -119,13 +121,23 @@ export default function AmyloidInspector() {
         aria-label="Choose An Analysis Mode"
       >
         <button
-          aria-pressed={mode === 'analysis'}
+          aria-pressed={mode === 'device'}
           onClick={() => {
-            setMode('analysis');
+            setMode('device');
             clear();
           }}
         >
-          Analyze Structures
+          On My Device
+        </button>
+        <button
+          aria-pressed={mode === 'analysis'}
+          onClick={() => {
+            setMode('analysis');
+            setServerOpened(true);
+            clear();
+          }}
+        >
+          Server Analysis
         </button>
         <button
           aria-pressed={mode === 'reports'}
@@ -137,8 +149,9 @@ export default function AmyloidInspector() {
           Open Existing Reports
         </button>
       </div>
-      <div hidden={mode !== 'analysis'}>
-        <AmyloidBatchAnalysis
+      <div hidden={mode !== 'device'}>
+        <AmyloidDeviceAnalysis
+          active={mode === 'device'}
           onReset={clear}
           onPreview={(structure) => {
             setInspection(null);
@@ -151,6 +164,25 @@ export default function AmyloidInspector() {
             setExample('');
           }}
         />
+      </div>
+      <div hidden={mode !== 'analysis'}>
+        {serverOpened && (
+          <AmyloidBatchAnalysis
+            onReset={clear}
+            onPreview={(structure) => {
+              setInspection(null);
+              setStructurePreview(structure);
+              setExample('');
+            }}
+            onInspect={(result) => {
+              if (mode === 'analysis') {
+                setStructurePreview(null);
+                setInspection(result);
+                setExample('');
+              }
+            }}
+          />
+        )}
       </div>
       {mode === 'reports' && (
         <>
@@ -266,9 +298,9 @@ export default function AmyloidInspector() {
                 </p>
                 <button
                   className={styles.primary}
-                  onClick={() => setMode('analysis')}
+                  onClick={() => setMode('device')}
                 >
-                  Analyze Structures ↑
+                  On-Device Analysis ↑
                 </button>
               </div>
             </section>

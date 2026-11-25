@@ -12,6 +12,9 @@ test('Tools precedes Books and a PDB previews without a report', async ({
     route.fulfill({ json: { enabled: false } })
   );
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByRole('button', { name: 'Server Analysis', exact: true })
+    .click();
   const navigation = await page
     .getByRole('navigation', { name: 'Main Navigation' })
     .getByRole('link')
@@ -20,6 +23,7 @@ test('Tools precedes Books and a PDB previews without a report', async ({
     navigation.findIndex((label) => label.trim() === 'Tools')
   ).toBeLessThan(navigation.findIndex((label) => label.trim() === 'Books'));
   await page
+    .getByRole('region', { name: 'Analyze Uploaded Structures', exact: true })
     .getByLabel('Choose Structures', { exact: true })
     .setInputFiles(fixture);
   await expect(page.getByText('Structure Only', { exact: true })).toBeVisible();
@@ -62,9 +66,14 @@ test('expired session unlocks a new upload', async ({ page }) => {
     route.fulfill({ status: 410, json: { detail: 'This job has expired.' } })
   );
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByRole('button', { name: 'Server Analysis', exact: true })
+    .click();
   await expect(page.locator('main [role=alert]')).toContainText('expired');
   await expect(
-    page.getByLabel('Choose Structures', { exact: true })
+    page
+      .getByRole('region', { name: 'Analyze Uploaded Structures', exact: true })
+      .getByLabel('Choose Structures', { exact: true })
   ).toBeEnabled();
   expect(
     await page.evaluate(() =>
@@ -84,14 +93,20 @@ test('real worker runs a batch, verifies reports, resumes, downloads, and delete
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByRole('button', { name: 'Server Analysis', exact: true })
+    .click();
   await expect(
     page.getByText('Analysis Service Connected', { exact: true })
   ).toBeVisible();
   const buffer = await readFile(fixture);
-  await page.getByLabel('Choose Structures', { exact: true }).setInputFiles([
-    { name: 'assembly-a.pdb', mimeType: 'text/plain', buffer },
-    { name: 'assembly-b.pdb', mimeType: 'text/plain', buffer },
-  ]);
+  await page
+    .getByRole('region', { name: 'Analyze Uploaded Structures', exact: true })
+    .getByLabel('Choose Structures', { exact: true })
+    .setInputFiles([
+      { name: 'assembly-a.pdb', mimeType: 'text/plain', buffer },
+      { name: 'assembly-b.pdb', mimeType: 'text/plain', buffer },
+    ]);
   await page
     .getByRole('button', { name: 'Analyze 2 Structures', exact: true })
     .click();
@@ -121,6 +136,9 @@ test('real worker runs a batch, verifies reports, resumes, downloads, and delete
   expect(archive.suggestedFilename()).toBe('amyloid-analysis.zip');
   await archive.saveAs('/private/tmp/amyloid-browser-verified-results.zip');
   await page.reload();
+  await page
+    .getByRole('button', { name: 'Server Analysis', exact: true })
+    .click();
   await expect(page.getByRole('table')).toContainText('assembly-b.pdb', {
     timeout: 20000,
   });
@@ -193,6 +211,9 @@ test('a temporary status error retries without losing the job', async ({
         });
   });
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByRole('button', { name: 'Server Analysis', exact: true })
+    .click();
   await expect(
     page.getByText('The connection was interrupted.', { exact: false })
   ).toBeVisible();
@@ -200,10 +221,13 @@ test('a temporary status error retries without losing the job', async ({
     page.getByRole('heading', { name: 'Failed', exact: true })
   ).toBeVisible({ timeout: 10000 });
   await expect(
-    page.getByLabel('Choose Structures', { exact: true })
+    page
+      .getByRole('region', { name: 'Analyze Uploaded Structures', exact: true })
+      .getByLabel('Choose Structures', { exact: true })
   ).toBeEnabled();
   expect(polls).toBe(2);
   await page
+    .getByRole('region', { name: 'Analyze Uploaded Structures', exact: true })
     .getByLabel('Choose Structures', { exact: true })
     .setInputFiles(fixture);
   await page.route('**/jobs', (route) =>
@@ -219,7 +243,9 @@ test('a temporary status error retries without losing the job', async ({
     'queue is full'
   );
   await expect(
-    page.getByLabel('Choose Structures', { exact: true })
+    page
+      .getByRole('region', { name: 'Analyze Uploaded Structures', exact: true })
+      .getByLabel('Choose Structures', { exact: true })
   ).toBeEnabled();
   await expect(
     page.getByRole('button', { name: 'Analyze 1 Structure', exact: true })

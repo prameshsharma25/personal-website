@@ -4,17 +4,21 @@ Routes: /tools and /tools/amyloid-inspector
 Scientific source: https://github.com/DevlinaC/Amyloid_Candidates
 Pinned package commit: 1c85221ea38ffbaa1695eeb0a2962997abf94563
 
-Analyze Structures previews a single PDB/mmCIF locally. Selecting Analyze sends
-coordinates and optional confidence metadata to the configured Python service.
-One structure produces descriptors and warnings. Comparable pools also produce
-MM-align distances, HDBSCAN clustering, medoids, shortlist eligibility, and a
-complete downloadable archive. No predictions are generated. Missing confidence
-is not inferred. See services/amyloid/README.txt for science, limits, and hosting.
+On My Device is the default. It calculates descriptors and warnings locally
+using the actual Python package through Pyodide. No server is required. Small
+batches are processed independently; browser clustering is not implemented.
+See docs/AMYLOID_ON_DEVICE.txt for limits, packaging, privacy, and validation.
 
-Set AMYLOID_API_URL to the worker's public HTTPS base URL (or localhost HTTP for
-development). The frontend uploads directly to that endpoint. If no worker is
-configured, analysis is visibly unavailable; preview and report reading remain.
-The service is not deployed automatically by a website build or PR merge.
+Server Analysis retains the full comparison/clustering pipeline. Selecting its
+Analyze button sends coordinates and optional confidence metadata to the worker.
+Comparable pools produce MM-align distances, HDBSCAN clustering, medoids,
+shortlist eligibility, and a complete downloadable archive. No predictions are
+generated. Missing confidence is not inferred. See services/amyloid/README.txt.
+
+Set AMYLOID_API_URL only if enabling Server Analysis, using a public HTTPS base
+URL (or localhost HTTP for development). No service is contacted until the user
+opens Server Analysis. Without a worker, on-device calculations and report reading
+still work. A website build or PR merge does not deploy the optional service.
 
 Open Existing Reports reads files entirely in the browser: one gate-report 1.0
 JSON, optionally one structural-pipeline-manifest 1.1 JSON and original PDB/mmCIF.

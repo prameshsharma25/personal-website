@@ -49,13 +49,13 @@ export default function Tools() {
             <h2>Amyloid Warning Inspector</h2>
             <p>
               A structure can look convincing and still warrant a closer look.
-              Upload predicted structures to calculate geometry, packing, and
-              energy descriptors, compare assemblies, and review the warnings.
+              Calculate geometry, packing, and energy descriptors on your own
+              device, then review the warnings alongside your structures.
             </p>
             <ul>
               <li>Interactive PDB and mmCIF structure inspection</li>
               <li>Warning explanations and questions to investigate</li>
-              <li>Batch analysis, clustering, and downloadable reports</li>
+              <li>On-device calculations and downloadable reports</li>
             </ul>
             <Link href="/tools/amyloid-inspector" className={styles.primary}>
               Open The Inspector <span aria-hidden="true">↗</span>

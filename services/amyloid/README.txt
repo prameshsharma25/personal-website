@@ -1,3 +1,8 @@
+Optional Server Analysis
+The website defaults to on-device descriptor calculations and does not require
+this service. Use this worker for full batch alignment/clustering/shortlisting.
+See ../../docs/AMYLOID_ON_DEVICE.txt for the browser engine.
+
 AMYLOID ANALYSIS SERVICE
 
 This service runs the existing Amyloid Candidates Python package on uploaded

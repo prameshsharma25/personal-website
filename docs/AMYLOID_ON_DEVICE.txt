@@ -1,0 +1,84 @@
+Amyloid Candidates — On-Device Analysis
+
+Default route: /tools/amyloid-inspector
+No AMYLOID_API_URL, account, Python installation, or analysis server is required.
+Start with Analyze On My Device. Selecting files alone previews a single structure;
+it does not load the Python runtime or start scoring. No coordinates or filenames
+are uploaded. Work happens in a dedicated module Web Worker, not the UI thread.
+
+CURRENT SCOPE
+The unchanged Amyloid Candidates package calculates common QC, geometry, packing,
+energetics, and positive-reference warning gates for each structure independently.
+Up to 5 PDB/mmCIF files, 10 MiB each, 25 MiB total; first model only, up to 20,000
+normalized atoms and 32 polymer chains per structure. Invalid structures are listed
+as failed while remaining structures continue. No missing measurements are imputed.
+
+MM-align, HDBSCAN, pool-relative scores, and shortlist selection are NOT included
+in the browser engine. Server Analysis retains the full existing Python pipeline.
+That mode initializes only after explicitly selecting it; ordinary visits do not
+contact the service or a localhost address. No prediction generation is included.
+These browser limits are conservative UI/memory limits, not scientific validity
+criteria. Performance depends on the device and assembly. Desktop use is preferable.
+
+LIFECYCLE
+Initialization has a two-minute timeout. Each structure and final archive phase
+has a five-minute timeout. Cancel terminates the worker immediately and discards
+that run. Completion also terminates the worker, freeing the Python runtime.
+Results stay in page memory until cleared or navigation/reload; no persistence,
+background continuation after closing the page, or resume is promised. Download
+the ZIP before leaving. Switching inspector modes retains an active local run.
+Navigating away unmounts the component and terminates its worker.
+
+SOURCES AND DEPLOYMENT
+public/tools/amyloid-device/v1/ contains worker.mjs, analysis.py, package.zip,
+and engine.json. The package is public source commit
+1c85221ea38ffbaa1695eeb0a2962997abf94563, bundled without scientific modifications.
+The adapter only handles input bounds, file packaging, portable paths, and output.
+The MIT license and energetics CC BY 4.0 attribution are included in the bundle
+and every report archive. No private research outcomes or benchmark labels ship.
+
+The worker downloads Pyodide 314.0.8 from the version-pinned jsDelivr release:
+https://cdn.jsdelivr.net/pyodide/v314.0.8/full/
+It loads NumPy 2.4.6, Biopython 1.87, and FreeSASA 2.2.1 through Pyodide's package
+loader with integrity verification. These binaries are built for WebAssembly.
+The CDN receives asset requests/connection metadata, never input structures.
+An Internet connection is needed to load the engine; normal browser caching may
+reduce subsequent downloads, but fully offline operation is not promised.
+This removes per-job server compute charges. Normal website bandwidth/hosting
+quotas still apply. The scientific package archive is about 111 KiB compressed.
+
+No cross-origin isolation or SharedArrayBuffer is needed; cancellation uses
+Worker.terminate(). An up-to-date browser supporting module Web Workers,
+WebAssembly, and Web Crypto over HTTPS (or localhost) is required. Runtime/CDN
+failures show an error and leave retry and existing-report reading available.
+
+REPRODUCING THE BUNDLE
+Clone the public Amyloid_Candidates repository, then run from this website:
+python3 scripts/package-amyloid-device.py /path/to/Amyloid_Candidates
+The script reads the immutable commit through git archive, never the working tree.
+It packages tracked src/ files and licenses with deterministic ZIP metadata, then
+records source-file hashes and adapter/archive hashes in engine.json. Regenerate
+engine.json whenever analysis.py changes. Never include private research data.
+A runtime or scientific dependency upgrade requires rerunning parity checks.
+
+OUTPUT
+The ZIP includes results.json (original filenames, input hashes, runtime versions,
+scientific source/adapter hashes, success/failure states), per-structure component
+outputs, gate reports, portable manifests, original coordinate bytes, attribution,
+and SHA256.json. The SHA file covers all archive entries except itself.
+The report -> manifest -> coordinates chain is verified before displaying results.
+Open the matching report, manifest, and coordinates using Open Existing Reports.
+Changes to metadata are documented; package scientific descriptors are retained.
+
+VALIDATION
+npm run test
+npm run typecheck
+npm run lint
+npm run build
+TEST_BASE_URL=http://127.0.0.1:3836 npm run test:browser -- tests/browser/amyloid-device.spec.ts
+The real browser test needs network access to the pinned Pyodide CDN and python3
+only to examine the downloaded ZIP in the test runner. The website needs neither
+a Python server nor a local Python installation on the visitor's machine.
+The test compares scientific fields against native package fixtures, checks ZIP
+and report hashes, exercises malformed input, cancellation, retry, and mobile
+layout, and asserts no uploads or analysis-service calls in on-device mode.

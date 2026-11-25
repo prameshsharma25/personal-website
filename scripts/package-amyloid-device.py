@@ -1,0 +1,51 @@
+"""Bundle the unchanged, pinned public package for the browser (no research data)."""
+
+import hashlib
+import io
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tarfile
+import zipfile
+
+COMMIT = "1c85221ea38ffbaa1695eeb0a2962997abf94563"
+ROOT = Path(__file__).resolve().parents[1]
+TARGET = ROOT / "public/tools/amyloid-device/v1"
+source = Path(sys.argv[1]).resolve()
+git = "/Library/Developer/CommandLineTools/usr/bin/git" if sys.platform == "darwin" else "git"
+archive = subprocess.check_output([git, "archive", COMMIT, "src", "LICENSE", "docs/ATTRIBUTION.md"], cwd=source)
+contents = {}
+with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+    for member in tar.getmembers():
+        if not member.isfile():
+            continue
+        name = member.name
+        if name.startswith("src/"):
+            contents[name[4:]] = tar.extractfile(member).read()
+        else:
+            contents["licenses/" + Path(name).name] = tar.extractfile(member).read()
+contents["amyloid_candidates-0.1.0.dev0.dist-info/METADATA"] = (
+    "Metadata-Version: 2.1\nName: amyloid-candidates\nVersion: 0.1.0.dev0\n"
+    "License-Expression: MIT AND CC-BY-4.0\n"
+).encode()
+TARGET.mkdir(parents=True, exist_ok=True)
+with zipfile.ZipFile(TARGET / "package.zip", "w", zipfile.ZIP_DEFLATED) as bundle:
+    for name, data in sorted(contents.items()):
+        info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o644 << 16
+        bundle.writestr(info, data)
+manifest = {
+    "schema_version": "amyloid-device-engine-1.0",
+    "package_commit": COMMIT,
+    "package_url": "https://github.com/DevlinaC/Amyloid_Candidates",
+    "pyodide": "314.0.8",
+    "runtime_url": "https://cdn.jsdelivr.net/pyodide/v314.0.8/full/",
+    "dependencies": {"numpy": "2.4.6", "biopython": "1.87", "freesasa": "2.2.1"},
+    "limits": {"max_files": 5, "max_file_bytes": 10 * 1024**2, "max_total_bytes": 25 * 1024**2, "max_atoms": 20000, "max_chains": 32},
+    "files": {name: hashlib.sha256((TARGET / name).read_bytes()).hexdigest() for name in ["package.zip", "analysis.py"]},
+    "source_files": {name: hashlib.sha256(data).hexdigest() for name, data in sorted(contents.items())},
+}
+(TARGET / "engine.json").write_text(json.dumps(manifest, indent=2) + "\n")
+print(f"Bundled {len(contents)} files from {COMMIT}; {(TARGET / 'package.zip').stat().st_size} bytes.")

@@ -583,6 +583,43 @@
   flex-wrap: wrap;
   margin: 0 0 1.5rem;
 }
+.deviceProgress {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.1rem 1.3rem;
+  border: 1px solid #9fffc540;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #122c23, #0a1715);
+  color: #b5f4d4;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.deviceProgress i {
+  flex: 0 0 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #b5f4d4;
+}
+.deviceProgress[data-running='true'] i {
+  animation: devicePulse 1.8s ease-in-out infinite;
+}
+@keyframes devicePulse {
+  50% {
+    box-shadow:
+      0 0 0 6px #b5f4d426,
+      0 0 24px #b5f4d4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deviceProgress[data-running='true'] i {
+    animation: none;
+  }
+}
+.uploadActions {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .modeTabs button {
   padding: 0.85rem 1rem;
   border: 1px solid #8cc5a944;

@@ -427,7 +427,7 @@ export default function AmyloidBatchAnalysis({
       {['unconfigured', 'unavailable'].includes(connection) && (
         <p className={styles.notice}>
           Server analysis is not available on this deployment yet. You can
-          preview a structure locally or choose Open Existing Reports.
+          calculate individual descriptors using On My Device or choose Open Existing Reports.
         </p>
       )}
       {error && (

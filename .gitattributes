@@ -6,3 +6,6 @@ public/structures/**/*.pdb whitespace=-blank-at-eol
 
 # Keep example coordinates byte-identical to the package fixtures for SHA-256 checks.
 public/tools/amyloid-example/*.pdb whitespace=-blank-at-eol,-blank-at-eof
+
+# Preserve Biopython's padded mmCIF fixture serialization.
+tests/fixtures/amyloid-2beg.cif whitespace=-blank-at-eol
