@@ -6,9 +6,9 @@ const links = [
   { href: '/', label: 'Home' },
   { href: '/experience', label: 'About' },
   { href: '/posts', label: 'Posts' },
+  { href: '/resources', label: 'Resources' },
   { href: '/mentorship', label: 'Mentorship' },
   { href: '/books', label: 'Books' },
-  { href: '/research-opportunities', label: 'PhD Opportunities' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -16,7 +16,7 @@ export default function Navbar() {
   const { pathname } = useRouter();
 
   return (
-    <nav className={styles.navbar} aria-label="Main navigation">
+    <nav className={styles.navbar} aria-label="Main Navigation">
       <div className={styles.container}>
         <div className={styles.logo}>
           <Link href="/" className={styles.logoLink}>Pramesh Sharma</Link>

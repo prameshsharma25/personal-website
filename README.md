@@ -1,5 +1,12 @@
 Welcome to my personal website!
 
+## Git workflow
+
+The website changes are saved on the `website-growth` branch. Run
+`sh scripts/git.sh status` to see edits and `sh scripts/git.sh log --oneline -8`
+to see saved checkpoints. See [the Git workflow guide](docs/GIT_WORKFLOW.md)
+for reviewing changes, creating commits, and backing up the branch on GitHub.
+
 ## Local development
 
 This project uses Next.js and Node.js 22. This workspace has a project-local
@@ -35,6 +42,13 @@ RECIPIENT_EMAIL=
 Use a Gmail app password for `GMAIL_APP_PASSWORD`. These settings are optional
 for browsing the site, and must be configured to send contact emails. The
 Substack feed requires internet access.
+
+## Application essay PDFs
+
+The $5 collection contains the original statement-of-purpose and personal-statement
+PDFs plus a reading note. Regenerate the private ZIP with
+`python3 scripts/package_essays.py`; see [setup and delivery](docs/WEBSITE_GROWTH_SETUP.md).
+Paid documents stay in the ignored `private-products/` folder.
 
 ## PhD Opportunities
 
@@ -155,3 +169,6 @@ relatedLinks:
 
 Choose a few relevant destinations and descriptive labels, rather than adding
 repetitive keyword lists. Do not link to unpublished drafts from published posts.
+# Research resources and essay checkout
+
+The free lab-search tracker, Substack invitations, $5 essay bundle, and SEO updates are documented in [docs/WEBSITE_GROWTH_SETUP.md](docs/WEBSITE_GROWTH_SETUP.md). Start there for Stripe test-mode setup, private file delivery, verification commands, and future AdSense configuration. Full paid essays are stored only in the ignored `private-products/` folder.

@@ -7,6 +7,8 @@ const postsDirectory = path.join(process.cwd(), 'posts');
 export interface PostMetadata {
   title: string;
   description: string;
+  seoTitle?: string;
+  category: string;
   date?: string;
   substackUrl?: string;
   slug: string;
@@ -33,6 +35,8 @@ export function getPostBySlug(slug: string): Post {
     slug,
     title: data.title || 'Untitled',
     description: data.description || '',
+    seoTitle: data.seoTitle || data.title || 'Untitled',
+    category: data.category || 'Personal essays',
     date: data.date || null,
     substackUrl: data.substackUrl || null,
     draft: data.draft === true,

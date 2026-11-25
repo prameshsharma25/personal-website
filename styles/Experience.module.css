@@ -1,353 +1,274 @@
-.hero {
-  background: var(--bg);
-  color: var(--text);
-  padding: 6rem 2rem 4rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.heroTitle {
-  font-size: 2.25rem;
-  font-weight: 400;
-  color: var(--text);
-  max-width: 900px;
+.page {
+  max-width: 1100px;
   margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  font-size: 0.82rem;
+}
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+.links a:hover {
+  color: var(--accent);
+}
+.links .resumeLink {
+  padding: 0.8rem 1rem;
+  border: 1px solid #a4e8c8;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #10271b;
+  background: linear-gradient(115deg, #a8f5c9, #88dbeb);
+  box-shadow: 0 7px 25px #75f3b818;
+}
+.resumeLink span {
+  color: #244a36;
+  font-size: 0.7rem;
+}
+.links .resumeLink:hover {
+  box-shadow: 0 8px 30px #75f3b830;
+}
+.researchSignals {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1.4rem 0 0.4rem;
+  margin-top: 1rem;
+  border-top: 1px solid #93c7a62e;
+}
+.researchSignals span {
+  padding: 0.4rem 0.55rem;
+  font-size: 0.65rem;
+  color: #c2f2d3;
+  border: 1px solid #9be7b839;
+  border-radius: 5px;
+  background: #9bf0bc0b;
+}
+.researchSignals i {
+  font-style: normal;
+  color: #8aceaf;
+}
+.sectionNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  border: 1px solid #93bda334;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  background: #0c1711d9;
+  backdrop-filter: blur(14px);
+  color: #b3c5b9;
+}
+.sectionNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    background 0.25s;
+}
+.sectionNav a:hover,
+.sectionNav a:focus-visible {
+  color: var(--accent);
+  background: #93f6bd0b;
+  border-color: #97e8ba4a;
+}
+.section {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 3rem;
+  padding: 3rem 0;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 2rem;
+}
+.section:last-child {
+  border-bottom: 0;
+}
+.sectionLabel h2 {
+  font:
+    500 1.4rem/1.35 var(--font-display),
+    sans-serif;
   letter-spacing: -0.02em;
 }
-
-.heroDescription {
-  max-width: 900px;
-  margin: 0 auto;
-  font-size: 1.125rem;
-  color: var(--text-dim);
-  line-height: 1.8;
-}
-
-.bioSection {
-  max-width: 680px;
-  margin: 4rem auto 0;
-  padding: 0 1.5rem 3rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.bioName {
-  font-size: 2.5rem;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
-  color: var(--text);
-  font-family: 'Monaco', BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.bioRole {
-  font-size: 0.95rem;
-  color: var(--text-dim);
-  margin-bottom: 1.75rem;
-  font-family: 'Monaco', BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  letter-spacing: 0.01em;
-}
-
-.bioText {
+.sectionBody {
+  min-width: 0;
   font-size: 1rem;
-  line-height: 1.75;
-  color: var(--text-dim);
-  font-family: 'Monaco', BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.85;
 }
-
-.timelineSection {
-  padding: 3rem 2rem 6rem;
-  background-color: var(--bg);
+.sectionBody p {
+  color: #adbbb2;
+  margin-bottom: 1rem;
 }
-
-.timelineHeader {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 400;
-  color: var(--text);
-  margin-bottom: 4rem;
+.sectionBody .lead {
+  color: #e6f8ec;
+  font-size: 1.4rem;
+  line-height: 1.5;
   letter-spacing: -0.02em;
 }
-
-.timelineList {
-  position: relative;
-  padding-left: 2.5rem;
-  max-width: 900px;
-  margin: 0 auto;
+.sectionBody h3 {
+  font-size: 1.1rem;
+  font-weight: 550;
+  line-height: 1.5;
+  margin-bottom: 0.3rem;
 }
-
-.timelineList::before {
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+.topics li {
+  border: 1px solid #93bda334;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  background: #0d1912;
+  font-size: 0.75rem;
+  color: #b8d7c4;
+}
+.publicationList,
+.experienceList {
+  list-style: none;
+}
+.publicationList li {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #81a18c3a;
+  border-radius: 12px;
+  background: linear-gradient(140deg, #0d1a13, #090f0c);
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.publicationList li:hover {
+  border-color: #99d8b060;
+  box-shadow: 0 12px 30px #0003;
+}
+.publicationList a:hover {
+  color: var(--accent);
+}
+.publicationList h3 {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 0.7rem;
+}
+.sectionBody .publicationSource,
+.sectionBody .dates {
+  font-size: 0.72rem;
+  color: #a2e4bd;
+  margin-bottom: 0.65rem;
+}
+.sectionBody .authors {
+  font-size: 0.8rem;
+  line-height: 1.8;
+  margin: 0;
+}
+.authors strong {
+  font-weight: 500;
+  color: #f1fff5;
+}
+.experienceList li {
+  position: relative;
+  border-left: 1px solid #a8d9b939;
+  padding: 0 0 2rem 1.5rem;
+}
+.experienceList li::before {
   content: '';
   position: absolute;
-  left: 0.5rem;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--border);
-  z-index: 0;
-}
-
-.timelineContainer {
-  position: relative;
-  margin-bottom: 3rem;
-  z-index: 1;
-  animation: fadeIn 0.7s ease;
-}
-
-.timelineMarker {
-  position: absolute;
-  left: -0.6rem;
-  width: 1rem;
-  height: 1rem;
-  background-color: var(--text);
+  left: -4px;
+  top: 0.5rem;
+  width: 7px;
+  height: 7px;
+  background: #9af1bd;
   border-radius: 50%;
-  border: 2px solid var(--bg);
+  box-shadow: 0 0 12px #90efb94d;
 }
-
-.timelineMarkerInner {
-  display: none;
+.experienceList li:last-child {
+  padding-bottom: 0;
 }
-
-.timelineContent {
-  background-color: var(--bg-secondary);
-  padding: 2rem;
-  border: 1px solid var(--border);
-  transition:
-    border-color 0.2s,
-    transform 0.2s;
+.experienceList li > p:last-child {
+  margin-bottom: 0;
 }
-
-.timelineContent:hover {
-  border-color: var(--text-dim);
-  transform: translateY(-2px);
-}
-
-.timelineTitle {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-}
-
-.timelineCompany {
-  font-size: 0.875rem;
-  color: var(--text-dim);
-  margin-bottom: 0.25rem;
-}
-
-.timelineDate {
-  font-size: 0.875rem;
-  color: var(--text-dim);
-  margin-bottom: 1rem;
-}
-
-.timelineDescription {
-  font-size: 0.875rem;
-  color: var(--text-dim);
-  line-height: 1.6;
-}
-
-.timelineBullets {
-  margin-top: 0.75rem;
-  padding-left: 1.25rem;
-}
-
-.timelineBullet {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--text-dim);
-  margin-bottom: 0.4rem;
-}
-
-.publicationsSection {
-  max-width: 720px;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
-}
-
-.publicationsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.publicationItem {
-  border-left: 2px solid var(--border);
-  padding-left: 1rem;
-}
-
-.publicationTitle {
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 0.25rem;
-  color: var(--text);
-}
-
-.publicationJournal {
-  font-style: italic;
-  font-size: 0.875rem;
-  color: var(--text-dim);
+.sectionBody .organization {
+  color: #e6f4eb;
   margin-bottom: 0.2rem;
 }
-
-.publicationAuthors {
-  font-size: 0.8rem;
-  color: var(--text-dim);
+.sectionBody .detail {
+  font-size: 0.87rem;
+  margin-bottom: 0.8rem;
 }
-
-.resumeSection {
-  padding: 6rem 2rem;
-  background-color: var(--bg);
-  text-align: center;
-  border-top: 1px solid var(--border);
+.education {
+  border: 1px solid #9ac7ab39;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  padding: 1.3rem;
+  background: #0d1811;
+  margin-bottom: 1.8rem;
 }
-
-.resumeTitle {
-  font-size: 1.875rem;
-  font-weight: 400;
-  color: var(--text);
-  margin-bottom: 1rem;
-  letter-spacing: -0.02em;
+.education p {
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
 }
-
-.resumeDescription {
-  margin-top: 1rem;
-  color: var(--text-dim);
-  font-size: 1rem;
+.textLink {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: 0.9rem;
 }
-
-.resumeButton {
-  margin-top: 2rem;
-  padding: 1rem 2rem;
-  background-color: var(--text);
-  color: var(--bg);
-  border: 1px solid var(--text);
-  transition: all 0.2s;
-  display: inline-block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-}
-
-.resumeButton:hover {
-  background-color: var(--bg);
-  color: var(--text);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@media (max-width: 760px) {
+  .section {
+    grid-template-columns: 1fr;
+    gap: 1.3rem;
+    padding: 2.2rem 0;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .sectionLabel {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .sectionLabel .eyebrow {
+    margin: 0;
+  }
+  .sectionNav {
+    gap: 0.2rem;
+  }
+  .sectionNav a {
+    padding: 0.5rem 0.7rem;
+  }
+  .links {
+    gap: 1rem;
+  }
+  .publicationList li {
+    padding: 1.2rem;
   }
 }
-
-@media (max-width: 768px) {
-  .hero {
-    padding: 4rem 1.5rem 2.5rem;
-  }
-
-  .heroTitle {
-    font-size: 1.75rem;
-  }
-
-  .heroDescription {
-    font-size: 1rem;
-  }
-
-  .bioSection {
-    margin: 3rem auto 0;
-    padding: 0 1.25rem 2.5rem;
-  }
-
-  .bioName {
-    font-size: 2rem;
-  }
-
-  .timelineSection {
-    padding: 2.5rem 1.5rem 4rem;
-  }
-
-  .timelineHeader {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .timelineList {
-    padding-left: 1.5rem;
-  }
-
-  .timelineList::before {
-    left: 0.2rem;
-  }
-
-  .timelineMarker {
-    left: -0.45rem;
-    width: 0.8rem;
-    height: 0.8rem;
-  }
-
-  .timelineContent {
-    padding: 1.5rem;
-  }
-
-  .timelineTitle {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero {
-    padding: 2rem 1rem 1.5rem;
-  }
-
-  .heroTitle {
-    font-size: 1.4rem;
-  }
-
-  .heroDescription {
-    font-size: 0.9rem;
-  }
-
-  .bioSection {
-    margin: 2rem auto 0;
-    padding: 0 1rem 2rem;
-  }
-
-  .bioName {
-    font-size: 1.75rem;
-  }
-
-  .bioRole {
-    font-size: 0.875rem;
-  }
-
-  .timelineSection {
-    padding: 2rem 1rem 3rem;
-  }
-
-  .timelineHeader {
-    font-size: 1.25rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .timelineList {
-    padding-left: 1rem;
-  }
-
-  .timelineContent {
-    padding: 1rem;
-    font-size: 0.85rem;
-  }
-
-  .timelineTitle {
-    font-size: 1rem;
-  }
-
-  .timelineCompany {
-    font-size: 0.8rem;
+@media (max-width: 360px) {
+  .page {
+    padding-inline: 1rem;
   }
 }

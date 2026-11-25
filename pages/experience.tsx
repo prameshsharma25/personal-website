@@ -1,194 +1,298 @@
-import Head from 'next/head';
+import PageIntro from '../components/PageIntro';
+import ui from '../styles/Interface.module.css';
+import Link from 'next/link';
+import Seo from '../components/Seo';
 import styles from '../styles/Experience.module.css';
 
-export default function Experience() {
-  const experiences = [
-    {
-      title: 'Postbaccalaureate Fellow',
-      company: 'National Institutes of Health',
-      date: 'August 2025 - Present',
-      description: 'Computational Biology Branch',
-      bullets: [
-        'Developed an AI interpretability tool leveraging AlphaFold attention weights to extract biologically meaningful insights from protein structures, earning 10+ GitHub stars and a bioRxiv manuscript',
-        'Engineered an end-to-end inference pipeline integrating distance-based clustering and backbone geometry to identify fold-switching proteins',
-        'Streamlined automated testing and multi-environment package releases with GitHub Actions, reducing deployment time by 3 minutes per pull request',
-        'Instituted an elevated standard for code quality increasing test coverage to 90% using pytest on a codebase spanning 50+ integration and unit tests',
-      ],
-    },
-    {
-      title: 'Software Engineer',
-      company: 'Intelligent Retail Lab by Walmart',
-      date: 'July 2024 - July 2025',
-      description: 'Store Vision Services',
-      bullets: [
-        'Optimized collection of hardware metrics across a cluster of NVIDIA Jetson GPUs by replacing jetson-stats through development of a real-time system monitoring tool using Python, Prometheus, and Grafana',
-        'Automated ML training workflows by developing a model converter that transforms PyTorch ONNX models into DeepStream-compatible TensorRT engines using Kubeflow and WandB',
-        'Improved image transformation processing for 40,000+ grocery item images by building a scalable data augmentation pipeline in Python using Apache Beam and Dataflow, deployed as a Google Flex Template',
-        'Reduced object detection inference latency across edge cameras by deploying a scalable DeepStream pipeline to run multiple YOLO models via gRPC streaming of inference outputs to Google BigQuery',
-      ],
-    },
-    {
-      title: 'Computational Biology Intern',
-      company: 'NASA',
-      date: 'August 2023 - December 2023',
-      description: 'Space Biosciences Research',
-      bullets: [
-        'Conducted radiobiology literature review to inform integration of the Linear Quadratic model into AMMPER, aligning radiation dose-response with experimental data',
-        'Redefined cell health model using Python to simulate and enhance cell behavior predictions, establishing probability distributions for apoptosis, DNA damage, and mitotic catastrophe',
-        'Enhanced model accuracy by 40% by designing an AlamarBlue viability model using Michaelis-Menten kinetics, leveraging AutoML and SMAC3 with Grid and Bayesian hyperparameter search',
-      ],
-    },
-    {
-      title: 'Space Systems Engineering Intern',
-      company: 'NASA',
-      date: 'August 2022 - December 2022',
-      description: 'Systems Engineering Branch',
-      bullets: [
-        'Streamlined cross-functional collaboration by standardizing project modeling for the $14.8B Lunar Pilot Excavator through a Systems Engineering Modeling Management Plan in MagicDraw',
-        'Replaced paper-based workflows across 3+ engineering divisions through a strategy aligning digital engineering review processes',
-        'Communicated project modeling strategy to key stakeholders by presenting the SEMMP template and Concept of Operations to design and chief engineering teams',
-      ],
-    },
-    {
-      title: 'Computational Proteomics Intern',
-      company: 'Genentech',
-      date: 'June 2022 - September 2022',
-      description: 'Microchemistry Proteomics and Lipidomics',
-      bullets: [
-        'Increased efficiency of antibody analysis for wet lab scientists by developing an internal tool using the Pyramid REST framework that converts protein-peptide data into heat maps',
-        'Streamlined data processing for large datasets by creating a CLI using the optparse R package that handles up to 3,000 samples of protein-peptide information at once',
-        'Deployed tool into production by containerizing the dataMAPPs R package with Docker and Python',
-      ],
-    },
-    {
-      title: 'Pharma Technical Operations Intern',
-      company: 'Genentech',
-      date: 'January 2022 - June 2022',
-      description: 'Manufacturing Science and Technology',
-      bullets: [
-        'Increased efficiency of drug campaign creation by optimizing manufacturing on-call service using JavaScript and PagerDuty API',
-        'Automated user access to drug campaign incidents with JavaScript and Google Sheets API, resulting in cost savings of 5 minutes per incident',
-        'Standardized Genentech\'s PagerDuty response procedures by documenting a comprehensive 10-page Rapid Response Playbook ensuring SOP compliance',
-      ],
-    },
-  ];
+const experiences = [
+  {
+    role: 'Postbaccalaureate Fellow',
+    organization: 'National Institutes of Health',
+    dates: 'Aug 2025 – Present',
+    detail: 'Lauren Porter’s lab · Computational Biology Branch',
+    summary:
+      'Developing tools to interpret AlphaFold predictions and identify fold-switching proteins, with an emphasis on reproducible analysis and research software.',
+  },
+  {
+    role: 'Software Engineer',
+    organization: 'Intelligent Retail Lab by Walmart',
+    dates: 'Jul 2024 – Jul 2025',
+    detail: 'Store Vision Services',
+    summary:
+      'Built and deployed computer vision pipelines for edge devices, including model conversion, image augmentation, inference, and GPU monitoring.',
+  },
+  {
+    role: 'Computational Biology Intern',
+    organization: 'NASA',
+    dates: 'Aug 2023 – Dec 2023',
+    detail: 'Space Biosciences Research',
+    summary:
+      'Worked on AMMPER, an agent-based model of microbial responses to radiation. Integrated radiobiology findings into simulations of cell behavior and viability.',
+  },
+  {
+    role: 'Space Systems Engineering Intern',
+    organization: 'NASA',
+    dates: 'Aug 2022 – Dec 2022',
+    detail: 'Systems Engineering Branch',
+    summary:
+      'Developed modeling plans and digital review processes to help engineering teams document and communicate system designs.',
+  },
+  {
+    role: 'Computational Proteomics Intern',
+    organization: 'Genentech',
+    dates: 'Jun 2022 – Sep 2022',
+    detail: 'Microchemistry, Proteomics and Lipidomics',
+    summary:
+      'Contributed to dataMAPPs, building tools that turn protein–peptide data into heatmaps and making the analysis easier for researchers to run.',
+  },
+  {
+    role: 'Pharma Technical Operations Intern',
+    organization: 'Genentech',
+    dates: 'Jan 2022 – Jun 2022',
+    detail: 'Manufacturing Science and Technology',
+    summary:
+      'Automated on-call workflows and access management using JavaScript, PagerDuty, and Google Sheets, and documented response procedures.',
+  },
+];
 
-  const publications = [
-    {
-      title: 'AMMPER-2: A spatially explicit agent-based model of microbial radiobiology with redox dye simulation',
-      journal: 'Applied and Environmental Microbiology',
-      authors: 'Daniel Palacios, Pramesh Sharma, Madeline Marous, Danny Mejia, Lauren Liddell, Diana Gentry, Sergio Santa Maria, Jessica Lee',
-      link: 'https://www.biorxiv.org/content/10.64898/2026.10.08.757403v1',
-    },
-    {
-      title: 'AlphaFold reveals but sometimes distorts an organizational principle of protein folding',
-      journal: 'Nature Communications',
-      authors: 'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Lauren L. Porter',
-      link: 'https://www.biorxiv.org/content/10.64898/2025.12.30.697132v4',
-    },
-    {
-      title: 'EasyDIVER+: an advanced tool for analyzing high throughput sequencing data from in vitro evolution of nucleic acids or amino acids',
-      journal: 'Journal of Molecular Evolution',
-      authors: 'Celia Blanco, Allison Tee, Pramesh Sharma, Matilda S. Newton, Kun-Hwa Lee, Samuel E. Erickson, Burckhard Seelig, Irene A. Chen',
-      link: 'https://link.springer.com/article/10.1007/s00239-025-10244-w',
-    }
-  ];
+const publications = [
+  {
+    title:
+      'AMMPER-2: A spatially explicit agent-based model of microbial radiobiology with redox dye simulation',
+    source: 'bioRxiv version · 2026',
+    authors:
+      'Daniel Palacios, Pramesh Sharma, Madeline Marous, Danny Mejia, Lauren Liddell, Diana Gentry, Sergio Santa Maria, Jessica Lee',
+    url: 'https://www.biorxiv.org/content/10.64898/2026.10.08.757403v1',
+  },
+  {
+    title:
+      'AlphaFold reveals but sometimes distorts an organizational principle of protein folding',
+    source: 'bioRxiv version · 2026',
+    authors:
+      'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Lauren L. Porter',
+    url: 'https://www.biorxiv.org/content/10.64898/2025.12.30.697132v4',
+  },
+  {
+    title:
+      'EasyDIVER+: An advanced tool for analyzing high throughput sequencing data from in vitro evolution of nucleic acids or amino acids',
+    source: 'Journal of Molecular Evolution · 2025',
+    authors:
+      'Celia Blanco, Allison Tee, Pramesh Sharma, Matilda S. Newton, Kun-Hwa Lee, Samuel E. Erickson, Burckhard Seelig, Irene A. Chen',
+    url: 'https://link.springer.com/article/10.1007/s00239-025-10244-w',
+  },
+];
 
+function Authors({ names }: { names: string }) {
+  const [before, after] = names.split('Pramesh Sharma');
   return (
-    <div>
-      <Head>
-        <link rel="canonical" href="https://prameshsharma.com/experience" />
-        <title>About - Pramesh Sharma</title>
-        <meta
-          name="description"
-          content="Postbaccalaureate Fellow at the NIH studying fold-switching proteins. Formerly at NASA, Genentech, and Walmart. UC Davis CS graduate."
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main>
-        {/* Bio Section */}
-        <section className={styles.bioSection}>
-        <h1 className={styles.bioName}>Who am I?</h1>
-        <p className={styles.bioRole}>Postbaccalaureate Fellow, NIH · Computational Structural Biology</p>
-        <p className={styles.bioText}>
-          I started my career building computer vision systems for Walmart and chasing a NASA internship I&apos;d been rejected from twice.
-          What pulled me back to biology wasn&apos;t a plan — it was a rare genetic disease I was born with, and the realization that the
-          problems I actually cared about lived at the intersection of computation and human health. That thread has run through
-          everything since: two internships at Genentech, two at NASA, and now the NIH, where I develop AI-driven tools to study
-          proteins that switch shapes to carry out different biological functions.
-        </p>
-</section>
+    <>
+      {before}
+      <strong>Pramesh Sharma</strong>
+      {after}
+    </>
+  );
+}
 
-        {/* Experience Section */}
-        <section className={styles.timelineSection}>
-          <h2 className={styles.timelineHeader}>Work Experience</h2>
-          <div className={styles.timelineList}>
-            {experiences.map((experience, index) => (
-              <div
-                key={index}
-                className={styles.timelineContainer}
-                style={{ animationDelay: `${index * 0.15}s` }}
-              >
-                <div className={styles.timelineMarker}>
-                  <div className={styles.timelineMarkerInner}></div>
-                </div>
-                <div className={styles.timelineContent}>
-                  <h3 className={styles.timelineTitle}>{experience.title}</h3>
-                  <p className={styles.timelineCompany}>{experience.company}</p>
-                  <p className={styles.timelineDate}>{experience.date}</p>
-                  <p className={styles.timelineDescription}>{experience.description}</p>
-                  {experience.bullets.length > 0 && (
-                    <ul className={styles.timelineBullets}>
-                      {experience.bullets.map((bullet, i) => (
-                        <li key={i} className={styles.timelineBullet}>{bullet}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+export default function Experience() {
+  return (
+    <>
+      <Seo
+        title="About — Computational Biologist"
+        description="Computational biologist at NIH studying protein structure and fold switching. Research, papers, and experience at NIH, NASA, Genentech, and Walmart."
+        path="/experience"
+        schema={{
+          '@type': 'ProfilePage',
+          mainEntity: {
+            '@type': 'Person',
+            name: 'Pramesh Sharma',
+            jobTitle: 'Computational Biologist',
+            url: 'https://prameshsharma.com/experience',
+            sameAs: ['https://github.com/prameshsharma25'],
+            alumniOf: {
+              '@type': 'CollegeOrUniversity',
+              name: 'University of California, Davis',
+            },
+          },
+        }}
+      />
+      <main className={styles.page}>
+        <PageIntro
+          eyebrow="About / Computational Biologist"
+          title="Pramesh Sharma"
+          description="I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Lauren Porter’s lab at the National Institutes of Health."
+          aside={
+            <>
+              <p className={ui.miniLabel}>Current Research</p>
+              <h2>Protein Structure &amp; Fold Switching</h2>
+              <p>
+                Lauren Porter’s Lab
+                <br />
+                National Institutes of Health
+              </p>
+              <div className={styles.researchSignals}>
+                <span>Sequence</span>
+                <i aria-hidden="true">→</i>
+                <span>Structure</span>
+                <i aria-hidden="true">→</i>
+                <span>Change</span>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Publications Section */}
-        <section className={styles.publicationsSection}>
-          <h2 className={styles.timelineHeader}>Publications</h2>
-          <div className={styles.publicationsList}>
-            {publications.map((pub, index) => (
-              <div key={index} className={styles.publicationItem}>
-                <p className={styles.publicationTitle}>
-                  {pub.link ? (
-                    <a href={pub.link} target="_blank" rel="noopener noreferrer">{pub.title}</a>
-                  ) : (
-                    pub.title
-                  )}
-                </p>
-                <p className={styles.publicationJournal}>{pub.journal}</p>
-                <p className={styles.publicationAuthors}>{pub.authors}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Resume Section */}
-        <section className={styles.resumeSection}>
-          <div className="container mx-auto text-center">
-            <h2 className={styles.resumeTitle}>Resume</h2>
-            <p className={styles.resumeDescription}>
-              You can view my resume below or download it using the button:
-            </p>
-            
+              <a href="#research" className={ui.textLink}>
+                Explore My Research <span aria-hidden="true">↗</span>
+              </a>
+            </>
+          }
+        >
+          <div className={styles.links}>
             <a
               href="/resume.pdf"
+              className={styles.resumeLink}
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.resumeButton}
             >
-              Download Resume
+              Download CV <span>PDF ↗</span>
             </a>
+            <a
+              href="https://github.com/prameshsharma25"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub ↗
+            </a>
+            <Link href="/contact">Contact</Link>
+          </div>
+        </PageIntro>
+        <nav className={styles.sectionNav} aria-label="About Page Sections">
+          <a href="#research">Research</a>
+          <a href="#publications">Papers</a>
+          <a href="#experience">Experience</a>
+          <a href="#background">Background</a>
+        </nav>
+        <section
+          data-reveal
+          id="research"
+          className={styles.section}
+          aria-labelledby="research-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>01</p>
+            <h2 id="research-heading">Research</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <p className={styles.lead}>
+              How can the same protein sequence support different structures?
+            </p>
+            <p>
+              My research focuses on fold-switching proteins: proteins that can
+              adopt different structures. I’m interested in how their sequences
+              support those changes, and in what models such as AlphaFold
+              capture or miss.
+            </p>
+            <p>
+              I bring a software engineering background to these questions,
+              building analysis pipelines and tools that help researchers
+              examine model predictions.
+            </p>
+            <ul className={styles.topics} aria-label="Research Interests">
+              <li>Protein Structure</li>
+              <li>Fold Switching</li>
+              <li>Interpretable Machine Learning</li>
+              <li>Research Software</li>
+            </ul>
+          </div>
+        </section>
+        <section
+          data-reveal
+          id="publications"
+          className={styles.section}
+          aria-labelledby="papers-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>02</p>
+            <h2 id="papers-heading">Papers &amp; Preprints</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <ol className={styles.publicationList}>
+              {publications.map((paper) => (
+                <li data-reveal key={paper.url}>
+                  <p className={styles.publicationSource}>{paper.source}</p>
+                  <h3>
+                    <a
+                      href={paper.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {paper.title} <span aria-hidden="true">↗</span>
+                    </a>
+                  </h3>
+                  <p className={styles.authors}>
+                    <Authors names={paper.authors} />
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+        <section
+          data-reveal
+          id="experience"
+          className={styles.section}
+          aria-labelledby="experience-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>03</p>
+            <h2 id="experience-heading">Experience</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <ol className={styles.experienceList}>
+              {experiences.map((item) => (
+                <li data-reveal key={`${item.organization}-${item.role}`}>
+                  <p className={styles.dates}>{item.dates}</p>
+                  <h3>{item.role}</h3>
+                  <p className={styles.organization}>{item.organization}</p>
+                  <p className={styles.detail}>{item.detail}</p>
+                  <p>{item.summary}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+        <section
+          data-reveal
+          id="background"
+          className={styles.section}
+          aria-labelledby="background-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>04</p>
+            <h2 id="background-heading">Background</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <div className={styles.education}>
+              <h3>University of California, Davis</h3>
+              <p>B.S. in Computer Science · 2024</p>
+            </div>
+            <p>
+              I started at community college before transferring to UC Davis.
+              Internships at Genentech and NASA introduced me to biological
+              research; a year in software engineering strengthened the skills I
+              now bring to it.
+            </p>
+            <p>
+              I was born with Pyruvate Kinase Deficiency. Living with a rare
+              genetic disease shaped the questions I wanted to ask, and helped
+              me see why I wanted to return to biology. I’m interested in
+              understanding how molecular changes affect the way biological
+              systems work.
+            </p>
+            <Link
+              href="/posts/quitting-100k-software-job"
+              className={styles.textLink}
+            >
+              Read About My Move From Software To Research →
+            </Link>
           </div>
         </section>
       </main>
-    </div>
+    </>
   );
 }
