@@ -10,7 +10,7 @@ export default function AmyloidTool() {
   return (
     <>
       <Seo
-        title="Amyloid Structure Analysis — Compare, Cluster & Rank"
+        title="Amyloid Structure Analysis: Compare, Cluster & Rank"
         description="Analyze amyloid structures from PDB or mmCIF files. Calculate descriptors, compare and cluster conformations, and review ranked candidates in your browser."
         path="/tools/amyloid-inspector"
         breadcrumbs={[
@@ -41,7 +41,7 @@ export default function AmyloidTool() {
           eyebrow="Amyloid Candidates / Post-Prediction Pipeline"
           title="Amyloid Structure"
           accent="Analysis."
-          description="Take your predicted structures through descriptor calculations, structural comparisons, clustering, and candidate ranking. Explore the evidence and download your reports—all on your device."
+          description="Take your predicted structures through descriptor calculations, structural comparisons, clustering, and candidate ranking. Explore the evidence and download your reports on your own device."
         />
         <AmyloidInspector />
         <section
@@ -137,7 +137,7 @@ export default function AmyloidTool() {
           </p>
           <p className={styles.caption}>
             Amyloid Candidates: Dr. Devlina Chakravarty, Pramesh Sharma, and Dr.
-            Lauren L. Porter. Energetics adapts the Sawaya–Eisenberg{' '}
+            Lauren L. Porter. Energetics adapts the{' '}
             <a
               href="https://doi.org/10.5281/zenodo.15218932"
               target="_blank"
@@ -145,7 +145,7 @@ export default function AmyloidTool() {
             >
               Amyloid Illustrator algorithm
             </a>{' '}
-            (CC BY 4.0); see the{' '}
+            by Sawaya and Eisenberg (CC BY 4.0); see the{' '}
             <a
               href={`${PACKAGE_URL}/blob/${PACKAGE_COMMIT}/docs/ATTRIBUTION.md`}
               target="_blank"

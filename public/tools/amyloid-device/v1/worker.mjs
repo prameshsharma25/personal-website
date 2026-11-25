@@ -155,7 +155,7 @@ self.onmessage = async ({ data }) => {
     python.registerJsModule('device_progress', {
       report: (stage, completed) =>
         progress(
-          `Calculating Descriptors — ${stage}`,
+          `Calculating Descriptors: ${stage}`,
           currentIndex * 6 + completed,
           data.files.length * 6,
           data.files[currentIndex].name,

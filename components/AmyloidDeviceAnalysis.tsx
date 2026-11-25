@@ -254,7 +254,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         minSamples >= DEVICE_LIMITS.files
       )
         throw new Error(
-          `Use a minimum cluster size of 2–${DEVICE_LIMITS.files} and minimum samples of 1–${DEVICE_LIMITS.files - 1}.`
+          `Use a minimum cluster size of 2 to ${DEVICE_LIMITS.files} and minimum samples of 1 to ${DEVICE_LIMITS.files - 1}.`
         );
       const confidenceBytes =
         confidence && compare && files.length > 1
@@ -387,7 +387,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setArchive(null);
     setError('');
     artifacts.current = {};
-    setProgress('Cancelled — No Files Were Uploaded');
+    setProgress('Cancelled. No Files Were Uploaded.');
     callbacks.current.onReset();
   }
   function download() {

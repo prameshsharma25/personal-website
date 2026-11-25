@@ -24,7 +24,7 @@ export default function ResearchOpportunities() {
       `${post.professor} ${post.lab} ${post.university} ${post.location} ${countryLabel(post.country)} ${post.summary}`.toLowerCase().includes(query.toLowerCase().trim());
   }).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
   return <>
-    <Seo title="PhD Lab Directory — Computational Biology & Bioinformatics" description="Browse recruiting evidence from computational biology, bioinformatics, and machine learning labs. Check source dates and confirm availability with each program." path="/research-opportunities" noindex={opportunities.length === 0} />
+    <Seo title="PhD Lab Directory: Computational Biology & Bioinformatics" description="Browse recruiting evidence from computational biology, bioinformatics, and machine learning labs. Check source dates and confirm availability with each program." path="/research-opportunities" noindex={opportunities.length === 0} />
     <main className={styles.main}>
       <header data-reveal className={styles.header}>
         <p className={styles.eyebrow}>WORLDWIDE · PHD RESEARCH</p>

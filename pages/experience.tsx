@@ -9,7 +9,7 @@ const experiences = [
   {
     role: 'Postbaccalaureate Fellow',
     organization: 'National Institutes of Health',
-    dates: 'Aug 2025 – Present',
+    dates: 'Aug 2025 to Present',
     detail: 'Dr. Lauren Porter’s lab · Computational Biology Branch',
     summary:
       'Developing tools to interpret AlphaFold predictions and identify fold-switching proteins, with an emphasis on reproducible analysis and research software.',
@@ -17,7 +17,7 @@ const experiences = [
   {
     role: 'Software Engineer',
     organization: 'Intelligent Retail Lab by Walmart',
-    dates: 'Jul 2024 – Jul 2025',
+    dates: 'Jul 2024 to Jul 2025',
     detail: 'Store Vision Services',
     summary:
       'Built and deployed computer vision pipelines for edge devices, including model conversion, image augmentation, inference, and GPU monitoring.',
@@ -25,7 +25,7 @@ const experiences = [
   {
     role: 'Computational Biology Intern',
     organization: 'NASA',
-    dates: 'Aug 2023 – Dec 2023',
+    dates: 'Aug 2023 to Dec 2023',
     detail: 'Space Biosciences Research',
     summary:
       'Worked on AMMPER, an agent-based model of microbial responses to radiation. Integrated radiobiology findings into simulations of cell behavior and viability.',
@@ -33,7 +33,7 @@ const experiences = [
   {
     role: 'Space Systems Engineering Intern',
     organization: 'NASA',
-    dates: 'Aug 2022 – Dec 2022',
+    dates: 'Aug 2022 to Dec 2022',
     detail: 'Systems Engineering Branch',
     summary:
       'Developed modeling plans and digital review processes to help engineering teams document and communicate system designs.',
@@ -41,15 +41,15 @@ const experiences = [
   {
     role: 'Computational Proteomics Intern',
     organization: 'Genentech',
-    dates: 'Jun 2022 – Sep 2022',
+    dates: 'Jun 2022 to Sep 2022',
     detail: 'Microchemistry, Proteomics and Lipidomics',
     summary:
-      'Contributed to dataMAPPs, building tools that turn protein–peptide data into heatmaps and making the analysis easier for researchers to run.',
+      'Contributed to dataMAPPs, building tools that turn data on proteins and peptides into heatmaps and making the analysis easier for researchers to run.',
   },
   {
     role: 'Pharma Technical Operations Intern',
     organization: 'Genentech',
-    dates: 'Jan 2022 – Jun 2022',
+    dates: 'Jan 2022 to Jun 2022',
     detail: 'Manufacturing Science and Technology',
     summary:
       'Automated on-call workflows and access management using JavaScript, PagerDuty, and Google Sheets, and documented response procedures.',
@@ -98,7 +98,7 @@ export default function Experience() {
   return (
     <>
       <Seo
-        title="About — Computational Biologist"
+        title="About: Computational Biologist"
         description="Meet Pramesh Sharma, a computational biologist. Explore his background, NIH and NASA experience, protein structure research, AMMPER, projects, and papers."
         path="/experience"
         schema={{

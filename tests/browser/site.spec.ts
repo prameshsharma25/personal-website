@@ -17,7 +17,7 @@ test('NIH and cold-email articles have tracker invitations and usable contents l
   }
 });
 test('product page offers Gumroad checkout and does not expose paid files',async({page,request})=>{
-  await page.goto('/resources/phd-essay-bundle');await expect(page.getByRole('link',{name:'Buy The Essay Bundle — $5'})).toHaveAttribute('href','https://pramesh6.gumroad.com/l/phd-application-essays');await expect(page.getByText('Checkout is not open yet.',{exact:false})).toHaveCount(0);await expect(page.getByRole('button',{name:/Buy The Essay Bundle/})).toHaveCount(0);
+  await page.goto('/resources/phd-essay-bundle');await expect(page.getByRole('link',{name:'Buy The Essay Bundle For $5'})).toHaveAttribute('href','https://pramesh6.gumroad.com/l/phd-application-essays');await expect(page.getByText('Checkout is not open yet.',{exact:false})).toHaveCount(0);await expect(page.getByRole('button',{name:/Buy The Essay Bundle/})).toHaveCount(0);
   await expect(page.getByText('My PhD Application Essays',{exact:true})).toBeVisible();await expect(page.locator('a[href*="Pramesh_Sharma_PhD_Essays"]')).toHaveCount(0);
   const unavailable=await request.post('/api/checkout',{headers:{Origin:'http://127.0.0.1:3817'}});expect(unavailable.status()).toBe(503);
   const direct=await request.get('/private-products/Pramesh_Sharma_PhD_Essays.zip');expect(direct.status()).toBe(404);

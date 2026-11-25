@@ -72,7 +72,7 @@ export default function Contact() {
           eyebrow="Get In Touch"
           title="Let’s Start"
           accent="A Conversation."
-          description="A research question, an idea for a project, or something you read here—tell me what’s on your mind."
+          description="Tell me about a research question, a project idea, or something you read here."
         />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>

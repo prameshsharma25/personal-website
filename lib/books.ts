@@ -24,7 +24,7 @@ export const books: Book[] = [
     author: 'Kelly & Zach Weinersmith',
     coverUrl: '/books/a-city-on-mars.jpg',
     status: 'reading',
-    description: 'A deep dive into whether humanity is actually ready to settle space — scientifically, legally, and socially.',
+    description: 'An exploration of the scientific, legal, and social challenges of settling space.',
   },
   {
     id: 'hyperion',
@@ -42,7 +42,7 @@ export const books: Book[] = [
     coverUrl: '/books/fall-of-hyperion.jpg',
     status: 'completed',
     rating: 5,
-    description: 'The stunning conclusion to the Hyperion pilgrimage — mythology, AI, and the fate of humanity collide.',
+    description: 'The Hyperion pilgrimage reaches its conclusion as mythology, AI, and the fate of humanity collide.',
   },
   {
     id: 'endymion',
@@ -60,7 +60,7 @@ export const books: Book[] = [
     coverUrl: '/books/rise-of-endymion.jpg',
     status: 'completed',
     rating: 4,
-    description: 'The epic conclusion to the Hyperion Cantos — love, sacrifice, and the evolution of consciousness.',
+    description: 'The Hyperion Cantos concludes with love, sacrifice, and the evolution of consciousness.',
   },
   {
     id: 'dune',

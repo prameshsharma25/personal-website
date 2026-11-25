@@ -19,7 +19,7 @@ export default function Seo({ title, description, path, article, date, image = '
     <meta name="viewport" content="width=device-width, initial-scale=1" key="viewport" />
     <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} key="robots" />
     <link rel="canonical" href={url} key="canonical" />
-    <link rel="alternate" type="application/rss+xml" title="Pramesh Sharma — essays and research guides" href={`${SITE_URL}/feed.xml`} />
+    <link rel="alternate" type="application/rss+xml" title="Pramesh Sharma: essays and research guides" href={`${SITE_URL}/feed.xml`} />
     <meta property="og:site_name" content={SITE_NAME} /><meta property="og:locale" content="en_US" />
     <meta property="og:title" content={fullTitle} /><meta property="og:description" content={description} />
     <meta property="og:url" content={url} /><meta property="og:type" content={article ? 'article' : 'website'} />

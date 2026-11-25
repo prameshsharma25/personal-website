@@ -23,7 +23,7 @@ export default function Books() {
   return (
     <>
       <Seo
-        title="Reading List — Science Fiction, Science & Stories"
+        title="Reading List: Science Fiction, Science & Stories"
         description="Explore Pramesh Sharma’s reading list, including science fiction, space exploration, and stories about the human experience."
         path="/books"
       />

@@ -363,7 +363,7 @@ export default function AmyloidBatchAnalysis({
           </label>
           <p>
             Columns: <code>filename,method,iptm,mean_plddt</code>. Use ipTM from
-            0–1 and mean pLDDT from 0–100. Missing confidence is not inferred
+            0 to 1 and mean pLDDT from 0 to 100. Missing confidence is not inferred
             from PDB B-factors; it prevents confidence-based shortlisting, but
             descriptors and clustering still run.{' '}
             <a href="/tools/confidence-template.csv" download>

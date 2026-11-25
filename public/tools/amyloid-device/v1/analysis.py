@@ -260,7 +260,7 @@ def finish():
                 ARTIFACTS / "licenses" / ("mmalign-" + name),
             )
     (ARTIFACTS / "README.txt").write_text(
-        "Amyloid Candidates — On-Device Analysis\n\n"
+        "Amyloid Candidates: Analysis On Your Device\n\n"
         "Calculations ran in your browser. No coordinates were uploaded. Only the first model (index 0) was assessed.\n"
         "See results.json for requested comparisons, clustering backend/settings, and group-level success or failure.\n"
         "MM-align compares only matching chain sequences and stoichiometries. Missing confidence is not inferred.\n"
@@ -270,7 +270,7 @@ def finish():
         "Component outputs accompany the portable manifests. Removed machine provenance is replaced\n"
         "by the source, adapter checksums, runtime, and dependency versions in results.json.\n\n"
         "Amyloid Candidates: Dr. Devlina Chakravarty, Pramesh Sharma, and Dr. Lauren L. Porter.\n"
-        "Energetics adapts the Sawaya–Eisenberg Amyloid Illustrator (CC BY 4.0). See licenses/.\n"
+        "Energetics adapts Amyloid Illustrator by Sawaya and Eisenberg (CC BY 4.0). See licenses/.\n"
     )
     save(
         ARTIFACTS / "SHA256.json",

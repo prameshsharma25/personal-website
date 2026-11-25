@@ -24,7 +24,7 @@ export default function EssayAnnotationsOffer({ purchaseUrl }: { purchaseUrl: st
           <p className={styles.price}>$5 <span>PDF · One-Time Purchase</span></p>
           {purchaseUrl ? (
             <GumroadPurchase className={resource.primaryButton} href={purchaseUrl}>
-              Get The Annotations — $5 <span aria-hidden="true">↗</span>
+              Get The Annotations For $5 <span aria-hidden="true">↗</span>
             </GumroadPurchase>
           ) : <p className={styles.status}>Paid Edition Coming Soon</p>}
         </div>

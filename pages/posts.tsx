@@ -50,8 +50,8 @@ export default function Posts({ posts }: Props) {
               <p className={ui.miniLabel}>A Place To Begin</p>
               <h2>Finding Your Way Into Research?</h2>
               <p>
-                The lab search, the first email, and the decision to change
-                direction—I’ve written about those steps as I’ve taken them.
+                I’ve written about finding a lab, sending that first email,
+                and deciding to change direction as I’ve taken those steps.
               </p>
               <Link
                 href="/posts/how-i-found-an-nih-postbac-lab"
