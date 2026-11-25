@@ -37,7 +37,7 @@
     "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
     "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
     "worker.mjs": "e4ce2f97d5b5d12c86c006e8ff9f7f5a2327b9d20df1c6e28b0dc48e90480664",
-    "checkpoints.mjs": "15fbf4ffbd25c73085f209b8b96da4545745afee39054b4ac33e7f5bb70da118"
+    "checkpoints.mjs": "fcf1ae7920273f975054654354063f2d5add827440edd46c33eb4b27a0328a30"
   },
   "pipeline_files": {
     "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -94,6 +94,10 @@
   "checkpoint_compatible_engines": [
     {
       "engine": "d41a5f7743f755ac61cc5c39be21efb72f9aa3d7c3e9d7ee2deb8156fa7e8cec",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "bb4f296c5bc18f600aa417aba2a47ad34d7ca070b37932dc87303d88dff813e5",
       "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
     }
   ]

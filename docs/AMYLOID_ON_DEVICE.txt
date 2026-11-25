@@ -297,6 +297,16 @@ timings for cached descriptors describe their original calculations; stage wall
 times and elapsed_seconds describe the current attempt. Reused operations count
 as skipped/reused diagnostics and do not inflate throughput.
 
+The progress timer instead shows cumulative active time across attempts. It uses
+a monotonic clock and freezes immediately on pause, failure, or completion.
+Elapsed milliseconds are saved with run metadata every second and when stopping,
+before releasing the run lock. Resuming or reopening a run restores this total;
+paused time and time spent opening completed results never count. An abrupt tab
+closure restores the last committed time sample (background browser throttling
+can delay samples). Runs saved before cumulative timing was added have no prior
+active total: incomplete runs begin accumulating on their next resume, while
+completed runs display the measured final attempt from their existing report.
+
 A same-origin Web Lock specific to each run is held by the page until every
 worker is terminated. Each page runs one analysis at a time.
 Other tabs cannot open, resume, or delete the same saved run while it is held.

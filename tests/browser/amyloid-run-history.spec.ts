@@ -57,6 +57,8 @@ test('run history preserves multiple real runs and opens their own inputs, resul
   });
   await analyze.click();
   await expect(done).toBeVisible({ timeout: 90000 });
+  const elapsed = page.getByRole('timer', { name: 'Active Analysis Time' });
+  const firstElapsed = await elapsed.textContent();
   const first = (await history(page))[0];
   expect(first.displayStatus).toBe('completed');
   const bytes = await download(page, info.outputPath('first.zip'));
@@ -112,6 +114,7 @@ test('run history preserves multiple real runs and opens their own inputs, resul
   expect(await download(page, info.outputPath('first-reopened.zip'))).toEqual(
     bytes
   );
+  await expect(elapsed).toHaveText(firstElapsed!);
   const workers = await page.evaluate(() => (window as any).__historyWorkers);
   await rows
     .getByRole('button', {

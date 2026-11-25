@@ -15,6 +15,7 @@ import {
 import type { AnalysisModel } from '../lib/amyloid-jobs';
 import { resultFilters } from '../lib/amyloid-result-filters';
 import AnalysisProgress from './AnalysisProgress';
+import { AnalysisClock } from '../lib/analysis-clock';
 import SavedAnalysisRuns from './SavedAnalysisRuns';
 import AnalysisDiagnostics from './AnalysisDiagnostics';
 import type { DeviceDiagnostics } from '../lib/amyloid-diagnostics';
@@ -34,7 +35,9 @@ import {
   deleteCheckpoint,
   listCheckpoints,
   readCheckpointModels,
+  readCheckpointSummary,
   setCheckpointActivity,
+  saveCheckpointElapsed,
   readCheckpointInputs,
   type CheckpointSummary,
   type CheckpointInput,
@@ -94,6 +97,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     { type: 'progress' }
   > | null>(null);
   const [startedAt, setStartedAt] = useState(0);
+  const clock = useRef(new AnalysisClock());
+  const checkpointAttempt = useRef<string | null>(null);
+  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
   const [diagnostics, setDiagnostics] = useState<DeviceDiagnostics | null>(
     null
   );
@@ -187,6 +193,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     try {
       await terminate();
       release = await acquireCheckpointLock(run.id);
+      const summary = (await readCheckpointSummary(
+        run.id
+      )) as CheckpointSummary;
       const input = (await readCheckpointInputs(run.id)) as CheckpointInput;
       const models = (await readCheckpointModels(run.id)) as AnalysisModel[];
       if (generation !== epoch.current) return;
@@ -200,6 +209,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       setDiagnostics(null);
       setProgressStep(null);
       setStartedAt(0);
+      clock.current.restore(summary.elapsedMs);
+      setElapsedMs(clock.current.elapsedMs);
       setProgress(
         run.displayStatus === 'failed'
           ? 'Stopped. Saved Progress Is Ready To Resume.'
@@ -231,6 +242,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     return ++epoch.current;
   }
   function terminate(activity?: 'paused' | 'failed', message = '') {
+    const elapsed = clock.current.running ? clock.current.stop() : undefined;
+    if (elapsed !== undefined && mounted.current) setElapsedMs(elapsed);
     descriptorPool.current?.dispose();
     descriptorPool.current = null;
     alignmentPool.current?.dispose();
@@ -241,11 +254,12 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     const id = lockRun.current;
     releaseCheckpoint.current = null;
     lockRun.current = null;
+    checkpointAttempt.current = null;
     if (release) {
       finishing.current = (async () => {
         try {
           if (id && activity)
-            await setCheckpointActivity(id, activity, message);
+            await setCheckpointActivity(id, activity, message, elapsed);
         } catch {
           if (mounted.current)
             setCheckpointMessage(
@@ -410,6 +424,31 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     return () => window.removeEventListener('beforeunload', warn);
   }, [running]);
 
+  useEffect(() => {
+    if (!running) return;
+    const tick = () => {
+      if (!clock.current.running) return;
+      const elapsed = clock.current.elapsedMs;
+      setElapsedMs(elapsed);
+      const id = lockRun.current;
+      const attempt = checkpointAttempt.current;
+      const generation = epoch.current;
+      if (id && attempt)
+        void saveCheckpointElapsed(id, attempt, elapsed).catch(() => {
+          if (mounted.current && generation === epoch.current)
+            setCheckpointMessage(
+              'Elapsed time could not be saved. Earlier checkpoints remain available.'
+            );
+        });
+    };
+    const interval = setInterval(tick, 1000);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  }, [running]);
+
   async function inspect(id: string) {
     const generation = epoch.current;
     setOpening(true);
@@ -439,6 +478,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setProgress('');
     setProgressStep(null);
     setStartedAt(0);
+    clock.current.restore();
+    setElapsedMs(null);
     setDiagnostics(null);
     setDiagnosticsReceivedAt(0);
     setConfidence(null);
@@ -509,6 +550,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     artifacts.current = {};
     setRunning(true);
     setStartedAt(Date.now());
+    clock.current.restore(
+      resumeId ? savedRuns.find((run) => run.id === resumeId)?.elapsedMs : 0
+    );
+    if (!resumeId) clock.current.start();
+    setElapsedMs(clock.current.elapsedMs);
     setDiagnostics(null);
     setDiagnosticsReceivedAt(0);
     setProgressStep(null);
@@ -537,7 +583,13 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         lockRun.current = checkpointId;
       }
       let input: CheckpointInput;
+      let reopened: CheckpointSummary | null = null;
       if (resumeId) {
+        reopened = (await readCheckpointSummary(resumeId)) as CheckpointSummary;
+        if (generation !== epoch.current) return;
+        clock.current.restore(reopened?.elapsedMs);
+        if (reopened?.status !== 'complete') clock.current.start();
+        setElapsedMs(clock.current.elapsedMs);
         input = (await readCheckpointInputs(resumeId)) as CheckpointInput;
         if (generation !== epoch.current) return;
         restoreInputs(input);
@@ -613,6 +665,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         ) {
           void handleAlignmentRequest(data, engine, generation);
         } else if (data.type === 'checkpoint') {
+          checkpointAttempt.current = data.summary.attempt ?? null;
           setSavedRuns((runs) =>
             [
               {
@@ -650,6 +703,12 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         } else if (data.type === 'error') {
           fail(data.message);
         } else if (data.type === 'complete') {
+          // Older completed runs predate cumulative timing. Their report keeps
+          // the measured duration of the last attempt; never time reopening it.
+          if (reopened?.status === 'complete' && reopened.elapsedMs == null) {
+            clock.current.restore(data.result.elapsed_seconds * 1000);
+            setElapsedMs(clock.current.elapsedMs);
+          }
           const stopped = terminate('paused');
           if (checkpointAvailable) void stopped.then(refreshCheckpoint);
           setRunning(false);
@@ -1092,7 +1151,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         <AnalysisProgress
           label={progress}
           running={running}
-          startedAt={startedAt}
+          elapsedMs={elapsedMs}
           completed={progressStep?.completed}
           total={progressStep?.total}
           filename={progressStep?.filename}

@@ -6,10 +6,13 @@ export {
   readCheckpointModels,
   listCheckpoints,
   setCheckpointActivity,
+  saveCheckpointElapsed,
 } from '../public/tools/amyloid-device/v1/checkpoints.mjs';
 export type CheckpointSummary = {
   format: number;
   id: string;
+  attempt?: string;
+  elapsedMs?: number;
   name: string;
   createdAt: number;
   activity: 'running' | 'paused' | 'failed';

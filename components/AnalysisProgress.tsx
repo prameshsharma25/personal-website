@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import styles from '../styles/Tools.module.css';
 
 export default function AnalysisProgress({
@@ -8,7 +7,7 @@ export default function AnalysisProgress({
   total = 0,
   filename = '',
   phase = '',
-  startedAt = 0,
+  elapsedMs,
 }: {
   label: string;
   running: boolean;
@@ -16,18 +15,9 @@ export default function AnalysisProgress({
   total?: number;
   filename?: string;
   phase?: string;
-  startedAt?: number;
+  elapsedMs?: number | null;
 }) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (!startedAt) return;
-    const update = () =>
-      setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
-    update();
-    if (!running) return;
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [startedAt, running]);
+  const elapsed = Math.max(0, Math.floor((elapsedMs ?? 0) / 1000));
   const measured = total > 0;
   const count = Math.max(0, Math.min(completed, total));
   const percent = measured ? Math.floor((count / total) * 100) : undefined;
@@ -70,8 +60,8 @@ export default function AnalysisProgress({
                 : 'Stopped')}
           {filename && measured ? ` · ${count} / ${total} ${unit}` : ''}
         </span>
-        {!!startedAt && (
-          <span>
+        {elapsedMs != null && (
+          <span role="timer" aria-label="Active Analysis Time" aria-live="off">
             {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}{' '}
             Elapsed
           </span>

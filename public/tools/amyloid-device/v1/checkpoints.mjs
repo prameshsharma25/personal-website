@@ -294,18 +294,58 @@ export async function acquireCheckpointLock(id) {
       .catch(reject);
   });
 }
-export async function setCheckpointActivity(id, activity, error = '') {
+function savedElapsed(meta, elapsedMs) {
+  return Math.max(
+    Number.isFinite(meta.elapsedMs) ? meta.elapsedMs : 0,
+    Number.isFinite(elapsedMs) ? elapsedMs : 0,
+    0
+  );
+}
+// Heartbeats cannot revive a paused run, change a completed run, or overwrite
+// a newer attempt. The page holds the run lock until its final time is saved.
+export async function saveCheckpointElapsed(id, attempt, elapsedMs) {
+  return transaction(['run'], 'readwrite', (tx, done, fail, guard) => {
+    const store = tx.objectStore('run');
+    const request = store.get(id);
+    request.onsuccess = guard(() => {
+      const meta = request.result;
+      if (
+        !meta ||
+        !attempt ||
+        meta.attempt !== attempt ||
+        meta.status === 'complete' ||
+        meta.activity !== 'running'
+      )
+        return done(null);
+      const updated = {
+        ...meta,
+        elapsedMs: savedElapsed(meta, elapsedMs),
+      };
+      store.put(updated, id);
+      done(updated);
+    });
+  });
+}
+export async function setCheckpointActivity(
+  id,
+  activity,
+  error = '',
+  elapsedMs
+) {
   return transaction(['run'], 'readwrite', (tx, done, fail, guard) => {
     const store = tx.objectStore('run');
     const request = store.get(id);
     request.onsuccess = guard(() => {
       if (!request.result) return done(null);
       checkRun(request.result, id);
-      if (request.result.status === 'complete') return done(request.result);
+      const complete = request.result.status === 'complete';
+      if (complete && !Number.isFinite(elapsedMs)) return done(request.result);
       const meta = {
         ...request.result,
-        activity,
-        error,
+        ...(!complete ? { activity, error } : {}),
+        ...(Number.isFinite(elapsedMs)
+          ? { elapsedMs: savedElapsed(request.result, elapsedMs) }
+          : {}),
         updatedAt: Date.now(),
       };
       store.put(meta, id);
