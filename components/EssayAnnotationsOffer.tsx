@@ -1,5 +1,6 @@
 import styles from '../styles/EssayAnnotationsOffer.module.css';
 import resource from '../styles/Resources.module.css';
+import GumroadPurchase from './GumroadPurchase';
 
 export default function EssayAnnotationsOffer({ purchaseUrl }: { purchaseUrl: string | null }) {
   return (
@@ -22,9 +23,9 @@ export default function EssayAnnotationsOffer({ purchaseUrl }: { purchaseUrl: st
         <div className={styles.purchase}>
           <p className={styles.price}>$5 <span>PDF · One-Time Purchase</span></p>
           {purchaseUrl ? (
-            <a className={resource.primaryButton} href={purchaseUrl} rel="noopener noreferrer">
+            <GumroadPurchase className={resource.primaryButton} href={purchaseUrl}>
               Get The Annotations — $5 <span aria-hidden="true">↗</span>
-            </a>
+            </GumroadPurchase>
           ) : <p className={styles.status}>Paid Edition Coming Soon</p>}
         </div>
         <p className={styles.note}>{purchaseUrl

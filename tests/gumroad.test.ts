@@ -4,11 +4,16 @@ import { createHash } from 'node:crypto';
 import { gumroadProductUrl } from '../lib/gumroad';
 import { getGuideBySlug } from '../lib/guides';
 
-test('Gumroad products stay unavailable until enabled with their own valid URL', () => {
+test('published Gumroad products work without environment configuration', () => {
+  assert.equal(gumroadProductUrl('phd-essays', {}), 'https://pramesh6.gumroad.com/l/phd-application-essays');
+  assert.equal(gumroadProductUrl('uc-annotations', {}), 'https://pramesh6.gumroad.com/l/uc-essay-annotations');
+});
+
+test('Gumroad links can be paused and overrides must belong to the seller', () => {
   const env = {
     GUMROAD_SALES_ENABLED: 'true',
     UC_ANNOTATIONS_GUMROAD_URL: 'https://pramesh6.gumroad.com/l/uc-essay-annotations',
-    PHD_ESSAYS_GUMROAD_URL: 'https://pramesh6.gumroad.com/l/rzmra',
+    PHD_ESSAYS_GUMROAD_URL: 'https://pramesh6.gumroad.com/l/phd-application-essays',
   };
   assert.equal(gumroadProductUrl('uc-annotations', env), env.UC_ANNOTATIONS_GUMROAD_URL);
   assert.equal(gumroadProductUrl('phd-essays', env), env.PHD_ESSAYS_GUMROAD_URL);

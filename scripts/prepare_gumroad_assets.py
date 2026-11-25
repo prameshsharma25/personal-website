@@ -103,7 +103,7 @@ RECEIPT MESSAGE
 Thanks for reading my application essays. Your download contains the two essays and a reading note. For help with the files, visit prameshsharma.com/contact.
 
 PUBLIC URL
-Your screenshot shows https://pramesh6.gumroad.com/l/rzmra. Keep this URL unless you intentionally change the slug.
+https://pramesh6.gumroad.com/l/phd-application-essays
 
 UPLOADS
 Product > Cover: phd-essays-cover.png
@@ -144,8 +144,8 @@ Length: {pages} pages
 Includes: Original Essay and Writing Annotations
 Language: English
 
-SUGGESTED URL SLUG
-uc-essay-annotations (confirm availability in Gumroad before using it on your website)
+PUBLIC URL
+https://pramesh6.gumroad.com/l/uc-essay-annotations
 
 CONTENT TAB INTRODUCTION
 Thank you for reading. The PDF below includes the original essay followed by my annotations. Read the essay first, then revisit it alongside the commentary.
@@ -168,7 +168,7 @@ Two separate products are prepared at $5 each. The UC essay remains free on the 
 4. Create the UC annotation guide as a separate one-time digital product using uc-annotations/listing.txt and its designated files.
 5. Connect your payout method in Gumroad, as requested by the banner in your screenshot.
 6. Review and publish each product when ready. While logged into your seller account, use Gumroad’s test-purchase flow and verify the buyer download.
-7. Copy the actual public product URLs into PHD_ESSAYS_GUMROAD_URL and UC_ANNOTATIONS_GUMROAD_URL in the website host’s environment settings. Set GUMROAD_SALES_ENABLED=true and redeploy. Leave a product’s URL blank until that specific product is ready.
+7. The website now includes both published product URLs. Deploy the website changes to activate its purchase buttons. If you previously set GUMROAD_SALES_ENABLED=false, remove that setting or change it to true before redeploying. The product URL environment variables are optional overrides.
 
 The PhD product uses Gumroad when its URL is enabled; the existing Stripe integration remains available as a fallback if separately configured. UC annotations are delivered only through Gumroad and are never shipped with the website.
 

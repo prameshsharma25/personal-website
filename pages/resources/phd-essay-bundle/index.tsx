@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useRef, useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import Seo from '../../../components/Seo';
+import GumroadPurchase from '../../../components/GumroadPurchase';
 import { recordAction } from '../../../components/ActionLink';
 import { ESSAY_PRODUCT, SITE_URL } from '../../../lib/site';
 import { commerceConfig } from '../../../lib/commerce';
@@ -61,7 +62,7 @@ export default function EssayBundle({ available, cancelled, gumroadUrl }: { avai
         <aside className={styles.purchase} aria-label="Purchase The Essay Collection">
           <p className={styles.kicker}>THE COMPLETE COLLECTION</p><p className={styles.price}>$5<span>USD · One-Time Purchase</span></p>
           <p>Two essays and a reading note.<br />Three PDF files in one ZIP.</p>
-          {gumroadUrl ? <a href={gumroadUrl} className={resource.primaryButton} rel="noopener noreferrer">Buy The Essay Bundle — $5</a> : available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening Secure Checkout…' : 'Buy The Essay Bundle — $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
+          {gumroadUrl ? <GumroadPurchase href={gumroadUrl} className={resource.primaryButton}>Buy The Essay Bundle — $5</GumroadPurchase> : available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening Secure Checkout…' : 'Buy The Essay Bundle — $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
           {error && <p className={resource.error} role="alert">{error}</p>}
           <p className={styles.finePrint}>{gumroadUrl ? 'Checkout and file delivery through Gumroad. Your receipt includes a download link.' : available ? 'Secure payment through Stripe. Download after purchase, with a link sent to your receipt email.' : 'Explore the contents and selected passages below. Sales will open here when checkout is available.'}</p>
         </aside>

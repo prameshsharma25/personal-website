@@ -6,8 +6,8 @@ test('UC essay is free and the paid edition has no public download or hidden com
   await expect(page.getByRole('heading', { name: 'The Full Essay' })).toBeVisible();
   await expect(page.getByText('Computer Science became my new track', { exact: false })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Why I Wrote It This Way' })).toBeAttached();
-  await expect(page.getByText('Paid Edition Coming Soon', { exact: true })).toBeAttached();
-  await expect(page.getByRole('link', { name: /Get The Annotations/ })).toHaveCount(0);
+  await expect(page.getByText('Paid Edition Coming Soon', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Get The Annotations/ })).toHaveAttribute('href', 'https://pramesh6.gumroad.com/l/uc-essay-annotations');
   for (const section of ['What Worked', 'Structure & Themes', 'Writing Lessons & Takeaways']) {
     expect(html).not.toContain(section);
     expect(await page.locator('#__NEXT_DATA__').textContent()).not.toContain(section);
@@ -22,5 +22,5 @@ test('UC essay is free and the paid edition has no public download or hidden com
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('heading', { name: 'Why I Wrote It This Way' }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
-  await page.screenshot({ path: '.local/uc-annotations-mobile.png', fullPage: true });
+  await page.screenshot({ path: '.local/uc-annotations-mobile.png', fullPage: true, animations: 'disabled' });
 });
