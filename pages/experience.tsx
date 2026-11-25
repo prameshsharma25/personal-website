@@ -3,6 +3,7 @@ import ui from '../styles/Interface.module.css';
 import Link from 'next/link';
 import Seo from '../components/Seo';
 import styles from '../styles/Experience.module.css';
+import ResearchProjects from '../components/ResearchProjects';
 
 const experiences = [
   {
@@ -98,7 +99,7 @@ export default function Experience() {
     <>
       <Seo
         title="About — Computational Biologist"
-        description="Computational biologist at NIH studying protein structure and fold switching. Research, papers, and experience at NIH, NASA, Genentech, and Walmart."
+        description="Pramesh Sharma’s research in protein structure, AlphaFold attention, and amyloid prediction. Explore ongoing projects, papers, and experience in computational biology."
         path="/experience"
         schema={{
           '@type': 'ProfilePage',
@@ -163,6 +164,7 @@ export default function Experience() {
         </PageIntro>
         <nav className={styles.sectionNav} aria-label="About Page Sections">
           <a href="#research">Research</a>
+          <a href="#projects">Projects</a>
           <a href="#publications">Papers</a>
           <a href="#experience">Experience</a>
           <a href="#background">Background</a>
@@ -200,6 +202,7 @@ export default function Experience() {
             </ul>
           </div>
         </section>
+        <ResearchProjects />
         <section
           data-reveal
           id="publications"
@@ -207,7 +210,7 @@ export default function Experience() {
           aria-labelledby="papers-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>02</p>
+            <p className={styles.eyebrow}>03</p>
             <h2 id="papers-heading">Papers &amp; Preprints</h2>
           </div>
           <div className={styles.sectionBody}>
@@ -239,7 +242,7 @@ export default function Experience() {
           aria-labelledby="experience-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>03</p>
+            <p className={styles.eyebrow}>04</p>
             <h2 id="experience-heading">Experience</h2>
           </div>
           <div className={styles.sectionBody}>
@@ -263,7 +266,7 @@ export default function Experience() {
           aria-labelledby="background-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>04</p>
+            <p className={styles.eyebrow}>05</p>
             <h2 id="background-heading">Background</h2>
           </div>
           <div className={styles.sectionBody}>
