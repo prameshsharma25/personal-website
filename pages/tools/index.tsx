@@ -9,7 +9,7 @@ export default function Tools() {
     <>
       <Seo
         title="Structural Biology Tools"
-        description="Explore research tools from Pramesh Sharma’s ongoing work. Inspect amyloid candidate structures, package-generated descriptors, and warnings in your browser."
+        description="Explore structural biology tools from Pramesh Sharma. Analyze amyloid structures, compare and cluster conformations, and review ranked candidates in your browser."
         path="/tools"
         breadcrumbs={[
           { name: 'Home', path: '/' },
@@ -42,27 +42,30 @@ export default function Tools() {
                 <i />
               </div>
             ))}
-            <span>Structure → Descriptors → Interpretation</span>
+            <span>Analyze → Compare → Cluster → Rank</span>
           </div>
           <div className={styles.toolCopy}>
             <p className={styles.kicker}>01 / Free Research Tool</p>
-            <h2>Amyloid Warning Inspector</h2>
+            <h2>Amyloid Structure Analysis</h2>
             <p>
-              A structure can look convincing and still warrant a closer look.
-              Calculate geometry, packing, and energy descriptors on your own
-              device, then review the warnings alongside your structures.
+              Bring your predicted assemblies together in one analysis pipeline.
+              Calculate structural descriptors, compare conformations, and
+              explore clusters and ranked candidates on your own device.
             </p>
             <ul>
-              <li>Interactive PDB and mmCIF structure inspection</li>
-              <li>Warning explanations and questions to investigate</li>
+              <li>Geometry, packing, energetics, and warning reports</li>
+              <li>MM-align comparisons and HDBSCAN clustering</li>
               <li>
-                On-device calculations, clustering, and downloadable reports
+                Interactive structures, cluster representatives, and candidate
+                ranking
               </li>
             </ul>
             <Link href="/tools/amyloid-inspector" className={styles.primary}>
-              Open The Inspector <span aria-hidden="true">↗</span>
+              Open Analysis <span aria-hidden="true">↗</span>
             </Link>
-            <p className={styles.caption}>Structure Analysis & Report Viewer</p>
+            <p className={styles.caption}>
+              Post-Prediction Analysis & Downloadable Reports
+            </p>
           </div>
         </article>
         <p className={styles.footerNote}>

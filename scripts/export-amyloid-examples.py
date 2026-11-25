@@ -47,7 +47,7 @@ for case in cases:
     shutil.copyfile(source, out / f'{stem}.pdb')
 shutil.copyfile(package / 'LICENSE', out / 'PACKAGE-LICENSE.txt')
 shutil.copyfile(package / 'docs/ATTRIBUTION.md', out / 'ENERGETICS-ATTRIBUTION.txt')
-(out / 'README.txt').write_text(f'''Calculated examples for the Amyloid Warning Inspector
+(out / 'README.txt').write_text(f'''Calculated examples for Amyloid Structure Analysis
 Source: https://github.com/DevlinaC/Amyloid_Candidates/tree/{PIN}
 Package: amyloid-candidates 0.1.0.dev0
 Generated using Python 3.13.7, NumPy 2.5.5, Biopython 1.88, FreeSASA 2.2.1.

@@ -1,4 +1,4 @@
-Calculated examples for the Amyloid Warning Inspector
+Calculated examples for Amyloid Structure Analysis
 Source: https://github.com/DevlinaC/Amyloid_Candidates/tree/1c85221ea38ffbaa1695eeb0a2962997abf94563
 Package: amyloid-candidates 0.1.0.dev0
 Generated using Python 3.13.7, NumPy 2.5.5, Biopython 1.88, FreeSASA 2.2.1.

@@ -1,4 +1,4 @@
-Amyloid Warning Inspector
+Amyloid Structure Analysis
 
 Routes: /tools and /tools/amyloid-inspector
 Scientific source: https://github.com/DevlinaC/Amyloid_Candidates

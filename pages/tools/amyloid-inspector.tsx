@@ -10,26 +10,26 @@ export default function AmyloidTool() {
   return (
     <>
       <Seo
-        title="Amyloid Warning Inspector — Analyze Structures On Your Device"
-        description="Calculate amyloid warnings and structural descriptors from PDB and mmCIF files in your browser. Private on-device analysis with downloadable research reports."
+        title="Amyloid Structure Analysis — Compare, Cluster & Rank"
+        description="Analyze amyloid structures from PDB or mmCIF files. Calculate descriptors, compare and cluster conformations, and review ranked candidates in your browser."
         path="/tools/amyloid-inspector"
         breadcrumbs={[
           { name: 'Home', path: '/' },
           { name: 'Tools', path: '/tools' },
           {
-            name: 'Amyloid Warning Inspector',
+            name: 'Amyloid Structure Analysis',
             path: '/tools/amyloid-inspector',
           },
         ]}
         schema={{
           '@type': 'SoftwareApplication',
-          name: 'Amyloid Warning Inspector',
+          name: 'Amyloid Structure Analysis',
           applicationCategory: 'ScienceApplication',
           operatingSystem: 'Web Browser',
           isAccessibleForFree: true,
           url: 'https://prameshsharma.com/tools/amyloid-inspector',
           description:
-            'Analyze assemblies on your own device with Amyloid Candidates and inspect local reports in an interactive molecular viewer.',
+            'Analyze predicted amyloid assemblies with structural descriptors, MM-align comparisons, HDBSCAN clustering, candidate ranking, and downloadable reports. Calculations run on your device with an interactive molecular viewer.',
         }}
       />
       <main className={ui.page}>
@@ -38,10 +38,10 @@ export default function AmyloidTool() {
           <span>Research Preview / Structure Analysis</span>
         </div>
         <PageIntro
-          eyebrow="Amyloid Candidates / Structure Assessment"
-          title="Amyloid Warning"
-          accent="Inspector."
-          description="Explore your predicted structures, calculate amyloid descriptors on your own device, and inspect the warnings alongside the evidence."
+          eyebrow="Amyloid Candidates / Post-Prediction Pipeline"
+          title="Amyloid Structure"
+          accent="Analysis."
+          description="Take your predicted structures through descriptor calculations, structural comparisons, clustering, and candidate ranking. Explore the evidence and download your reports—all on your device."
         />
         <AmyloidInspector />
         <section

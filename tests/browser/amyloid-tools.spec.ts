@@ -14,9 +14,9 @@ test('first Dr. Lauren Porter mention links to NIH and Tools has a dedicated rou
     .getByRole('link', { name: 'Tools', exact: true })
     .click();
   await expect(page).toHaveURL(/\/tools$/);
-  await page.getByRole('link', { name: 'Open The Inspector' }).click();
+  await page.getByRole('link', { name: 'Open Analysis', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText(
-    'Amyloid Warning'
+    'Amyloid Structure Analysis'
   );
   await expect(
     page

@@ -1,4 +1,4 @@
-Amyloid Candidates — On-Device Analysis
+Amyloid Structure Analysis — On-Device Pipeline
 
 Default route: /tools/amyloid-inspector
 No AMYLOID_API_URL, account, local Python installation, or analysis server is
