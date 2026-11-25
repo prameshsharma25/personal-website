@@ -160,11 +160,12 @@ initialization inactivity timeout: three minutes. Each descriptor/report phase:
 five minutes without a stage update. Each alignment worker startup: 30 seconds.
 Each directed alignment: two minutes. The overall alignment inactivity watchdog
 allows three minutes so individual timeouts and replacement can report failure.
-Cancel terminates the coordinator, descriptor workers, and alignment workers immediately and
-discards that run. Completion and navigation also terminate every worker. The
-alignment pool is released before clustering. Results live only in page
-memory; download before leaving/reloading. Switching inspector modes retains the
-active local run. No background continuation after closing the page is promised.
+Cancel terminates the coordinator, descriptor workers, and alignment workers
+immediately. When saving is enabled, committed checkpoints remain available for
+recovery; in-memory work is discarded. Completion and navigation also terminate
+every worker. The alignment pool is released before clustering. Switching
+inspector modes retains the active local run. Calculations do not continue after
+closing the page; return to the same browser and use Resume Saved Run.
 
 SOURCES AND DEPLOYMENT
 Browser assets: public/tools/amyloid-device/v1/.
@@ -269,11 +270,40 @@ Shortlisting uses the existing QC, four evidence components, pool-relative score
 floor, finite ipTM/pLDDT confidence, non-noise membership, and greedy diversity
 threshold of 0.20. Missing confidence does not prevent descriptors or clustering.
 
-There is currently no saved browser checkpoint. Refresh, tab closure, crashes,
-and explicit cancellation discard an active run. A later recovery implementation
-would need atomic local storage of completed descriptor artifacts, accepted pair
-results, inputs, settings, and engine versions. It could skip completed work but
-would restart any interrupted operation. None of that persistence is added here.
+Save Progress On This Device is enabled by default when IndexedDB and Web Locks
+are available. One recent run is stored locally, including exact input bytes,
+confidence CSV, settings, descriptor artifacts, accepted directed alignments, and
+completed downloads. The UI offers Resume Saved Run, Open Saved Results, and
+Delete Saved Run. Cancelling retains committed work. A new saved run can replace
+a completed run, but an incomplete run must be resumed or explicitly deleted.
+Turning saving off leaves an earlier saved run intact and calculates in memory.
+
+Each operation and its saved counter commit in one IndexedDB transaction with
+strict durability where supported. Completed descriptor records include failures;
+only successfully accepted comparisons are cached. Original file order and IDs
+are preserved. Resuming checks input/settings hashes, record integrity, checkpoint
+format, and the entire engine manifest. It rebuilds the coordinator from saved
+artifacts and replays accepted comparisons through the existing parser before
+recomputing clustering, selection, and the final ZIP. Interrupted operations are
+rerun; partial Python heaps are never reused. Completed results can be reopened
+without loading Python or fetching the current engine manifest. Reports record
+resumed status and counts of reused descriptors/comparisons. Recorded operation
+timings for cached descriptors describe their original calculations; stage wall
+times and elapsed_seconds describe the current attempt. Reused operations count
+as skipped/reused diagnostics and do not inflate throughput.
+
+A same-origin Web Lock is held by the page until every worker is terminated.
+Other tabs cannot resume, replace, or delete the same saved run while it is held.
+Immutable run IDs fence storage writes after cancellation and deletion. Storage
+errors stop checkpoint writes with a visible warning but allow the calculation
+and download to finish. Earlier committed work remains recoverable. Integrity or
+engine mismatches stop recovery explicitly without deleting the saved data.
+
+Checkpoint storage is browser managed, not a backup guarantee. Clearing site
+data, private browsing, storage eviction, and quotas can prevent recovery. A run
+can only resume on the same origin in the same browser profile. The runtime still
+needs to load after an interruption. No persistence service, upload, or analytics
+integration is used. Scientific package and MM-align binaries are unchanged.
 
 Hosted Server Analysis is a future release on the public website. With no
 connected worker, its tab shows an informational preview without upload controls.

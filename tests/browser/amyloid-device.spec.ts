@@ -13,6 +13,9 @@ test('on-device mode is default, loads no engine until asked, and contacts no an
   page.on('request', (request) => requests.push(request.url()));
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
   await expect(
     page.getByRole('button', { name: 'On My Device', exact: true })
   ).toHaveAttribute('aria-pressed', 'true');
@@ -45,6 +48,9 @@ test('real browser calculations match native Python reports and export verified 
   });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
   await expect(
     page.getByLabel('Choose Structures', { exact: true })
   ).toBeEnabled();
@@ -201,6 +207,9 @@ test('engine failure is recoverable, cancellation terminates the worker, and nav
     route.abort()
   );
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
   await page
     .getByLabel('Choose Structures', { exact: true })
     .setInputFiles(fixture('2beg.pdb'));

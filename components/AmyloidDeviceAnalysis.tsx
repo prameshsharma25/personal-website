@@ -28,6 +28,14 @@ import {
   type DescriptorWorkers,
   type DescriptorState,
 } from '../lib/amyloid-descriptor-pool';
+import {
+  acquireCheckpointLock,
+  deleteCheckpoint,
+  readCheckpointSummary,
+  readCheckpointInputs,
+  type CheckpointSummary,
+  type CheckpointInput,
+} from '../lib/amyloid-checkpoints';
 import styles from '../styles/Tools.module.css';
 
 type Props = {
@@ -39,6 +47,15 @@ type Props = {
 
 export default function AmyloidDeviceAnalysis(props: Props) {
   const [supported, setSupported] = useState(false);
+  const [saveProgress, setSaveProgress] = useState(true);
+  const [checkpointAvailable, setCheckpointAvailable] = useState(false);
+  const [checkpointReady, setCheckpointReady] = useState(false);
+  const [savedRun, setSavedRun] = useState<CheckpointSummary | null>(null);
+  const [checkpointMessage, setCheckpointMessage] = useState('');
+  const [storageBusy, setStorageBusy] = useState(false);
+  const releaseCheckpoint = useRef<(() => void) | null>(null);
+  const activeCheckpoint = useRef<string | null>(null);
+  const mounted = useRef(false);
   const [ready, setReady] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [running, setRunning] = useState(false);
@@ -89,6 +106,46 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const callbacks = useRef(props);
   callbacks.current = props;
 
+  async function refreshCheckpoint() {
+    try {
+      const summary =
+        (await readCheckpointSummary()) as CheckpointSummary | null;
+      if (mounted.current) setSavedRun(summary);
+    } catch {
+      if (mounted.current)
+        setCheckpointMessage(
+          'Saved progress could not be read. Your browser may have blocked local storage.'
+        );
+    }
+  }
+  async function removeCheckpoint() {
+    if (!savedRun || running) return false;
+    setStorageBusy(true);
+    try {
+      await deleteCheckpoint(savedRun.id);
+      setSavedRun(null);
+      setCheckpointMessage('');
+      return true;
+    } catch (problem) {
+      setCheckpointMessage(
+        problem instanceof Error
+          ? problem.message
+          : 'The saved run could not be deleted.'
+      );
+      await refreshCheckpoint();
+      return false;
+    } finally {
+      setStorageBusy(false);
+    }
+  }
+  async function clearLocalResults() {
+    if (
+      savedRun?.id === activeCheckpoint.current &&
+      !(await removeCheckpoint())
+    )
+      return;
+    await select([]);
+  }
   function invalidate() {
     return ++epoch.current;
   }
@@ -99,6 +156,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     alignmentPool.current = null;
     worker.current?.terminate();
     worker.current = null;
+    releaseCheckpoint.current?.();
+    releaseCheckpoint.current = null;
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
   }
@@ -213,6 +272,19 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     }
   }
   useEffect(() => {
+    mounted.current = true;
+    const canSave = typeof indexedDB !== 'undefined' && !!navigator.locks;
+    setCheckpointAvailable(canSave);
+    if (!canSave) setSaveProgress(false);
+    if (canSave)
+      void refreshCheckpoint().finally(() => {
+        if (mounted.current) setCheckpointReady(true);
+      });
+    else setCheckpointReady(true);
+    const refresh = () => {
+      if (canSave && !worker.current) void refreshCheckpoint();
+    };
+    window.addEventListener('focus', refresh);
     setReady(true);
     setSupported(
       typeof Worker !== 'undefined' &&
@@ -220,6 +292,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         !!globalThis.crypto?.subtle
     );
     return () => {
+      mounted.current = false;
+      window.removeEventListener('focus', refresh);
       invalidate();
       terminate();
     };
@@ -269,6 +343,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setModels([]);
     setOpening(false);
     setFiles([]);
+    activeCheckpoint.current = null;
     callbacks.current.onReset();
     if (!selected.length) return;
     try {
@@ -302,6 +377,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     artifacts.current = {};
     setProgress('Analysis Stopped');
     setError(message);
+    if (checkpointAvailable) void refreshCheckpoint();
   }
   function watchdog(milliseconds: number) {
     if (timer.current) clearTimeout(timer.current);
@@ -313,7 +389,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       milliseconds
     );
   }
-  async function start() {
+  async function start(resumeId?: string) {
     const generation = ++epoch.current;
     terminate();
     setError('');
@@ -328,33 +404,80 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setDiagnostics(null);
     setDiagnosticsReceivedAt(0);
     setProgressStep(null);
-    setProgress('Reading Your Structures');
+    setProgress(
+      resumeId ? 'Opening Saved Progress' : 'Reading Your Structures'
+    );
+    setCheckpointMessage('');
+    activeCheckpoint.current = resumeId || null;
     callbacks.current.onReset();
     try {
-      validateDeviceFiles(files);
-      if (confidence && confidence.size > 65536)
-        throw new Error('Confidence CSV must be at most 64 KB.');
-      if (
-        !Number.isInteger(minCluster) ||
-        minCluster < 2 ||
-        minCluster > DEVICE_LIMITS.files ||
-        !Number.isInteger(minSamples) ||
-        minSamples < 1 ||
-        minSamples >= DEVICE_LIMITS.files
-      )
-        throw new Error(
-          `Use a minimum cluster size of 2 to ${DEVICE_LIMITS.files} and minimum samples of 1 to ${DEVICE_LIMITS.files - 1}.`
-        );
-      const confidenceBytes =
-        confidence && compare && files.length > 1
-          ? await confidence.arrayBuffer()
-          : null;
-      const selected = await Promise.all(
-        files.map(async (file) => ({
-          name: file.name,
-          bytes: await file.arrayBuffer(),
-        }))
+      const checkpoint = Boolean(
+        resumeId || (saveProgress && checkpointAvailable)
       );
+      if (checkpoint) {
+        const release = (await acquireCheckpointLock()) as () => void;
+        if (generation !== epoch.current) {
+          release();
+          return;
+        }
+        releaseCheckpoint.current = release;
+      }
+      let input: CheckpointInput;
+      if (resumeId) {
+        input = (await readCheckpointInputs(resumeId)) as CheckpointInput;
+        if (generation !== epoch.current) return;
+        setFiles(input.files.map((file) => new File([file.bytes], file.name)));
+        setConfidence(
+          input.confidence
+            ? new File([input.confidence], 'saved-confidence.csv', {
+                type: 'text/csv',
+              })
+            : null
+        );
+        setCompare(input.compare);
+        setMinCluster(input.settings.min_cluster_size);
+        setMinSamples(input.settings.min_samples);
+        setDescriptorWorkers(input.descriptorWorkers);
+        setAlignmentWorkers(input.alignmentWorkers);
+        setSaveProgress(true);
+      } else {
+        validateDeviceFiles(files);
+        if (confidence && confidence.size > 65536)
+          throw new Error('Confidence CSV must be at most 64 KB.');
+        if (
+          !Number.isInteger(minCluster) ||
+          minCluster < 2 ||
+          minCluster > DEVICE_LIMITS.files ||
+          !Number.isInteger(minSamples) ||
+          minSamples < 1 ||
+          minSamples >= DEVICE_LIMITS.files
+        )
+          throw new Error(
+            `Use a minimum cluster size of 2 to ${DEVICE_LIMITS.files} and minimum samples of 1 to ${DEVICE_LIMITS.files - 1}.`
+          );
+        const confidenceBytes =
+          confidence && compare && files.length > 1
+            ? await confidence.arrayBuffer()
+            : null;
+        const selected = await Promise.all(
+          files.map(async (file) => ({
+            name: file.name,
+            bytes: await file.arrayBuffer(),
+          }))
+        );
+        input = {
+          files: selected,
+          confidence: confidenceBytes,
+          compare,
+          descriptorWorkers,
+          alignmentWorkers,
+          settings: {
+            min_cluster_size: minCluster,
+            min_samples: minSamples,
+            max_candidates: 10,
+          },
+        };
+      }
       if (generation !== epoch.current) return;
       const engine = new Worker('/tools/amyloid-device/v1/worker.mjs', {
         type: 'module',
@@ -388,6 +511,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           data.type === 'alignment-stop'
         ) {
           void handleAlignmentRequest(data, engine, generation);
+        } else if (data.type === 'checkpoint') {
+          setSavedRun(data.summary);
+          activeCheckpoint.current = data.summary.id;
+        } else if (data.type === 'checkpoint-warning') {
+          setCheckpointMessage(data.message);
         } else if (data.type === 'diagnostics') {
           setDiagnostics(data.diagnostics);
           setDiagnosticsReceivedAt(performance.now());
@@ -450,26 +578,19 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       engine.postMessage(
         {
           type: 'start',
-          files: selected,
-          compare,
-          alignmentWorkers,
-          descriptorWorkers,
+          ...input,
+          checkpoint,
+          resumeId,
           descriptorCount: resolveDescriptorWorkers(
-            descriptorWorkers,
+            input.descriptorWorkers,
             navigator.hardwareConcurrency,
-            selected.length,
+            input.files.length,
             (navigator as Navigator & { deviceMemory?: number }).deviceMemory
           ),
-          confidence: confidenceBytes,
-          settings: {
-            min_cluster_size: minCluster,
-            min_samples: minSamples,
-            max_candidates: 10,
-          },
         },
         [
-          ...selected.map((file) => file.bytes),
-          ...(confidenceBytes ? [confidenceBytes] : []),
+          ...input.files.map((file) => file.bytes),
+          ...(input.confidence ? [input.confidence] : []),
         ]
       );
     } catch (problem) {
@@ -493,6 +614,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setError('');
     artifacts.current = {};
     setProgress('Cancelled. No Files Were Uploaded.');
+    if (checkpointAvailable) void refreshCheckpoint();
     callbacks.current.onReset();
   }
   function download() {
@@ -506,6 +628,46 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   }
   return (
     <section aria-label="On-Device Analysis">
+      {savedRun && (
+        <section className={styles.recoveryPanel} aria-label="Saved Analysis">
+          <p className={styles.kicker}>Saved On This Device</p>
+          <h3>
+            {savedRun.status === 'complete'
+              ? 'Your Saved Results Are Ready.'
+              : 'Continue Where You Left Off.'}
+          </h3>
+          <p>
+            {savedRun.inputCount} Structures · {savedRun.descriptors} Saved
+            Assessments · {savedRun.alignments} Saved Comparisons
+          </p>
+          <p className={styles.caption}>
+            Last saved {new Date(savedRun.updatedAt).toLocaleString()}. Saved
+            assessments and comparisons are reused. An interrupted calculation
+            runs again.
+          </p>
+          <div className={styles.controls}>
+            <button
+              disabled={running || storageBusy || !checkpointAvailable}
+              onClick={() => void start(savedRun.id)}
+            >
+              {savedRun.status === 'complete'
+                ? 'Open Saved Results'
+                : 'Resume Saved Run'}
+            </button>
+            <button
+              disabled={running || storageBusy}
+              onClick={() => void removeCheckpoint()}
+            >
+              Delete Saved Run
+            </button>
+          </div>
+          {savedRun.status === 'incomplete' && (
+            <p className={styles.caption}>
+              Resume or delete this run before saving a different analysis.
+            </p>
+          )}
+        </section>
+      )}
       <div className={styles.upload}>
         <div>
           <p className={styles.kicker}>01 / Your Structures. Your Device.</p>
@@ -688,26 +850,70 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           </div>
         </details>
       )}
+      <div className={styles.recoveryOption}>
+        <label>
+          <input
+            type="checkbox"
+            checked={saveProgress}
+            disabled={running || !checkpointAvailable || !checkpointReady}
+            onChange={(event) => setSaveProgress(event.target.checked)}
+          />{' '}
+          Save Progress On This Device
+        </label>
+        <p>
+          Keep inputs, completed calculations, and results in this browser so
+          you can resume after a refresh or interruption. Nothing is uploaded.
+          Cancelling keeps saved progress. Delete Saved Run removes it. A new
+          run replaces the last completed saved run.
+        </p>
+        <p>
+          Recovery needs this browser on this device and the same analysis
+          engine. Clearing site data, private browsing, or browser storage
+          cleanup can remove checkpoints. Download your final reports.
+        </p>
+        {ready && !checkpointAvailable && (
+          <p>
+            Checkpoints are unavailable in this browser. Calculations can still
+            run with this option off.
+          </p>
+        )}
+      </div>
+      {checkpointMessage && (
+        <p className={styles.notice} aria-live="polite">
+          {checkpointMessage}
+        </p>
+      )}
       <div className={styles.exampleBar}>
         <button
           className={styles.runButton}
-          disabled={!supported || !files.length || running}
+          disabled={
+            !supported ||
+            !files.length ||
+            running ||
+            storageBusy ||
+            !checkpointReady
+          }
           onClick={() => void start()}
         >
           Analyze On My Device
         </button>
         {running && <button onClick={cancel}>Cancel Analysis</button>}
         {!!(archive || models.length) && !running && (
-          <button onClick={() => void select([])}>Clear Local Results</button>
+          <button
+            disabled={storageBusy}
+            onClick={() => void clearLocalResults()}
+          >
+            Clear Local Results
+          </button>
         )}
       </div>
       <p className={styles.caption}>
         The first run downloads the analysis engine from jsDelivr. Calculations
         use your device’s CPU and memory in a background worker. Keep this page
         open and download your results before leaving. Larger assemblies work
-        best on a desktop. Progress is held in temporary memory. Refreshing,
-        closing the page, or a browser crash requires a new run. Automatic
-        recovery from saved checkpoints is not available yet.
+        best on a desktop. With Save Progress On This Device enabled, completed
+        structures and comparisons are saved for recovery. With it off, closing
+        or refreshing the page discards the run.
       </p>
       <p className={styles.notice}>
         Calculations use the first model, up to 20,000 atoms and 32 polymer
@@ -981,10 +1187,18 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           ))}
           {result && (
             <p className={styles.caption}>
-              Finished in {Math.round(result.elapsed_seconds)} seconds after
-              loading the engine. The ZIP contains successful reports, original
-              coordinates, component outputs, checksums, and calculation
-              versions. Any failed structures are listed in results.json.
+              {result.recovery?.resumed && (
+                <>
+                  Recovered {result.recovery.reused_descriptors} structure
+                  assessments and {result.recovery.reused_alignments}{' '}
+                  comparisons from saved progress.{' '}
+                </>
+              )}
+              Recorded calculation time: {Math.round(result.elapsed_seconds)}{' '}
+              seconds, including engine setup. The ZIP contains successful
+              reports, original coordinates, component outputs, checksums, and
+              calculation versions. Any failed structures are listed in
+              results.json.
               {result.clustering_status === 'requested'
                 ? ' Comparison groups include distance matrices, clustering, representatives, and shortlist eligibility.'
                 : ' Comparisons and clustering were not requested.'}

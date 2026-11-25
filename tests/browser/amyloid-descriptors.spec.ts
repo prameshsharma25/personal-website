@@ -41,6 +41,9 @@ test('parallel descriptors preserve PDB/mmCIF identity and partial failures with
     if (request.method() !== 'GET') writes.push(request.url());
   });
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
   await page.getByLabel('Choose Structures', { exact: true }).setInputFiles([
     {
       name: 'a.pdb',
@@ -120,6 +123,9 @@ test('cancelling descriptors terminates every runtime and allows a fresh single 
   await instrument(page);
   const bytes = await readFile('public/tools/amyloid-example/2beg.pdb');
   await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
   const files = Array.from({ length: 12 }, (_, i) => ({
     name: `cancel-${i}.pdb`,
     mimeType: 'text/plain',

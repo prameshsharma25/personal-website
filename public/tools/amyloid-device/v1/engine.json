@@ -23,7 +23,7 @@
   },
   "files": {
     "package.zip": "50c75cfea6969606660745c423836eb1b85a00573583278774e1c4526559dd08",
-    "analysis.py": "ae79d8e3e1ef2a2628f864693fe91ce5ed3b651ce5805ec8e3d37b22c92fa71f",
+    "analysis.py": "a40daef99ead5d5f2cc5b47019920accec9b726e2e55f16c043697b6c7622ed8",
     "pipeline.zip": "da55461a9397708ae736bd1596c0c55722481c4799cb2bfe620bdac52b33cef4",
     "batch.py": "919442b38420844a8da98f3345f444549549d5df9cc6ee40534c52f8a948bea0",
     "run-mmalign.mjs": "9c8691dced10f6f9ac348a11614ea5d1f0838a8e1a2b46b27dd09f1822da2eea",
@@ -35,7 +35,9 @@
     "mmalign/LICENSE.txt": "5bb88694391d0e0fef49ee8b60cd9208ce755d90213584c117bd8a21837bcdca",
     "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9",
     "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
-    "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81"
+    "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
+    "worker.mjs": "6ef639535321a43c634196a25ce0f9ff758f64af0b52d4df957eb53c3f0dfe8c",
+    "checkpoints.mjs": "bd42e1bdfcf8930c8bffcc5c5b792983a00d1ba10e6946e4d540e54edddbc88b"
   },
   "pipeline_files": {
     "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

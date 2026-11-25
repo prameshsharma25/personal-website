@@ -83,6 +83,8 @@ manifest = {
         for name in [
             "package.zip",
             "analysis.py",
+            "worker.mjs",
+            "checkpoints.mjs",
             "pipeline.zip",
             "batch.py",
             "run-mmalign.mjs",

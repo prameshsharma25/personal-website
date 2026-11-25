@@ -246,6 +246,7 @@ def finish():
     summary = {
         "schema_version": "amyloid-device-results-1.0",
         "execution": "browser_web_worker",
+        "recovery": json.loads(globals().get("_recovery_json", "{}")),
         "alignment_execution": json.loads(_alignment_execution_json),
         "descriptor_execution": json.loads(_descriptor_execution_json),
         "structures": RESULTS,

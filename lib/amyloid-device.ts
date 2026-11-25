@@ -1,5 +1,6 @@
 import type { InputFile } from './amyloid-inspector';
 import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
+import type { CheckpointSummary } from './amyloid-checkpoints';
 import type { DeviceDiagnostics } from './amyloid-diagnostics';
 import type {
   DescriptorEntry,
@@ -15,6 +16,11 @@ export const DEVICE_LIMITS = {
 };
 export type DeviceResult = {
   structures: AnalysisModel[];
+  recovery?: {
+    resumed: boolean;
+    reused_descriptors: number;
+    reused_alignments: number;
+  };
   elapsed_seconds: number;
   clustering_status: 'not_requested' | 'requested';
   groups: AnalysisGroup[];
@@ -37,6 +43,8 @@ export type DeviceResult = {
   };
 };
 export type DeviceMessage =
+  | { type: 'checkpoint'; summary: CheckpointSummary }
+  | { type: 'checkpoint-warning'; message: string }
   | {
       type: 'descriptor-init';
       requestId: number;

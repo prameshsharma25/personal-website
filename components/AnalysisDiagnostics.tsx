@@ -234,7 +234,7 @@ export default function AnalysisDiagnostics({
               <p>
                 {stage ? `${stageName}. ` : ''}
                 {stage?.failed || 0} failed operations · {stage?.skipped || 0}{' '}
-                skipped. Skips do not inflate the calculation rate.
+                skipped or reused. These do not inflate the calculation rate.
               </p>
             </dd>
           </div>

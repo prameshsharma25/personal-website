@@ -35,6 +35,9 @@ test('cancelling during alignment terminates the coordinator and every pool work
   }));
   await page.goto('/tools/amyloid-inspector');
   await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
+  await page
     .getByLabel('Choose Structures', { exact: true })
     .setInputFiles(files);
   await page

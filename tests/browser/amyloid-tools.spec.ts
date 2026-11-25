@@ -156,7 +156,7 @@ for (const unavailable of ['unconfigured', 'unreachable']) {
     await expect(
       page.getByRole('region', { name: 'On-Device Analysis', exact: true })
     ).toContainText(
-      'Automatic recovery from saved checkpoints is not available yet.'
+      'completed structures and comparisons are saved for recovery.'
     );
   });
 }
