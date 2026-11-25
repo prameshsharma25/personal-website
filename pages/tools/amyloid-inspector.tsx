@@ -107,34 +107,6 @@ export default function AmyloidTool() {
             required for that mode. You can also run the package on your
             computer to generate reports independently of this website.
           </p>
-          <pre className={styles.code}>
-            <code>{`# In an environment with Amyloid Candidates installed:\namyloid-structural-pipeline --structure candidate.pdb \\\n  --prediction-id candidate --output-directory results\namyloid-gates --manifest results/candidate/candidate.manifest.json \\\n  --output results/candidate/candidate.gates.json`}</code>
-          </pre>
-          <p>
-            See the{' '}
-            <a
-              href={`${PACKAGE_URL}/blob/${PACKAGE_COMMIT}/README.md`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              package installation and pipeline instructions ↗
-            </a>
-            . The website analyzes and displays the first model in each
-            structure file.
-          </p>
-          <p>
-            Examples were calculated with package commit{' '}
-            <a
-              href={`${PACKAGE_URL}/tree/${PACKAGE_COMMIT}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <code>{PACKAGE_COMMIT.slice(0, 12)}</code>
-            </a>{' '}
-            from its public predicted-coordinate fixtures. File paths in the
-            downloadable example metadata have been made portable; descriptors
-            are unchanged.
-          </p>
           <p className={styles.caption}>
             Amyloid Candidates: Dr. Devlina Chakravarty, Pramesh Sharma, and Dr.
             Lauren L. Porter. Energetics adapts the{' '}
