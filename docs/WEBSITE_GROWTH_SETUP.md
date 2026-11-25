@@ -30,39 +30,22 @@ Downloads verify Stripe's current payment state, product marker, line item, curr
 
 This version charges a fixed $5 and does not calculate sales tax, discounts, or multi-item orders. Configure the appropriate business/tax treatment in consultation with your payment-account setup before live sales. Refunds are managed in Stripe; refunded or disputed purchases lose download access. Do not promise a refund policy on the site that you have not chosen.
 
-## Email signup without Substack
+## Website newsletter through Gmail
 
-The site uses a public HTTPS link to a hosted signup form. It works with Kit,
-MailerLite, or another provider that supplies a signup URL. No email API key,
-subscriber database, or embedded third-party script is needed on the website.
+The website now has its own signup form, email confirmation, unsubscribe pages,
+and a private drafting and sending dashboard at `/newsletter/admin`. A private
+Google Sheet stores subscribers and send records; Google Apps Script sends from
+your personal Gmail account. See [the Gmail newsletter setup guide](GMAIL_NEWSLETTER_SETUP.md)
+for Google deployment, environment settings, account testing, and daily limits.
 
-1. Create a signup form with your chosen provider. For Kit, choose the **Free**
-   plan, then **Audience growth → Landing Pages & Forms → New → Form → Inline**.
-2. Save and publish the form. Under **Embed → Share**, copy its public URL and
-   open it to check the form. Configure the sender identity and confirmation
-   email in your provider account.
-3. Add the URL as `NEXT_PUBLIC_NEWSLETTER_URL` in `.env.local` and your hosting
-   environment. This is a public form URL, never an API key.
-4. Restart local development or rebuild the deployment. The Subscribe button
-   and article email invitations will use the new destination.
-5. Subscribe with an email address you own and verify confirmation,
-   delivery, and unsubscribe behavior before announcing the list.
+Signup remains hidden until the connection settings are supplied. The tracker
+remains freely downloadable. Publishing an article does not send email; save,
+preview, and approve each newsletter in the dashboard. No existing subscribers
+have been imported or contacted, and buying essays never enrolls a reader.
 
-When the setting is empty or invalid, email invitations are hidden. There is no
-fallback to Substack or a form that pretends to collect addresses. The tracker
-remains freely downloadable. Existing Substack article links and publishing
-workflows remain in place; no subscribers have been migrated or contacted.
-
-As checked on November 24, 2026, Kit's Free plan includes up to 10,000 subscribers,
-forms, and email broadcasts. Email sequences and RSS campaigns require a paid
-plan. With the free setup, publish your website post and send a broadcast from
-Kit yourself; publishing an MDX file does not automatically email subscribers.
-Kit branding remains on the free plan. Verify current terms when choosing a plan.
-
-Analytics events record tracker downloads, signup-link clicks, and successful
-opening of checkout. A link click is not a confirmed subscription. There is no
-automatic enrollment on purchase, and no email address or purchase reference is
-included in custom analytics events. Stripe handles purchase totals.
+Custom analytics record tracker downloads and successful opening of checkout,
+without email addresses or purchase references. Newsletter management pages are
+excluded from analytics. Stripe handles purchase totals.
 
 ## Future advertisement placement
 
@@ -91,7 +74,7 @@ npm run build
 npm run start -- -p 3817
 ```
 
-In another terminal, run `npm run test:browser`. Install a Playwright browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to your installed Chrome executable. The browser suite assumes checkout, email signup, and ads are unconfigured and uses `http://127.0.0.1:3817` unless `TEST_BASE_URL` is set. Screenshots are written under ignored `.local/`. If testing with a configured signup URL, set `TEST_NEWSLETTER_URL` to the same URL used for `NEXT_PUBLIC_NEWSLETTER_URL` at build time.
+In another terminal, run `npm run test:browser`. Install a Playwright browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to your installed Chrome executable. The browser suite assumes checkout, email signup, and ads are unconfigured and uses `http://127.0.0.1:3817` unless `TEST_BASE_URL` is set. Screenshots are written under ignored `.local/`. Newsletter browser checks mock the configured signup and dashboard responses; they do not connect to Google or send email.
 
 To regenerate downloads and social cards, install Python dependencies `XlsxWriter reportlab Pillow openpyxl formulas`, then run:
 
@@ -108,8 +91,7 @@ The `--paid` option requires the ignored source files. Font rendering uses Arial
 - [Stripe fulfillment](https://docs.stripe.com/checkout/fulfillment)
 - [Stripe webhook signatures](https://docs.stripe.com/webhooks)
 - [Vercel private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
-- [Kit Free plan](https://help.kit.com/en/articles/16627071-the-kit-free-plan)
-- [Kit pricing](https://kit.com/pricing)
-- [Kit form embedding and share links](https://help.kit.com/en/articles/4009572-form-embedding-basics)
+- [Google Apps Script quotas](https://developers.google.com/apps-script/guides/services/quotas)
+- [Google MailApp](https://developers.google.com/apps-script/reference/mail/mail-app)
 - [Google ads.txt guidance](https://support.google.com/adsense/answer/12171612)
 - [Google Search Console](https://developers.google.com/search/docs/monitor-debug/search-console-start)

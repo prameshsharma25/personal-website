@@ -43,6 +43,14 @@ Use a Gmail app password for `GMAIL_APP_PASSWORD`. These settings are optional
 for browsing the site, and must be configured to send contact emails. The
 Substack feed requires internet access.
 
+## Newsletter
+
+Signup and newsletter sending use your own website, a private Google Sheet, and
+Google Apps Script connected to personal Gmail. See
+[the setup guide](docs/GMAIL_NEWSLETTER_SETUP.md). Google deployment and server-side
+settings are required before signup appears. Draft, preview, and approve sends at
+`/newsletter/admin`; publishing a post alone does not send email.
+
 ## PhD Opportunities
 
 The `/research-opportunities` page reads `data/research-opportunities.json`.

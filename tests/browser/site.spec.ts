@@ -5,12 +5,7 @@ test('homepage leads to a working free download and optional signup',async({page
   await expect(page).toHaveURL(/resources\/lab-search-tracker/);
   const downloadPromise=page.waitForEvent('download');await page.getByRole('link',{name:'Download the Excel tracker'}).click();
   const download=await downloadPromise;expect(download.suggestedFilename()).toBe('lab-search-tracker.xlsx');expect(await download.failure()).toBeNull();
-  const signupUrl=process.env.TEST_NEWSLETTER_URL;
-  if(signupUrl){
-    await expect(page.getByRole('link',{name:'Subscribe →',exact:true})).toHaveAttribute('href',signupUrl);
-  } else {
-    await expect(page.getByRole('region',{name:'Newsletter signup'})).toHaveCount(0);
-  }
+  await expect(page.getByRole('region',{name:'Newsletter signup'})).toHaveCount(0);
   await expect(page.locator('iframe')).toHaveCount(0);
   await expect(page.locator('a[href*="substack.com/subscribe"]')).toHaveCount(0);
 });

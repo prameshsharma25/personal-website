@@ -3,6 +3,7 @@ import { getAllPosts } from '../lib/posts';
 import { getAllGuides } from '../lib/guides';
 import { SITE_URL } from '../components/Seo';
 import dataset from '../data/research-opportunities.json';
+import { newsletterConfig } from '../lib/newsletter-server';
 
 export default function Sitemap() { return null; }
 
@@ -10,6 +11,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const paths = [
     '/', '/experience', '/posts', '/mentorship', '/books', '/contact', '/privacy',
     '/resources', '/resources/lab-search-tracker', '/resources/phd-essay-bundle',
+    ...(newsletterConfig() ? ['/newsletter'] : []),
     ...(dataset.opportunities.length ? ['/research-opportunities'] : []),
     ...getAllPosts().map(post => `/posts/${encodeURIComponent(post.slug)}`),
     ...getAllGuides().map(guide => `/mentorship/${encodeURIComponent(guide.slug)}`),
