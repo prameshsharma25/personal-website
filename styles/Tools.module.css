@@ -748,6 +748,34 @@
   overflow-x: auto;
   margin: 1.3rem 0;
 }
+.resultsScroll {
+  max-height: min(32rem, 60vh);
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #689b83 #0b1711;
+  border: 1px solid #8bc6aa33;
+  border-radius: 10px;
+}
+.resultsScroll:focus-visible {
+  outline: 2px solid #a5f5cd;
+  outline-offset: 4px;
+}
+.resultsScroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #14271e;
+  box-shadow: 0 1px 0 #8bc6aa55;
+}
+.resultsScroll caption {
+  padding: 1rem 0.7rem 0;
+}
+.resultCount {
+  color: #a8c2b4;
+  font-size: 0.76rem;
+  margin: 1rem 0 0;
+}
 .analysisTable {
   width: 100%;
   border-collapse: collapse;
@@ -818,6 +846,18 @@
   color: #a3b8ae;
   font-size: 0.7rem;
 }
+.diagnosticState::before {
+  content: '';
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.diagnosticState[data-running='true']::before {
+  box-shadow: 0 0 10px #a5f5cd66;
+}
 .diagnosticState[data-running='true'] {
   color: #a5f5cd;
 }
@@ -862,6 +902,88 @@
   line-height: 1.65;
   color: #93afa0;
 }
+
+.diagnosticStats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.gaugeGrid > div {
+  background:
+    radial-gradient(ellipse at 50% 35%, #244b372e, transparent 70%), #07140d80;
+}
+.gaugeGrid dt {
+  text-align: center;
+  color: #d5eadd;
+}
+.diagnosticGauge {
+  --gauge-color: #a5f5cd;
+  position: relative;
+  max-width: 240px;
+  margin: 0.8rem auto 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.diagnosticGauge[data-tone='cyan'] {
+  --gauge-color: #8adce7;
+}
+.diagnosticGauge[data-tone='violet'] {
+  --gauge-color: #c6b6fa;
+}
+.diagnosticGauge svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: none;
+}
+.gaugeGuide {
+  stroke: #9ec4ad26;
+  stroke-width: 1;
+  stroke-dasharray: 1 8;
+}
+.gaugeTrack,
+.gaugeFill {
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+.gaugeTrack {
+  stroke: #243a2f;
+}
+.gaugeFill {
+  stroke: var(--gauge-color);
+  transition:
+    stroke-dashoffset 450ms ease,
+    opacity 200ms ease;
+  filter: drop-shadow(0 0 3px #a5f5cd26);
+}
+.gaugeValue {
+  position: absolute;
+  inset: 42% 0 auto;
+  text-align: center;
+  line-height: 1.2;
+}
+.diagnosticGrid .gaugeValue strong {
+  color: var(--gauge-color);
+  font-size: clamp(1rem, 2vw, 1.7rem);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.3rem;
+  white-space: nowrap;
+}
+.gaugeValue span {
+  display: block;
+  font-size: 0.61rem;
+  color: #a8c2b4;
+}
+.gaugeScale {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #92ac9f;
+  font-size: 0.59rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gaugeFill {
+    transition: none;
+  }
+}
+
 @media (max-width: 1000px) {
   .diagnosticGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -876,5 +998,14 @@
   }
   .diagnosticState {
     margin-left: 0.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .gaugeGrid {
+    grid-template-columns: 1fr;
+  }
+  .diagnosticGrid .gaugeValue strong {
+    font-size: 1.6rem;
   }
 }

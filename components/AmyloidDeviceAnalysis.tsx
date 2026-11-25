@@ -741,7 +741,15 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               </div>
             )}
           </div>
-          <div className={styles.tableScroll}>
+          <p className={styles.resultCount}>
+            {models.length} Of {files.length} Structures Assessed
+          </p>
+          <div
+            className={`${styles.tableScroll} ${styles.resultsScroll}`}
+            role="region"
+            aria-label="Scrollable Structure Results"
+            tabIndex={0}
+          >
             <table className={styles.analysisTable}>
               <caption>On-Device Structure Results</caption>
               <thead>

@@ -6,6 +6,74 @@ import {
 } from '../lib/amyloid-diagnostics';
 import styles from '../styles/Tools.module.css';
 
+// Gauge ranges describe work assigned to this run, never whole-device usage.
+function DiagnosticGauge({
+  label,
+  value,
+  maximum,
+  display,
+  detail,
+  maximumLabel,
+  tone = 'mint',
+}: {
+  label: string;
+  value: number | null;
+  maximum: number | null;
+  display: string;
+  detail: string;
+  maximumLabel: string;
+  tone?: 'mint' | 'cyan' | 'violet';
+}) {
+  const available =
+    value !== null &&
+    maximum !== null &&
+    Number.isFinite(value) &&
+    Number.isFinite(maximum) &&
+    maximum > 0;
+  const bounded = available ? Math.max(0, Math.min(value, maximum)) : 0;
+  const percent = available ? (bounded / maximum) * 100 : 0;
+  return (
+    <div
+      className={styles.diagnosticGauge}
+      data-tone={tone}
+      role={available ? 'meter' : undefined}
+      aria-label={available ? label : undefined}
+      aria-valuemin={available ? 0 : undefined}
+      aria-valuemax={available ? maximum : undefined}
+      aria-valuenow={available ? bounded : undefined}
+      aria-valuetext={
+        available
+          ? `${display}. ${detail}. Scale: 0 to ${maximumLabel}.`
+          : undefined
+      }
+    >
+      <svg viewBox="0 0 200 122" aria-hidden="true" focusable="false">
+        <path className={styles.gaugeGuide} d="M 8 100 A 92 92 0 0 1 192 100" />
+        <path
+          className={styles.gaugeTrack}
+          d="M 20 100 A 80 80 0 0 1 180 100"
+        />
+        <path
+          className={styles.gaugeFill}
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          pathLength="100"
+          strokeDasharray="100"
+          strokeDashoffset={100 - percent}
+          style={{ opacity: percent > 0 ? 1 : 0 }}
+        />
+      </svg>
+      <div className={styles.gaugeValue}>
+        <strong>{display}</strong>
+        <span>{detail}</span>
+      </div>
+      <div className={styles.gaugeScale} aria-hidden="true">
+        <span>0</span>
+        <span>{maximumLabel}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function AnalysisDiagnostics({
   data,
   receivedAt,
@@ -66,6 +134,13 @@ export default function AnalysisDiagnostics({
   const network = data?.network;
   const observed = network?.supported && network.measuredRequests > 0;
   const finished = !!stage && stage.completed + stage.skipped === stage.total;
+  const descriptorPool = data?.descriptorPool;
+  const alignmentPool = data?.alignmentPool;
+  const descriptorActive =
+    running && !descriptorPool?.stopped ? (descriptorPool?.active ?? 0) : 0;
+  const alignmentActive =
+    running && !alignmentPool?.stopped ? (alignmentPool?.active ?? 0) : 0;
+  const checked = stage ? stage.completed + stage.skipped : null;
   return (
     <details className={styles.diagnostics} open>
       <summary>
@@ -79,18 +154,29 @@ export default function AnalysisDiagnostics({
           {inputCount} {inputCount === 1 ? 'Structure' : 'Structures'} ·{' '}
           {formatBytes(inputBytes)} Of Input · No Structure Uploads
         </p>
-        <dl className={styles.diagnosticGrid}>
+        <dl className={`${styles.diagnosticGrid} ${styles.gaugeGrid}`}>
           <div>
             <dt>Descriptor Workers</dt>
             <dd>
-              <strong>
-                {data?.descriptorPool?.size
-                  ? `${running ? data.descriptorPool.active : 0} / ${data.descriptorPool.size} Active`
-                  : 'Not Started'}
-              </strong>
+              <DiagnosticGauge
+                label="Descriptor Worker Activity"
+                value={descriptorPool?.size ? descriptorActive : null}
+                maximum={descriptorPool?.size ?? null}
+                display={
+                  descriptorPool?.size
+                    ? `${descriptorActive} / ${descriptorPool.size}`
+                    : 'Waiting'
+                }
+                detail="Active Workers"
+                maximumLabel={
+                  descriptorPool?.size
+                    ? `${descriptorPool.size} Workers`
+                    : 'Not Started'
+                }
+              />
               <p>
-                {data?.descriptorPool?.peakActive || 0} active at peak.{' '}
-                {!running || data?.descriptorPool?.stopped
+                {descriptorPool?.peakActive || 0} active at peak.{' '}
+                {!running || descriptorPool?.stopped
                   ? 'Descriptor calculations have stopped.'
                   : 'Each worker calculates one structure at a time.'}
               </p>
@@ -99,19 +185,83 @@ export default function AnalysisDiagnostics({
           <div>
             <dt>Alignment Workers</dt>
             <dd>
-              <strong>
-                {data?.alignmentPool?.size
-                  ? `${running ? data.alignmentPool.active : 0} / ${data.alignmentPool.size} Active`
-                  : 'Not Started'}
-              </strong>
+              <DiagnosticGauge
+                label="Alignment Worker Activity"
+                tone="cyan"
+                value={alignmentPool?.size ? alignmentActive : null}
+                maximum={alignmentPool?.size ?? null}
+                display={
+                  alignmentPool?.size
+                    ? `${alignmentActive} / ${alignmentPool.size}`
+                    : 'Waiting'
+                }
+                detail="Active Workers"
+                maximumLabel={
+                  alignmentPool?.size
+                    ? `${alignmentPool.size} Workers`
+                    : 'Not Started'
+                }
+              />
               <p>
-                {data?.alignmentPool?.peakActive || 0} active at peak.{' '}
-                {!running || data?.alignmentPool?.stopped
+                {alignmentPool?.peakActive || 0} active at peak.{' '}
+                {!running || alignmentPool?.stopped
                   ? 'The alignment pool is stopped.'
                   : 'Independent MM-align comparisons share the queue.'}
               </p>
             </dd>
           </div>
+          <div>
+            <dt>Stage Checks</dt>
+            <dd>
+              <DiagnosticGauge
+                label="Current Stage Progress"
+                value={checked}
+                maximum={stage?.total ?? null}
+                display={
+                  stage?.total
+                    ? `${Math.floor(Math.min(1, (checked ?? 0) / stage.total) * 100)}%`
+                    : 'Preparing'
+                }
+                detail={
+                  stage
+                    ? `${checked} / ${stage.total} Checked`
+                    : 'Waiting For Work'
+                }
+                maximumLabel={
+                  stage?.total ? `${stage.total} Checks` : 'Pending'
+                }
+              />
+              <p>
+                {stage ? `${stageName}. ` : ''}
+                {stage?.failed || 0} failed operations · {stage?.skipped || 0}{' '}
+                skipped. Skips do not inflate the calculation rate.
+              </p>
+            </dd>
+          </div>
+          <div>
+            <dt>Python WASM Memory</dt>
+            <dd>
+              <DiagnosticGauge
+                label="Python Memory Relative To Sampled Peak"
+                tone="violet"
+                value={data?.pythonMemoryBytes ?? null}
+                maximum={data?.peakPythonMemoryBytes ?? null}
+                display={formatBytes(data?.pythonMemoryBytes ?? null)}
+                detail="Allocated"
+                maximumLabel={
+                  data?.peakPythonMemoryBytes
+                    ? `${formatBytes(data.peakPythonMemoryBytes)} Peak`
+                    : 'Peak Pending'
+                }
+              />
+              <p>
+                Scale uses the sampled peak for this run, not your device
+                capacity. Allocation drops when Python workers stop.
+              </p>
+            </dd>
+          </div>
+        </dl>
+        <dl className={`${styles.diagnosticGrid} ${styles.diagnosticStats}`}>
           <div>
             <dt>Calculation Rate</dt>
             <dd>
@@ -156,19 +306,6 @@ export default function AnalysisDiagnostics({
             </dd>
           </div>
           <div>
-            <dt>Python WASM Memory</dt>
-            <dd>
-              <strong>{formatBytes(data?.pythonMemoryBytes ?? null)}</strong>
-              <p>
-                {data?.peakPythonMemoryBytes
-                  ? `${formatBytes(data.peakPythonMemoryBytes)} sampled peak. `
-                  : ''}
-                Sampled allocation across active Python engines. Counts drop
-                when descriptor workers stop.
-              </p>
-            </dd>
-          </div>
-          <div>
             <dt>Engine Downloads</dt>
             <dd>
               <strong>
@@ -207,22 +344,8 @@ export default function AnalysisDiagnostics({
                     : formatDuration(delay)}
               </strong>
               <p>
-                Delay of the page’s one-second timer. Includes browser
-                scheduling; not network latency.
-              </p>
-            </dd>
-          </div>
-          <div>
-            <dt>Stage Checks</dt>
-            <dd>
-              <strong>
-                {stage
-                  ? `${stage.completed + stage.skipped} / ${stage.total}`
-                  : 'Preparing'}
-              </strong>
-              <p>
-                {stage?.failed || 0} failed operations · {stage?.skipped || 0}{' '}
-                skipped. Skips do not inflate the calculation rate.
+                Delay of the page’s timer, sampled every second. Includes
+                browser scheduling; not network latency.
               </p>
             </dd>
           </div>
