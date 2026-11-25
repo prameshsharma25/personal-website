@@ -4,7 +4,7 @@ export const TRACKER_URL = '/downloads/lab-search-tracker.xlsx';
 export const ESSAY_PRODUCT = {
   id: 'phd-essays-v1', name: 'My PhD Application Essays', priceCents: 500, currency: 'usd',
   path: '/resources/phd-essay-bundle', filename: 'Pramesh_Sharma_PhD_Essays.zip',
-  description: 'My statement of purpose and personal statement in PDF and editable document formats. Examples from my own application writing.',
+  description: 'Two PhD application essays by Pramesh Sharma: a statement of purpose and a personal statement, presented as individual PDFs with a reading note.',
 } as const;
 export const STARTING_GUIDES = [
   { href: '/posts/how-i-found-an-nih-postbac-lab', label: 'How I found my NIH lab', description: 'The search, the first email, and the conversation that helped me decide.' },

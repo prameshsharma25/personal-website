@@ -44,7 +44,7 @@ export function checkoutParameters(config: CommerceConfig): Stripe.Checkout.Sess
     metadata: { product_id: ESSAY_PRODUCT.id },
     success_url: `${config.origin}${ESSAY_PRODUCT.path}/thanks#session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${config.origin}${ESSAY_PRODUCT.path}?checkout=cancelled`,
-    custom_text: { submit: { message: 'One-time purchase of two reference essays. PDF and DOCX files are delivered after payment. This purchase does not subscribe you to a newsletter.' } },
+    custom_text: { submit: { message: 'One-time purchase of two essays and a reading note. Three PDF files are delivered together in a ZIP after payment.' } },
   };
 }
 export function assertPaidSession(session: Stripe.Checkout.Session, config: Pick<CommerceConfig, 'live'>) {
@@ -89,7 +89,7 @@ export async function deliverPurchaseEmail(sessionId: string, config: CommerceCo
     from: { name: 'Pramesh Sharma', address: config.email }, to: email,
     messageId: `<essay-${createHash('sha256').update(session.id).digest('hex')}@prameshsharma.com>`,
     subject: 'Your PhD essay bundle — download link',
-    text: `Thank you for purchasing My PhD Application Essays.\n\nDownload your PDF and editable documents here:\n${link}\n\nKeep this email: the link is your access to the bundle. Please keep it private.\n\nThe essays are personal examples for reference, not templates to submit as your own. No admissions outcome is claimed.\n\nFor help with your download, reply to this email.\n\nPramesh`,
+    text: `Thank you for purchasing My PhD Application Essays.\n\nDownload your two essay PDFs and companion reading note here:\n${link}\n\nKeep this email: the link is your access to the bundle. Please keep it private.\n\nThis edition is for your personal reading and reference.\n\nFor help with your download, reply to this email.\n\nPramesh`,
   });
   // Stripe metadata persists completed delivery across webhook retries. A rare
   // concurrent delivery or a crash between SMTP and this update can repeat an email;

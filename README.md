@@ -43,13 +43,12 @@ Use a Gmail app password for `GMAIL_APP_PASSWORD`. These settings are optional
 for browsing the site, and must be configured to send contact emails. The
 Substack feed requires internet access.
 
-## Newsletter
+## Application essay PDFs
 
-Signup and newsletter sending use your own website, a private Google Sheet, and
-Google Apps Script connected to personal Gmail. See
-[the setup guide](docs/GMAIL_NEWSLETTER_SETUP.md). Google deployment and server-side
-settings are required before signup appears. Draft, preview, and approve sends at
-`/newsletter/admin`; publishing a post alone does not send email.
+The $5 collection contains the original statement-of-purpose and personal-statement
+PDFs plus a reading note. Regenerate the private ZIP with
+`python3 scripts/package_essays.py`; see [setup and delivery](docs/WEBSITE_GROWTH_SETUP.md).
+Paid documents stay in the ignored `private-products/` folder.
 
 ## PhD Opportunities
 

@@ -1,6 +1,6 @@
-"""Generate public tracker/social cards; add --paid to package ignored essay sources.
+"""Generate public tracker/social cards; add --paid to package the original private PDFs.
 
-Dependencies: XlsxWriter, reportlab, Pillow. Paid source and output stay in
+Dependencies: XlsxWriter, reportlab, Pillow; PyMuPDF for paid PDFs. Paid source and output stay in
 private-products/ (gitignored). Never copy that folder into public/.
 """
 from pathlib import Path
@@ -84,33 +84,13 @@ def tracker():
     with zipfile.ZipFile(PUBLIC/'lab-search-tracker.zip','w',zipfile.ZIP_DEFLATED) as z:
         for name in ['lab-search-tracker.xlsx','lab-shortlist.csv','outreach-log.csv','mentor-fit.csv','lab-search-quick-start.pdf']:z.write(PUBLIC/name,name)
 
-def docx(path,paragraphs):
-    # Minimal Office Open XML; no macros, embedded media, remote links, or private metadata.
-    body=''.join('<w:p><w:pPr><w:spacing w:after="180" w:line="300" w:lineRule="auto"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">'+escape(p)+'</w:t></w:r></w:p>' for p in paragraphs)
-    document='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+body+'<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080"/></w:sectPr></w:body></w:document>'
-    with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED) as z:
-        z.writestr('[Content_Types].xml','<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')
-        z.writestr('_rels/.rels','<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>')
-        z.writestr('word/document.xml',document)
-
 def essays():
-    private=ROOT/'private-products';out=private/'phd-essay-bundle';out.mkdir(parents=True,exist_ok=True)
-    sop=[p.strip() for p in (private/'source/statement-of-purpose.txt').read_text().splitlines() if p.strip()]
-    ps=[p.strip() for p in (private/'source/personal-statement.txt').read_text().splitlines() if p.strip()]
-    note='These are personal examples from my application writing, preserved as supplied for this edition. They do not claim an admissions outcome. The statement of purpose includes a University of Maryland CBBG section; research and manuscript details reflect the time of writing.'
-    flow=[para('My PhD\nApplication Essays'.replace('\n',' '),TITLE),para('Pramesh Sharma / November 2026 edition',HEAD),para('A statement of purpose and a personal statement, read together.'),Spacer(1,24),para(note),para('Use these essays for reading and reflection. Write your own application in your own words. Purchase includes personal use, without redistribution or resale.'),PageBreak(),para('Statement of purpose',TITLE)]
-    flow += [para(p) for p in sop]+[PageBreak(),para('Personal statement',TITLE)]+[para(p) for p in ps]
-    pdf(out/'PhD_Application_Essays.pdf',flow,'Application essays')
-    docx(out/'Statement_of_Purpose.docx',sop);docx(out/'Personal_Statement.docx',ps)
-    guide=[para('Read the pair with a purpose.',TITLE),para(note),para('Start with the research thread',HEAD),para('In the statement of purpose, follow how a scientific interest develops through specific projects. Notice where a research question, technical decision, or limitation is connected to what I learned. Then distinguish those experiences from the school-specific discussion at the end.'),para('Then read for the person',HEAD),para('In the personal statement, follow the connection between chronic illness, learning to program, writing, and patient advocacy. Consider what this essay adds that the research-focused statement does not.'),para('Questions for your own draft',HEAD),para('Which experiences changed the questions you want to pursue? What did you actually contribute to a project? What did a setback teach you? Which details help a reader understand your motivations? What belongs in a research statement, and what is better explained in a personal statement?'),para('Use your program’s instructions',HEAD),para('Prompts, length limits, and required documents vary. These examples are not a universal template. Check the program’s current instructions, describe only your own work, and choose details that matter to your particular application.'),para('Files and support',HEAD),para('The combined PDF is for reading. The two DOCX files provide accessible, editable copies of the essays for reference; editing a copy does not make the text your own. For a download problem, contact Pramesh through prameshsharma.com/contact or reply to your purchase email. No personalized admissions review is included.')]
-    pdf(out/'Reading_Guide.pdf',guide,'Reading guide')
-    with zipfile.ZipFile(private/'Pramesh_Sharma_PhD_Essays.zip','w',zipfile.ZIP_DEFLATED) as z:
-        for p in sorted(out.iterdir()):z.write(p,p.name)
-    print('Private paid bundle generated; essay wording preserved.')
+    from package_essays import package
+    package()
 
-def social_cards():
+def social_cards(names=None):
     folder=ROOT/'public/images/social';folder.mkdir(parents=True,exist_ok=True)
-    cards={'site':('COMPUTATIONAL BIOLOGIST','Protein structure & fold switching'),'lab-search-tracker':('FREE SPREADSHEET + GUIDE','A little structure for your lab search.'),'phd-essay-bundle':('PERSONAL EXAMPLES / $5 BUNDLE','My PhD application essays.')}
+    cards={'site':('COMPUTATIONAL BIOLOGIST','Protein structure & fold switching'),'lab-search-tracker':('FREE SPREADSHEET + GUIDE','A little structure for your lab search.'),'phd-essay-bundle':('TWO ESSAYS / PDF EDITION / $5','A life in research, in two essays.')}
     for group in ['posts','guides']:
         for p in (ROOT/group).glob('*.mdx'):
             front=p.read_text().split('---',2)[1]
@@ -118,6 +98,21 @@ def social_cards():
             title=json.loads(raw[1]) if raw[1].startswith('"') else raw[1]
             cards[f'{group}-{p.stem}']=('PERSONAL ESSAY' if group=='posts' else 'RESEARCH & APPLICATION GUIDE',title)
     for name,(label,title) in cards.items():
+        if names is not None and name not in names:continue
+        if name == 'phd-essay-bundle':
+            im=Image.new('RGB',(1200,630),'#eeeade');d=ImageDraw.Draw(im)
+            serif_path=FONTROOT/'Georgia.ttf'
+            serif=str(serif_path) if serif_path.exists() else '/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf'
+            d.text((70,55),'THE APPLICATION ESSAYS',font=ImageFont.truetype(fontpath(),18),fill=INK)
+            d.line((70,100,1130,100),fill='#8f9c8d',width=1)
+            d.text((65,155),'A life in research,',font=ImageFont.truetype(serif,78),fill=INK)
+            d.text((65,255),'in two essays.',font=ImageFont.truetype(serif,78),fill=INK)
+            d.text((70,405),'Pramesh Sharma',font=ImageFont.truetype(serif,29),fill=INK)
+            d.line((70,505,1130,505),fill='#8f9c8d',width=1)
+            d.text((70,545),'STATEMENT OF PURPOSE + PERSONAL STATEMENT',font=ImageFont.truetype(fontpath(),17),fill=INK)
+            d.text((890,545),'PDF EDITION / $5',font=ImageFont.truetype(fontpath(),17),fill=INK)
+            im.save(folder/(name+'.png'))
+            continue
         im=Image.new('RGB',(1200,630),'#080D0A');d=ImageDraw.Draw(im)
         d.rectangle((60,60,66,570),fill=GREEN)
         d.text((105,75),'PRAMESH SHARMA',font=ImageFont.truetype(fontpath(True),24),fill=GREEN)

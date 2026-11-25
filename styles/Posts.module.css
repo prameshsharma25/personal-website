@@ -4,7 +4,7 @@
   min-height: 100vh;
   padding: 4rem 2rem;
   background: var(--bg);
-  animation: fadeIn 0.8s ease;
+
 }
 
 .header {
@@ -52,7 +52,7 @@
   padding: 2rem;
   border: 1px solid var(--border);
   background: var(--bg-secondary);
-  transition: all 0.3s ease;
+  transition: border-color .3s, background-color .3s, transform .3s;
   text-decoration: none;
   color: inherit;
 }
@@ -91,7 +91,7 @@
   padding: 2rem;
   border: 1px solid var(--border);
   background: var(--bg-secondary);
-  transition: all 0.3s ease;
+  transition: border-color .3s, background-color .3s, transform .3s;
   text-decoration: none;
   color: inherit;
 }
@@ -383,3 +383,5 @@
   color: #e8c782;
   margin-bottom: 1rem;
 }
+
+@media(prefers-reduced-motion:reduce) { .postCard:hover { transform: none; } }

@@ -40,7 +40,7 @@ export default function Experience() {
       <nav className={styles.sectionNav} aria-label="About page sections">
         <a href="#research">Research</a><a href="#publications">Papers</a><a href="#experience">Experience</a><a href="#background">Background</a>
       </nav>
-      <section id="research" className={styles.section} aria-labelledby="research-heading">
+      <section data-reveal id="research" className={styles.section} aria-labelledby="research-heading">
         <div className={styles.sectionLabel}><p className={styles.eyebrow}>01</p><h2 id="research-heading">Research</h2></div>
         <div className={styles.sectionBody}>
           <p className={styles.lead}>How can the same protein sequence support different structures?</p>
@@ -49,11 +49,11 @@ export default function Experience() {
           <ul className={styles.topics} aria-label="Research interests"><li>Protein structure</li><li>Fold switching</li><li>Interpretable machine learning</li><li>Research software</li></ul>
         </div>
       </section>
-      <section id="publications" className={styles.section} aria-labelledby="papers-heading">
+      <section data-reveal id="publications" className={styles.section} aria-labelledby="papers-heading">
         <div className={styles.sectionLabel}><p className={styles.eyebrow}>02</p><h2 id="papers-heading">Papers &amp; preprints</h2></div>
         <div className={styles.sectionBody}>
           <ol className={styles.publicationList}>{publications.map(paper =>
-            <li key={paper.url}>
+            <li data-reveal key={paper.url}>
               <p className={styles.publicationSource}>{paper.source}</p>
               <h3><a href={paper.url} target="_blank" rel="noopener noreferrer">{paper.title} <span aria-hidden="true">↗</span></a></h3>
               <p className={styles.authors}><Authors names={paper.authors} /></p>
@@ -61,11 +61,11 @@ export default function Experience() {
           )}</ol>
         </div>
       </section>
-      <section id="experience" className={styles.section} aria-labelledby="experience-heading">
+      <section data-reveal id="experience" className={styles.section} aria-labelledby="experience-heading">
         <div className={styles.sectionLabel}><p className={styles.eyebrow}>03</p><h2 id="experience-heading">Experience</h2></div>
         <div className={styles.sectionBody}>
           <ol className={styles.experienceList}>{experiences.map(item =>
-            <li key={`${item.organization}-${item.role}`}>
+            <li data-reveal key={`${item.organization}-${item.role}`}>
               <p className={styles.dates}>{item.dates}</p>
               <h3>{item.role}</h3><p className={styles.organization}>{item.organization}</p>
               <p className={styles.detail}>{item.detail}</p><p>{item.summary}</p>
@@ -73,7 +73,7 @@ export default function Experience() {
           )}</ol>
         </div>
       </section>
-      <section id="background" className={styles.section} aria-labelledby="background-heading">
+      <section data-reveal id="background" className={styles.section} aria-labelledby="background-heading">
         <div className={styles.sectionLabel}><p className={styles.eyebrow}>04</p><h2 id="background-heading">Background</h2></div>
         <div className={styles.sectionBody}>
           <div className={styles.education}><h3>University of California, Davis</h3><p>B.S. in Computer Science · 2024</p></div>

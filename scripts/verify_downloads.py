@@ -1,9 +1,9 @@
-"""Verify generated tracker structure and paid essay text preservation.
+"""Verify generated tracker structure and original paid PDF preservation.
 Requires openpyxl; formulas is used to exercise real spreadsheet formulas.
 """
 from pathlib import Path
 import io, contextlib, zipfile
-import xml.etree.ElementTree as ET
+import pymupdf
 import openpyxl, formulas
 ROOT=Path(__file__).resolve().parents[1]
 def run():
@@ -27,14 +27,18 @@ def run():
         assert z.testzip() is None
         assert set(z.namelist())=={'lab-search-tracker.xlsx','lab-shortlist.csv','outreach-log.csv','mentor-fit.csv','lab-search-quick-start.pdf'}
     private=ROOT/'private-products'
-    for source,document in [('statement-of-purpose.txt','Statement_of_Purpose.docx'),('personal-statement.txt','Personal_Statement.docx')]:
-        with zipfile.ZipFile(private/'phd-essay-bundle'/document) as z:
-            tree=ET.fromstring(z.read('word/document.xml'));text=' '.join(n.text or '' for n in tree.iter('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t'))
-        expected=' '.join((private/'source'/source).read_text().split())
-        assert ' '.join(text.split())==expected,source
+    expected_files={'Statement_of_Purpose.pdf','Personal_Statement.pdf','Reading_Note.pdf'}
     with zipfile.ZipFile(private/'Pramesh_Sharma_PhD_Essays.zip') as z:
         assert z.testzip() is None
-        assert len(z.namelist())==4
-        assert all(z.read(p.name)==p.read_bytes() for p in (private/'phd-essay-bundle').iterdir())
-    print('PASS: tracker dates and follow-up behavior; ZIP integrity; both essays preserved word-for-word in DOCX.')
+        assert set(z.namelist())==expected_files
+        for name in expected_files:
+            data=z.read(name)
+            assert data==(private/'phd-essay-bundle'/name).read_bytes()
+            with pymupdf.open(stream=data,filetype='pdf') as doc:
+                assert len(doc)>0 and all(page.get_text().strip() for page in doc)
+            if name!='Reading_Note.pdf':assert data==(private/'source'/name).read_bytes(),name
+        with pymupdf.open(stream=z.read('Reading_Note.pdf'),filetype='pdf') as doc:
+            note=' '.join(page.get_text() for page in doc)
+            assert all(term not in note for term in ['CBBG','Maryland','DOCX','editable'])
+    print('PASS: tracker behavior; exact three-PDF ZIP membership; original essay PDF bytes preserved; school-neutral reading note.')
 if __name__=='__main__':run()

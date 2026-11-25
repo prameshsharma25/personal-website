@@ -19,7 +19,7 @@ button, input, textarea, select { font-family: inherit; }
 img { max-width: 100%; height: auto; }
 .skipLink { position: absolute; top: -80px; left: 1rem; z-index: 100; background: var(--accent); color: #10241e; padding: .8rem 1rem; }
 .skipLink:focus { top: 1rem; }
-@media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+@media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
 body {
   margin: 0;
@@ -51,3 +51,18 @@ ul {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Shared motion stays progressive: all server-rendered content is visible. */
+:root { --ease-out: cubic-bezier(.2,.7,.2,1); }
+.pageEntrance { animation: pageArrival .45s var(--ease-out); }
+.pageEntrance:focus { outline: none; }
+.routeProgress,.readingProgress { position: fixed; inset: 0 0 auto; height: 2px; z-index: 90; pointer-events: none; }
+.routeProgress { opacity: 0; transition: opacity .2s; overflow: hidden; }
+.routeProgress[data-loading=true] { opacity: 1; }
+.routeProgress span { display: block; height: 100%; width: 35%; background: var(--accent); }
+.routeProgress[data-loading=true] span { animation: routeTravel 1s ease-in-out infinite; }
+.readingProgress > div { height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+@keyframes pageArrival { from { opacity: .25; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes routeTravel { from { transform: translateX(-100%); } to { transform: translateX(390%); } }
+@media(prefers-reduced-motion:no-preference) { html { scroll-behavior: smooth; } }
+@media(prefers-reduced-motion:reduce) { .pageEntrance { animation: none; } .routeProgress[data-loading=true] span { animation: none; width: 100%; } }

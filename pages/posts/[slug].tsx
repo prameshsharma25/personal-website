@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { GetStaticPaths, GetStaticProps } from 'next';
 import { MDXRemote, type MDXRemoteSerializeResult } from 'next-mdx-remote';
 import Seo from '../../components/Seo';
+import ReadingProgress from '../../components/ReadingProgress';
 import ArticleContents from '../../components/ArticleContents';
 import LabTrackerInvitation from '../../components/LabTrackerInvitation';
-import NewsletterInvitation from '../../components/NewsletterInvitation';
 import AdSlot from '../../components/AdSlot';
 import { prepareArticle, type Heading } from '../../lib/article';
 import { getAllPosts, getPostBySlug, type PostMetadata } from '../../lib/posts';
@@ -24,11 +24,11 @@ export default function PostPage({ post, source, headings, readingMinutes }: Pro
           {post.substackUrl && <p className={styles.substackNote}>Also published on <a href={post.substackUrl}>Substack</a>.</p>}
         </header>
         {post.slug === 'how-i-found-an-nih-postbac-lab' && <LabTrackerInvitation source={`post_${post.slug}`} />}
-        <ArticleContents headings={headings} />
+        <ReadingProgress /><ArticleContents headings={headings} />
         <div className={styles.postContent}><MDXRemote {...source} /></div>
         {post.relatedLinks.length > 0 && <nav className={styles.relatedTopics} aria-label="Related reading"><h2 className={styles.postTitle}>Continue exploring</h2><ul>{post.relatedLinks.map(link=><li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul></nav>}
       </article>
-      {career && post.slug !== 'how-i-found-an-nih-postbac-lab' ? <LabTrackerInvitation source={`post_${post.slug}`} /> : <NewsletterInvitation source={`post_${post.slug}`} />}
+      {career && post.slug !== 'how-i-found-an-nih-postbac-lab' && <LabTrackerInvitation source={`post_${post.slug}`} />}
       <AdSlot /><Link href="/posts" className={resource.textLink}>← Read more essays</Link>
     </div></main>
   </>;

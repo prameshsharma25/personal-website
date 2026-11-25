@@ -1,0 +1,11 @@
+.study { min-width: 0; border: 1px solid var(--border); border-radius: 4px; background: radial-gradient(ellipse at 50% 35%,#102018 0%,#070b08 65%); overflow: hidden; }
+.caption { display: flex; justify-content: space-between; gap: 1rem; padding: 1.2rem 1.3rem 0; font-size: .6rem; letter-spacing: .12em; color: #a5b8ab; }
+.drawing { width: 100%; height: auto; display: block; }
+.grid { color: #334c3e; opacity: .5; stroke-width: .7; }
+.chain { animation: traceChain 1.8s cubic-bezier(.25,.6,.3,1) both; }
+.controls { padding: 0 1.3rem 1.3rem; }
+.controls label { display: flex; justify-content: space-between; font-size: .72rem; color: #d6e9dd; }
+.controls input { width: 100%; accent-color: var(--accent); cursor: ew-resize; margin: .6rem 0; min-height: 28px; }
+.controls figcaption { color: var(--text-dim); font-size: .6rem; line-height: 1.7; }
+@keyframes traceChain { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+@media(prefers-reduced-motion:reduce) { .chain { animation: none; } }

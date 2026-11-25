@@ -1,17 +1,26 @@
 # Website resources, checkout, and search setup
 
-The implementation adds a free lab-search tracker, email signup invitations, a resources hub, the $5 essay bundle, article navigation, social cards, and an RSS feed. Existing article URLs are preserved.
+The implementation adds a free lab-search tracker, a resources hub, the $5 essay bundle, article navigation, social cards, and an RSS feed. Existing article URLs are preserved.
 
 ## Files and pages
 
 - `/resources` — guides and downloads.
-- `/resources/lab-search-tracker` — free XLSX and ZIP download; optional email signup.
+- `/resources/lab-search-tracker` — free XLSX and ZIP download, without signup.
 - `/resources/phd-essay-bundle` — $5 product page and short preview.
 - `/resources/phd-essay-bundle/thanks` — private purchase reference handled in a URL fragment and browser session storage, never in analytics.
 - `private-products/Pramesh_Sharma_PhD_Essays.zip` — buyer bundle. This folder is gitignored and must never be copied into `public/`.
 - `public/downloads/` — only the free tracker, CSV templates, and quick-start PDF.
 
-The paid bundle preserves the supplied essay wording. The SOP is tailored to UMD's CBBG concentration. The sales page makes no admissions-outcome claim. Original source text and editable documents are in `private-products/` for the owner to review.
+The paid bundle contains exactly three PDFs: `Statement_of_Purpose.pdf`,
+`Personal_Statement.pdf`, and `Reading_Note.pdf`. The two supplied essay PDFs are
+preserved byte for byte. Public descriptions and the reading note are
+school-neutral. The product page makes no admissions-outcome claim. Original
+PDFs live in ignored `private-products/source/`; previous working files are
+preserved under `private-products/previous-editions/`, outside the buyer ZIP.
+
+The ZIP has been rebuilt locally. To deliver this edition in production, upload
+the current ZIP to private Blob storage and update `ESSAY_BUNDLE_BLOB_URL` using
+the steps below. Changing local files does not replace a previously uploaded asset.
 
 ## Connect Stripe and private delivery
 
@@ -30,22 +39,23 @@ Downloads verify Stripe's current payment state, product marker, line item, curr
 
 This version charges a fixed $5 and does not calculate sales tax, discounts, or multi-item orders. Configure the appropriate business/tax treatment in consultation with your payment-account setup before live sales. Refunds are managed in Stripe; refunded or disputed purchases lose download access. Do not promise a refund policy on the site that you have not chosen.
 
-## Website newsletter through Gmail
+## Reader experience
 
-The website now has its own signup form, email confirmation, unsubscribe pages,
-and a private drafting and sending dashboard at `/newsletter/admin`. A private
-Google Sheet stores subscribers and send records; Google Apps Script sends from
-your personal Gmail account. See [the Gmail newsletter setup guide](GMAIL_NEWSLETTER_SETUP.md)
-for Google deployment, environment settings, account testing, and daily limits.
+Pages use a brief entrance transition, scroll reveals, card interactions, and
+reading progress on articles. The homepage includes a keyboard-accessible
+illustration of conformational change. It is an illustration, not a molecular
+simulation. The essay page uses a quieter editorial layout and lets readers
+switch between short excerpts.
 
-Signup remains hidden until the connection settings are supplied. The tracker
-remains freely downloadable. Publishing an article does not send email; save,
-preview, and approve each newsletter in the dashboard. No existing subscribers
-have been imported or contacted, and buying essays never enrolls a reader.
+Animation respects `prefers-reduced-motion`; the browser can change that preference
+while the page is open. Content is server rendered and remains visible without
+JavaScript. No new animation package or external font request is required.
 
-Custom analytics record tracker downloads and successful opening of checkout,
-without email addresses or purchase references. Newsletter management pages are
-excluded from analytics. Stripe handles purchase totals.
+The newsletter implementation has been removed, including public signup,
+management pages, server routes, Google sender integration, and environment
+settings. The free tracker remains a direct download. Contact and purchase emails
+continue through the existing Gmail transport. No external Google account data
+was changed by this local update.
 
 ## Future advertisement placement
 
@@ -74,24 +84,28 @@ npm run build
 npm run start -- -p 3817
 ```
 
-In another terminal, run `npm run test:browser`. Install a Playwright browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to your installed Chrome executable. The browser suite assumes checkout, email signup, and ads are unconfigured and uses `http://127.0.0.1:3817` unless `TEST_BASE_URL` is set. Screenshots are written under ignored `.local/`. Newsletter browser checks mock the configured signup and dashboard responses; they do not connect to Google or send email.
+In another terminal, run `npm run test:browser`. Install a Playwright browser first, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to your installed Chrome executable. The browser suite assumes checkout and ads are unconfigured and uses `http://127.0.0.1:3817` unless `TEST_BASE_URL` is set. Screenshots are written under ignored `.local/`. Browser checks also cover the illustration, excerpt selection, reduced motion, and removal of newsletter routes.
 
-To regenerate downloads and social cards, install Python dependencies `XlsxWriter reportlab Pillow openpyxl formulas`, then run:
+To regenerate downloads and social cards, install Python dependencies `XlsxWriter reportlab Pillow openpyxl formulas PyMuPDF`, then run:
 
 ```sh
 python3 scripts/build_downloads.py
-python3 scripts/build_downloads.py --paid
+python3 scripts/package_essays.py
 python3 scripts/verify_downloads.py
 ```
 
-The `--paid` option requires the ignored source files. Font rendering uses Arial on macOS or DejaVu Sans on Linux. Review the resulting PDFs before replacing the private delivery asset.
+`package_essays.py` requires the original PDFs in ignored `private-products/source/`.
+To import replacement originals, pass `--sop "/path/to/Statement.pdf" --personal
+"/path/to/Personal.pdf"`. Only the two essay PDFs and the generated reading note
+enter the ZIP; no legacy DOCX files are included. `build_downloads.py --paid` also
+calls the same packager. Review the resulting PDFs before replacing the private
+delivery asset. The manifest in `private-products/essay-bundle-manifest.json`
+records each PDF's page count and checksum.
 
 ## Primary documentation
 
 - [Stripe fulfillment](https://docs.stripe.com/checkout/fulfillment)
 - [Stripe webhook signatures](https://docs.stripe.com/webhooks)
 - [Vercel private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
-- [Google Apps Script quotas](https://developers.google.com/apps-script/guides/services/quotas)
-- [Google MailApp](https://developers.google.com/apps-script/reference/mail/mail-app)
 - [Google ads.txt guidance](https://support.google.com/adsense/answer/12171612)
 - [Google Search Console](https://developers.google.com/search/docs/monitor-debug/search-console-start)

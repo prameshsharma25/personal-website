@@ -5,10 +5,16 @@ import Seo from '../../../components/Seo';
 import { recordAction } from '../../../components/ActionLink';
 import { ESSAY_PRODUCT, SITE_URL } from '../../../lib/site';
 import { commerceConfig } from '../../../lib/commerce';
-import styles from '../../../styles/Resources.module.css';
+import resource from '../../../styles/Resources.module.css';
+import styles from '../../../styles/Essays.module.css';
 
+const excerpts = [
+  { label: 'Statement of purpose', text: 'I want to investigate how sequence variation alters protein structure and molecular function, and how these changes propagate to cellular behavior and responses to treatment.' },
+  { label: 'Personal statement', text: 'Through code, I could create a figure that was immune to restrictions. Regardless of the anxiety-inducing setbacks that creating successful code involved, computer science became my new track - one in which I could run forever.' },
+];
 export default function EssayBundle({ available, cancelled }: { available: boolean; cancelled: boolean }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [excerpt, setExcerpt] = useState(0);
   const checkoutKey = useRef('');
   async function buy() {
     setBusy(true); setError('');
@@ -22,22 +28,54 @@ export default function EssayBundle({ available, cancelled }: { available: boole
       window.location.assign(data.url);
     } catch (err) { setError(err instanceof Error ? err.message : 'Please try again.'); setBusy(false); }
   }
-  return <><Seo title="PhD Statement of Purpose & Personal Statement Bundle — $5" description="Read Pramesh Sharma’s PhD statement of purpose and personal statement. A $5 bundle with PDF, editable DOCX files, and a reading guide. Personal examples." path={ESSAY_PRODUCT.path} image="/images/social/phd-essay-bundle.png" breadcrumbs={[{name:'Home',path:'/'},{name:'Resources',path:'/resources'},{name:'PhD essay bundle',path:ESSAY_PRODUCT.path}]} schema={{ '@type': 'Product', name: ESSAY_PRODUCT.name, description: ESSAY_PRODUCT.description, image: `${SITE_URL}/images/social/phd-essay-bundle.png`, ...(available ? { offers: { '@type':'Offer', price:'5.00', priceCurrency:'USD', availability:'https://schema.org/InStock', url:`${SITE_URL}${ESSAY_PRODUCT.path}` } } : {}) }} />
+  return <><Seo title="PhD Application Essays — Statement of Purpose & Personal Statement" description="Two PhD application essays by Pramesh Sharma, on research and the experiences behind it. Individual PDFs and a companion reading note. The collection is $5." path={ESSAY_PRODUCT.path} image="/images/social/phd-essay-bundle.png" breadcrumbs={[{name:'Home',path:'/'},{name:'Resources',path:'/resources'},{name:'PhD application essays',path:ESSAY_PRODUCT.path}]} schema={{ '@type': 'Product', name: ESSAY_PRODUCT.name, description: ESSAY_PRODUCT.description, image: `${SITE_URL}/images/social/phd-essay-bundle.png`, ...(available ? { offers: { '@type':'Offer', price:'5.00', priceCurrency:'USD', availability:'https://schema.org/InStock', url:`${SITE_URL}${ESSAY_PRODUCT.path}` } } : {}) }} />
     <main className={styles.page}>
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href="/resources">Resources</Link><span>/ PhD essay bundle</span></nav>
-      <p className={styles.eyebrow}>MY APPLICATION WRITING / DIGITAL DOWNLOAD</p><h1 className={styles.title}>The research.<br />The person behind it.</h1>
-      <p className={styles.lead}>My PhD statement of purpose and personal statement, side by side. Two ways of explaining how I arrived at computational biology and the questions I want to pursue.</p>
-      {cancelled && <p className={styles.status}>Checkout was cancelled. You can start again whenever you’re ready.</p>}
-      <div className={styles.grid}>
-        <section className={styles.card}><h2>My PhD Application Essays</h2><p className={styles.price}>$5 <span className={styles.small}>USD · one-time purchase</span></p><ul><li>Statement of purpose tailored to UMD’s CBBG concentration</li><li>Personal statement about chronic illness, computing, and patient advocacy</li><li>A combined PDF, two editable DOCX files, and a short reading guide</li></ul>
-          {available ? <button className={styles.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening secure checkout…' : 'Buy the essay bundle — $5'}</button> : <p className={styles.status}>The bundle is being prepared for sale. Checkout is not open yet.</p>}
-          {error && <p className={styles.error} role="alert">{error}</p>}
-          <p className={styles.small}>{available ? 'Pay securely with Stripe. Download after payment; a download link will also be emailed to your checkout address.' : 'Explore the contents and sample below. The free lab-search tracker is available now.'}</p>
-        </section>
-        <section className={styles.preview} aria-label="Short excerpt from the statement of purpose"><h3>A SHORT EXCERPT / STATEMENT OF PURPOSE</h3><p>“I want to investigate how sequence variation alters protein structure and molecular function, and how these changes propagate to cellular behavior and responses to treatment.”</p><p>— Pramesh Sharma</p><p className={styles.small}>The full essays are included in the paid download.</p></section>
-      </div>
-      <section className={`${styles.body} ${styles.narrow}`}><h2>What you can learn from the pair</h2><p>The statement of purpose follows my research experiences, the problems I worked on, and the questions I want to study next. The personal statement explores how living with Pyruvate Kinase Deficiency shaped my relationship with computing, writing, and patient advocacy.</p><p>Read them as two complementary examples: one develops a research direction, while the other explains the experiences and values behind it.</p><h2>A reference, in my own words</h2><p>These are examples from my application writing, not a claim of admission or an admissions formula. The statement of purpose includes a school-specific section for the University of Maryland. Research and manuscript details reflect the essays as written.</p><p>The essay wording is preserved in this edition. Use the examples to reflect on your own experiences; do not submit my writing as your own. The purchase is for your personal reading and study, without redistribution or resale.</p><h2>Download and support</h2><p>The bundle is a ZIP containing PDF and DOCX files. It includes no admissions review or personalized service. For download or purchase problems, <Link href="/contact">contact me</Link> with your receipt email. Never send payment-card details.</p><p>Prefer a free starting point? Try the <Link href="/resources/lab-search-tracker">lab-search tracker</Link> and <Link href="/mentorship/cold-emailing">research cold-email guide</Link>.</p></section>
-    </main></>;
+      <nav className={resource.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href="/resources">Resources</Link><span>/ Application essays</span></nav>
+      <header className={styles.masthead}>
+        <p>THE APPLICATION ESSAYS</p><p>PRAMESH SHARMA</p>
+      </header>
+      <section className={styles.hero} aria-labelledby="essay-title">
+        <div className={styles.introduction}>
+          <h1 id="essay-title">A life in research,<br /><em>in two essays.</em></h1>
+          <p className={styles.dek}>A statement of purpose traces the questions a researcher wants to pursue. A personal statement reveals how those questions became personal.</p>
+          <p className={styles.byline}>By <Link href="/experience">Pramesh Sharma</Link><span>Computational biologist</span></p>
+          <a href="#inside" className={styles.contentsLink}>Inside the collection <span aria-hidden="true">↓</span></a>
+        </div>
+        <div className={styles.edition} aria-hidden="true">
+          <div className={styles.paperBack}><span>II / PERSONAL STATEMENT</span><div className={styles.paperLines} /></div>
+          <div className={styles.paperFront}><span>THE APPLICATION ESSAYS</span><div><p>Research.<br />Experience.<br /><em>Purpose.</em></p><div className={styles.paperRule} /></div><footer>Pramesh Sharma<span>TWO ESSAYS · PDF EDITION</span></footer></div>
+        </div>
+      </section>
+      {cancelled && <p className={resource.status}>Checkout was cancelled. You can start again whenever you’re ready.</p>}
+      <section id="inside" data-reveal className={styles.collection} aria-labelledby="collection-heading">
+        <div>
+          <p className={styles.kicker}>INSIDE THE COLLECTION</p><h2 id="collection-heading">My PhD Application Essays</h2>
+          <p className={styles.collectionIntro}>Two complete essays, presented as written, with a companion note on reading them together.</p>
+          <ol className={styles.contents}>
+            <li><span className={styles.number}>01</span><div><h3>Statement of purpose</h3><p>A research trajectory, from early computational projects to questions about protein structure and disease.</p><span className={styles.fileMeta}>2 PAGES · PDF</span></div></li>
+            <li><span className={styles.number}>02</span><div><h3>Personal statement</h3><p>Chronic illness, the discovery of programming, and the experiences that gave research its personal significance.</p><span className={styles.fileMeta}>1 PAGE · PDF</span></div></li>
+            <li><span className={styles.number}>03</span><div><h3>A note to the reader</h3><p>A short companion to the essays, with questions to consider as you develop your own application.</p><span className={styles.fileMeta}>PDF</span></div></li>
+          </ol>
+        </div>
+        <aside className={styles.purchase} aria-label="Purchase the essay collection">
+          <p className={styles.kicker}>THE COMPLETE COLLECTION</p><p className={styles.price}>$5<span>USD · one-time purchase</span></p>
+          <p>Two essays and a reading note.<br />Three PDF files in one ZIP.</p>
+          {available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening secure checkout…' : 'Buy the essay bundle — $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
+          {error && <p className={resource.error} role="alert">{error}</p>}
+          <p className={styles.finePrint}>{available ? 'Secure payment through Stripe. Download after purchase, with a link sent to your receipt email.' : 'Explore the contents and selected passages below. Sales will open here when checkout is available.'}</p>
+        </aside>
+      </section>
+      <section data-reveal className={styles.excerpts} aria-labelledby="excerpt-heading">
+        <div className={styles.excerptHeader}><h2 id="excerpt-heading">From the essays</h2><div className={styles.excerptButtons} role="group" aria-label="Choose an excerpt">{excerpts.map((item, index) => <button key={item.label} type="button" aria-pressed={excerpt === index} onClick={() => setExcerpt(index)}>{item.label}</button>)}</div></div>
+        <div className={styles.quoteFrame} aria-live="polite"><blockquote key={excerpt} className={styles.quote}><p>“{excerpts[excerpt].text}”</p><footer>— From the {excerpts[excerpt].label.toLowerCase()}</footer></blockquote></div>
+      </section>
+      <section data-reveal className={styles.readingNote} aria-labelledby="reading-heading">
+        <p className={styles.kicker}>A NOTE ON READING</p>
+        <div><h2 id="reading-heading">The work, and the life around it.</h2><p>Application essays ask us to give a coherent account of experiences that rarely felt coherent while we were living them. A project changes direction. An unexpected result becomes a new question. An experience outside the lab changes what feels worth studying.</p><p>These essays approach that history from different angles. Read together, they show how I connected the work I had done with the researcher I hoped to become.</p></div>
+      </section>
+      <footer className={styles.colophon}><p>For personal reading and reference. The essays reflect my experience at the time of writing. Redistribution and resale are not included.</p><p>For purchase or download questions, <Link href="/contact">contact me</Link>. For a free place to start, explore the <Link href="/resources/lab-search-tracker">lab-search tracker</Link>.</p></footer>
+    </main>
+  </>;
 }
 export const getServerSideProps: GetServerSideProps = async ({ query, res }) => {
   res.setHeader('Cache-Control','private, no-store');

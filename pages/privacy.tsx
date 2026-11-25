@@ -4,7 +4,7 @@ import styles from '../styles/Guide.module.css';
 export default function PrivacyPolicy() {
   return (
     <div>
-      <Seo title="Privacy Policy" description="How prameshsharma.com uses analytics, optional newsletter services, purchase information, and advertising services." path="/privacy" />
+      <Seo title="Privacy Policy" description="How prameshsharma.com uses analytics, purchase information, and advertising services." path="/privacy" />
 
       <main className={styles.container}>
         <div className={styles.header}>
@@ -84,13 +84,10 @@ export default function PrivacyPolicy() {
             </a>.
           </p>
 
-          <h2>Newsletter signup and free downloads</h2>
+          <h2>Free downloads</h2>
           <p>The lab-search tracker can be downloaded without providing an email address. The spreadsheet stays on your device; this site does not receive its contents.</p>
-          <p>When newsletter signup is available, this website collects your email address and asks you to confirm it by email before you join. The list is stored in a private Google Sheet. Google Apps Script sends confirmation emails and newsletters from my Google account. The list records your subscription status, signup source, and confirmation and unsubscribe dates. Delivery records help prevent repeated sends. I do not add tracking pixels to newsletter emails.</p>
-          <p>Every newsletter includes an unsubscribe link. You can also contact me to unsubscribe or request deletion. Unsubscribing keeps a record of your choice so pending newsletters are not sent to you. A hashed network identifier is used to limit repeated signup requests; the newsletter database does not store your raw IP address. Recent request-limit records are cleared during subsequent signup activity.</p>
-          <p>Newsletter pages do not run this site’s analytics. Confirmation and unsubscribe links keep their access token out of server URLs and temporarily use browser session storage so you can finish the request. The token is removed from that storage after a successful confirmation or unsubscribe.</p>
           <h2>Digital purchases</h2>
-          <p>When checkout is available, Stripe handles payment details. This site does not receive or store your full card number. Your checkout email address is used to deliver files and handle purchase support; buying does not subscribe you to a newsletter. Payment status is checked before downloads are released. Private files are stored using Vercel Blob, and transactional emails are sent through the seller’s email service. Stripe checkout metadata records completed email delivery.</p>
+          <p>When checkout is available, Stripe handles payment details. This site does not receive or store your full card number. Your checkout email address is used to deliver files and handle purchase support. Payment status is checked before downloads are released. Private files are stored using Vercel Blob, and transactional emails are sent through the seller’s email service. Stripe checkout metadata records completed email delivery.</p>
           <p>The purchase-download page does not run this site’s analytics. It keeps your purchase reference in browser session storage so you can retry a download in the same browser session. Keep your purchase email and access link private.</p>
           <h2>Data Sharing</h2>
           <p>

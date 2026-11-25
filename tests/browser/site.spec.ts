@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-test('homepage leads to a working free download and optional signup',async({page})=>{
+test('homepage leads to a working free download without signup',async({page})=>{
   await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Hi, I’m Pramesh.');
   await page.getByRole('link',{name:'Get the free lab-search tracker'}).click();
   await expect(page).toHaveURL(/resources\/lab-search-tracker/);
