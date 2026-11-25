@@ -41,3 +41,9 @@
 @keyframes wordLaunch { from { opacity: 0; transform: translate3d(0,45px,-30px) rotateX(22deg); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
 @media(max-width:720px) { .hero > figure { max-width: 480px; } .heroTitle > span { display: inline; } .hero h1 { font-size: clamp(3.5rem,12vw,5.4rem); } }
 @media(prefers-reduced-motion:reduce) { .heroTitle > span { animation: none; } }
+
+.guideCard { border-radius: 14px; border-color: #89b99b3d; background: linear-gradient(145deg,#102017,#09120d); }
+.number { border-bottom: 1px solid #96bf9f2b; padding-bottom: 1.2rem; }
+.note { border: 1px solid #89b99b3d; border-radius: 14px; background: linear-gradient(145deg,#102017,#09120d); padding: 1.7rem; }
+.about { align-items: start; }
+@media(max-width:720px) { .note { padding: 1.4rem; } }

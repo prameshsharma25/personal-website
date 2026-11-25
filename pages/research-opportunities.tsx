@@ -26,7 +26,7 @@ export default function ResearchOpportunities() {
   return <>
     <Seo title="PhD Lab Directory — Computational Biology & Bioinformatics" description="Browse recruiting evidence from computational biology, bioinformatics, and machine learning labs. Check source dates and confirm availability with each program." path="/research-opportunities" noindex={opportunities.length === 0} />
     <main className={styles.main}>
-      <header className={styles.header}>
+      <header data-reveal className={styles.header}>
         <p className={styles.eyebrow}>WORLDWIDE · PHD RESEARCH</p>
         <h1>PhD Opportunities</h1>
         <p>Find your next research home in computational biology, bioinformatics, and machine learning.</p>
@@ -34,7 +34,7 @@ export default function ResearchOpportunities() {
         {dataset.lastRun && <p className={styles.note}>Last scan: {dateLabel(dataset.lastRun)} · Sources older than 45 days are flagged for rechecking.</p>}
         {scanWarnings.length > 0 && <p className={styles.note}>Latest scan incomplete for: {scanWarnings.map(warning => warning.area).join(', ')}. Existing listings remain available; check their source dates.</p>}
       </header>
-      <div className={styles.filters}>
+      <div data-reveal className={styles.filters}>
         <label>Search<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Professor, lab, school, or topic" /></label>
         <label>Country<select value={country} onChange={e => setCountry(e.target.value)}><option value="All countries">All Countries</option>{countries.map(code => <option key={code} value={code}>{countryLabel(code)}</option>)}</select></label>
         <label>Research Area<select value={area} onChange={e => setArea(e.target.value)}>{['All areas', ...researchAreas].map(x => <option key={x} value={x}>{labelCase(x)}</option>)}</select></label>
@@ -45,7 +45,7 @@ export default function ResearchOpportunities() {
         <h2>{opportunities.length ? 'No matching opportunities' : 'Opportunities are on their way'}</h2>
         <p>{opportunities.length ? 'Try a different search or include expired listings.' : 'The first research scan is awaiting review. Published listings will include recruiting evidence and links to apply.'}</p>
       </div>}
-      <div className={styles.list}>{visible.map(post => <article className={styles.card} key={post.id}>
+      <div className={styles.list}>{visible.map(post => <article data-reveal className={styles.card} key={post.id}>
         <div className={styles.tags}><span>{labelCase(listingStatus(post, today))}</span>{post.areas.map(x => <span key={x}>{labelCase(x)}</span>)}</div>
         <h2>{post.lab}</h2>
         <p className={styles.professor}>{post.professor} · {post.university}</p>
