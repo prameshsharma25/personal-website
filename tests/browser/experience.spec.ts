@@ -99,9 +99,10 @@ test('reduced motion suppresses effects while reading progress and controls rema
 test('public reading content remains visible with JavaScript disabled', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, baseURL, reducedMotion: 'reduce' });
   const page = await context.newPage();
-  for (const path of ['/', '/experience', '/resources/phd-essay-bundle']) {
+  for (const path of ['/', '/experience', '/mentorship', '/resources/phd-essay-bundle']) {
     await page.goto(path); await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.locator('main')).not.toHaveCSS('opacity', '0');
+    if (path === '/mentorship') await expect(page.getByRole('link', { name: 'Open Calendly In A New Tab' })).toHaveAttribute('href', 'https://calendly.com/prameshsharma25');
   }
   await context.close();
 });
