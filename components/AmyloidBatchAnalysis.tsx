@@ -26,12 +26,10 @@ export default function AmyloidBatchAnalysis({
   onInspect,
   onPreview,
   onReset,
-  onAvailabilityChange,
 }: {
   onInspect: (result: Inspection) => void;
   onPreview: (structure: NonNullable<Inspection['structure']>) => void;
   onReset: () => void;
-  onAvailabilityChange?: (available: boolean) => void;
 }) {
   const [api, setApi] = useState('');
   const [connection, setConnection] = useState('loading');
@@ -90,9 +88,6 @@ export default function AmyloidBatchAnalysis({
       ++operation.current;
     };
   }, []);
-  useEffect(() => {
-    onAvailabilityChange?.(connection === 'ready');
-  }, [connection, onAvailabilityChange]);
   const terminal =
     !!job &&
     ['completed', 'partial', 'failed', 'cancelled'].includes(job.state);
