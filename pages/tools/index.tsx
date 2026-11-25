@@ -55,7 +55,9 @@ export default function Tools() {
             <ul>
               <li>Interactive PDB and mmCIF structure inspection</li>
               <li>Warning explanations and questions to investigate</li>
-              <li>On-device calculations and downloadable reports</li>
+              <li>
+                On-device calculations, clustering, and downloadable reports
+              </li>
             </ul>
             <Link href="/tools/amyloid-inspector" className={styles.primary}>
               Open The Inspector <span aria-hidden="true">↗</span>

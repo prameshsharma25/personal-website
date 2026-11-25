@@ -9,8 +9,13 @@
     "biopython": "1.87",
     "freesasa": "2.2.1"
   },
+  "batch_dependencies": {
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.18.0"
+  },
   "limits": {
-    "max_files": 5,
+    "max_files": 20,
     "max_file_bytes": 10485760,
     "max_total_bytes": 26214400,
     "max_atoms": 20000,
@@ -18,7 +23,22 @@
   },
   "files": {
     "package.zip": "50c75cfea6969606660745c423836eb1b85a00573583278774e1c4526559dd08",
-    "analysis.py": "457cb14a157ef3bb5bcf8a51fd5ef5a711a27d782af108d6eccba72939909ec1"
+    "analysis.py": "966b6a4fde6e579004ae920d85edd57fb7b8d8a22aa0979c7a8f24bab463fc24",
+    "pipeline.zip": "da55461a9397708ae736bd1596c0c55722481c4799cb2bfe620bdac52b33cef4",
+    "batch.py": "06b4ae8d29963a88ef4a012146f83c9e891f0582ac52317f642f120440f43cea",
+    "run-mmalign.mjs": "9c8691dced10f6f9ac348a11614ea5d1f0838a8e1a2b46b27dd09f1822da2eea",
+    "mmalign/mmalign.mjs": "e6c6b39e5f667234771b148f631c8b753b776ba25804e40a9778e489eb539754",
+    "mmalign/mmalign.wasm": "0684c4f614263988fdf3a0656507fe30f9b40a0bb05c2f6954a7035077a72683",
+    "mmalign/LICENSE.txt": "5bb88694391d0e0fef49ee8b60cd9208ce755d90213584c117bd8a21837bcdca",
+    "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9"
+  },
+  "pipeline_files": {
+    "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "analysis/alignment.py": "42d3009a5ec596fa90037836b8c1668c0b8c3d29f6038bcb6f83056d269865c2",
+    "analysis/browser_clustering.py": "8ef7679ba7218359c6172714ae08d13c065374598abd4628135dc787eeef18a1",
+    "analysis/inputs.py": "0492839494c2daf49060c5baa3b99bcef68d2c129a392c16408e46bae5cfd7dd",
+    "analysis/pool.py": "e6316c178d835236b56fd3586335cf37a976de7846dd20ff371a229336593db9",
+    "analysis/selection.py": "9ddb3d702f919c0a8d26a3daf94ec6be77de23eea7af8228186e49f2bf9c3af6"
   },
   "source_files": {
     "amyloid_candidates-0.1.0.dev0.dist-info/METADATA": "4977394970d3ecb0fb4f91ec2f3f5fe15cfe163989b8244a78a70372a285a6c4",

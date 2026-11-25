@@ -89,18 +89,23 @@ export default function AmyloidTool() {
           <h2 id="package-heading">Your Pipeline. A Clearer View.</h2>
           <p>
             On My Device runs the pinned Amyloid Candidates package inside your
-            browser, with NumPy, Biopython, and FreeSASA. Structures are
-            processed independently; the download includes descriptors,
-            warnings, original coordinates, and calculation provenance. The
-            scientific calculations use the package’s Python code.
+            browser, with NumPy, Biopython, and FreeSASA. Each structure
+            receives descriptors and warnings. With batch comparisons enabled,
+            MM-align runs as WebAssembly and scikit-learn HDBSCAN clusters
+            comparable assemblies. Downloads include coordinates, component
+            outputs, distance matrices, cluster representatives, shortlist
+            eligibility, and calculation provenance.
           </p>
           <p>
-            For comparisons across a prediction pool, the full Python pipeline
-            adds MM-align, HDBSCAN clustering, and shortlist eligibility. Server
-            Analysis requires a separately configured worker; these steps are
-            not available in the browser engine yet. You can also run the
-            package on your computer and open its reports using Open Existing
-            Reports.
+            Comparisons use matching chain sequences and stoichiometries.
+            Minimum Samples counts neighbors, excluding the structure itself;
+            the browser adjusts scikit-learn’s setting to follow that
+            convention. The backend and effective settings are recorded in each
+            report. Tied distances can still lead to different partitions
+            between implementations. Server Analysis retains the native hdbscan
+            implementation for larger jobs; a separately configured worker is
+            required for that mode. You can also run the package on your
+            computer and open existing reports.
           </p>
           <pre className={styles.code}>
             <code>{`# In an environment with Amyloid Candidates installed:\namyloid-structural-pipeline --structure candidate.pdb \\\n  --prediction-id candidate --output-directory results\namyloid-gates --manifest results/candidate/candidate.manifest.json \\\n  --output results/candidate/candidate.gates.json`}</code>

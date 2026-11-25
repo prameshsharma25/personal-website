@@ -13,8 +13,14 @@ COMMIT = "1c85221ea38ffbaa1695eeb0a2962997abf94563"
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / "public/tools/amyloid-device/v1"
 source = Path(sys.argv[1]).resolve()
-git = "/Library/Developer/CommandLineTools/usr/bin/git" if sys.platform == "darwin" else "git"
-archive = subprocess.check_output([git, "archive", COMMIT, "src", "LICENSE", "docs/ATTRIBUTION.md"], cwd=source)
+git = (
+    "/Library/Developer/CommandLineTools/usr/bin/git"
+    if sys.platform == "darwin"
+    else "git"
+)
+archive = subprocess.check_output(
+    [git, "archive", COMMIT, "src", "LICENSE", "docs/ATTRIBUTION.md"], cwd=source
+)
 contents = {}
 with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
     for member in tar.getmembers():
@@ -36,6 +42,23 @@ with zipfile.ZipFile(TARGET / "package.zip", "w", zipfile.ZIP_DEFLATED) as bundl
         info.compress_type = zipfile.ZIP_DEFLATED
         info.external_attr = 0o644 << 16
         bundle.writestr(info, data)
+pipeline = {
+    f"analysis/{name}": (ROOT / "services/amyloid/analysis" / name).read_bytes()
+    for name in [
+        "__init__.py",
+        "pool.py",
+        "alignment.py",
+        "selection.py",
+        "inputs.py",
+        "browser_clustering.py",
+    ]
+}
+with zipfile.ZipFile(TARGET / "pipeline.zip", "w", zipfile.ZIP_DEFLATED) as bundle:
+    for name, data in sorted(pipeline.items()):
+        info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o644 << 16
+        bundle.writestr(info, data)
 manifest = {
     "schema_version": "amyloid-device-engine-1.0",
     "package_commit": COMMIT,
@@ -43,9 +66,42 @@ manifest = {
     "pyodide": "314.0.8",
     "runtime_url": "https://cdn.jsdelivr.net/pyodide/v314.0.8/full/",
     "dependencies": {"numpy": "2.4.6", "biopython": "1.87", "freesasa": "2.2.1"},
-    "limits": {"max_files": 5, "max_file_bytes": 10 * 1024**2, "max_total_bytes": 25 * 1024**2, "max_atoms": 20000, "max_chains": 32},
-    "files": {name: hashlib.sha256((TARGET / name).read_bytes()).hexdigest() for name in ["package.zip", "analysis.py"]},
-    "source_files": {name: hashlib.sha256(data).hexdigest() for name, data in sorted(contents.items())},
+    "batch_dependencies": {
+        "pandas": "3.0.2",
+        "scikit-learn": "1.8.0",
+        "scipy": "1.18.0",
+    },
+    "limits": {
+        "max_files": 20,
+        "max_file_bytes": 10 * 1024**2,
+        "max_total_bytes": 25 * 1024**2,
+        "max_atoms": 20000,
+        "max_chains": 32,
+    },
+    "files": {
+        name: hashlib.sha256((TARGET / name).read_bytes()).hexdigest()
+        for name in [
+            "package.zip",
+            "analysis.py",
+            "pipeline.zip",
+            "batch.py",
+            "run-mmalign.mjs",
+            "mmalign/mmalign.mjs",
+            "mmalign/mmalign.wasm",
+            "mmalign/LICENSE.txt",
+            "mmalign/build.json",
+        ]
+    },
+    "pipeline_files": {
+        name: hashlib.sha256(data).hexdigest()
+        for name, data in sorted(pipeline.items())
+    },
+    "source_files": {
+        name: hashlib.sha256(data).hexdigest()
+        for name, data in sorted(contents.items())
+    },
 }
 (TARGET / "engine.json").write_text(json.dumps(manifest, indent=2) + "\n")
-print(f"Bundled {len(contents)} files from {COMMIT}; {(TARGET / 'package.zip').stat().st_size} bytes.")
+print(
+    f"Bundled {len(contents)} files from {COMMIT}; {(TARGET / 'package.zip').stat().st_size} bytes."
+)

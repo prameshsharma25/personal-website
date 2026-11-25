@@ -583,37 +583,82 @@
   flex-wrap: wrap;
   margin: 0 0 1.5rem;
 }
-.deviceProgress {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 1.1rem 1.3rem;
+.analysisProgress {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
   border: 1px solid #9fffc540;
   border-radius: 12px;
   background: linear-gradient(110deg, #122c23, #0a1715);
-  color: #b5f4d4;
-  line-height: 1.6;
+  color: #c5f8df;
   overflow-wrap: anywhere;
 }
-.deviceProgress i {
-  flex: 0 0 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #b5f4d4;
+.progressHeading,
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
-.deviceProgress[data-running='true'] i {
-  animation: devicePulse 1.8s ease-in-out infinite;
+.progressHeading {
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
-@keyframes devicePulse {
-  50% {
-    box-shadow:
-      0 0 0 6px #b5f4d426,
-      0 0 24px #b5f4d4;
+.progressHeading strong {
+  font-variant-numeric: tabular-nums;
+}
+.progressTrack {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #6a9e842b;
+  margin: 1rem 0;
+}
+.progressFill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #51c6a4, #baf9d4, #b9eaff);
+  box-shadow: 0 0 18px #8cecca55;
+  transition: width 0.25s ease;
+}
+.progressTrack[data-indeterminate='true'] .progressFill {
+  width: 35%;
+  animation: analysisSweep 1.8s ease-in-out infinite alternate;
+}
+.progressMeta {
+  color: #a8c8b7;
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+.progressMeta span:last-child {
+  font-variant-numeric: tabular-nums;
+}
+.analysisProgress .caption {
+  margin-bottom: 0;
+}
+.analysisSettings .compareToggle {
+  flex-direction: row;
+  align-items: center;
+}
+.compareToggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #b5f4d4;
+}
+@keyframes analysisSweep {
+  to {
+    transform: translateX(185%);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .deviceProgress[data-running='true'] i {
+  .progressFill {
+    transition: none;
+  }
+  .progressTrack[data-indeterminate='true'] .progressFill {
     animation: none;
+    width: 100%;
+    opacity: 0.5;
   }
 }
 .uploadActions {
@@ -636,6 +681,31 @@
   display: grid;
   gap: 1rem;
   margin-top: 1.4rem;
+}
+.batchSettings {
+  margin-top: 1.5rem;
+  padding: 1.3rem;
+  border: 1px solid #93c4a735;
+  border-radius: 12px;
+  background: #0c1b15;
+}
+.batchSettings summary {
+  cursor: pointer;
+  color: #c5f8df;
+}
+.batchSettings p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #b4c6bc;
+}
+.batchSettings .analysisSettings input[type='file']::file-selector-button {
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 5px;
+  background: #b5f4d4;
+  color: #12271b;
+  margin-right: 0.6rem;
+  cursor: pointer;
 }
 .analysisSettings label {
   display: flex;

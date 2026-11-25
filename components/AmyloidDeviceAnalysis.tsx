@@ -12,6 +12,7 @@ import {
   type DeviceResult,
 } from '../lib/amyloid-device';
 import type { AnalysisModel } from '../lib/amyloid-jobs';
+import AnalysisProgress from './AnalysisProgress';
 import styles from '../styles/Tools.module.css';
 
 type Props = {
@@ -32,6 +33,15 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [result, setResult] = useState<DeviceResult | null>(null);
   const [archive, setArchive] = useState<Blob | null>(null);
   const [opening, setOpening] = useState(false);
+  const [progressStep, setProgressStep] = useState<Extract<
+    DeviceMessage,
+    { type: 'progress' }
+  > | null>(null);
+  const [startedAt, setStartedAt] = useState(0);
+  const [compare, setCompare] = useState(true);
+  const [confidence, setConfidence] = useState<File | null>(null);
+  const [minCluster, setMinCluster] = useState(10);
+  const [minSamples, setMinSamples] = useState(3);
   const worker = useRef<Worker | null>(null);
   const epoch = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,6 +104,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     artifacts.current = {};
     setError('');
     setProgress('');
+    setProgressStep(null);
+    setStartedAt(0);
+    setConfidence(null);
     setResult(null);
     setArchive(null);
     setModels([]);
@@ -153,10 +166,29 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setOpening(false);
     artifacts.current = {};
     setRunning(true);
+    setStartedAt(Date.now());
+    setProgressStep(null);
     setProgress('Reading Your Structures');
     callbacks.current.onReset();
     try {
       validateDeviceFiles(files);
+      if (confidence && confidence.size > 65536)
+        throw new Error('Confidence CSV must be at most 64 KB.');
+      if (
+        !Number.isInteger(minCluster) ||
+        minCluster < 2 ||
+        minCluster > 20 ||
+        !Number.isInteger(minSamples) ||
+        minSamples < 1 ||
+        minSamples > 19
+      )
+        throw new Error(
+          'Use a minimum cluster size of 2–20 and minimum samples of 1–19.'
+        );
+      const confidenceBytes =
+        confidence && compare && files.length > 1
+          ? await confidence.arrayBuffer()
+          : null;
       const selected = await Promise.all(
         files.map(async (file) => ({
           name: file.name,
@@ -185,11 +217,14 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       engine.onmessage = ({ data }: MessageEvent<DeviceMessage>) => {
         if (generation !== epoch.current) return;
         if (data.type === 'progress') {
-          setProgress(
-            `${data.stage} · ${data.completed} / ${data.total}${data.filename ? ` · ${data.filename}` : ''}`
-          );
+          setProgress(data.stage);
+          setProgressStep(data);
           watchdog(
-            data.stage === 'Loading The Analysis Engine' ? 120000 : 300000
+            data.phase === 'setup'
+              ? 180000
+              : data.phase === 'alignment'
+                ? 120000
+                : 300000
           );
         } else if (data.type === 'model') {
           setModels((current) => [...current, data.model]);
@@ -200,8 +235,21 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           setRunning(false);
           setResult(data.result);
           setModels(data.result.structures);
+          setProgressStep({
+            type: 'progress',
+            stage: 'Complete',
+            phase: 'export',
+            completed: 1,
+            total: 1,
+            filename: '',
+          });
           setProgress(
-            data.result.structures.every((model) => model.state === 'complete')
+            data.result.structures.every(
+              (model) => model.state === 'complete' && !model.comparison_error
+            ) &&
+              !data.result.groups?.some(
+                (group) => group.clustering_status === 'failed'
+              )
               ? 'Analysis Complete'
               : 'Finished With Errors'
           );
@@ -221,10 +269,23 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           if (first && callbacks.current.active) void inspect(first.id);
         }
       };
-      watchdog(120000);
+      watchdog(180000);
       engine.postMessage(
-        { type: 'start', files: selected },
-        selected.map((file) => file.bytes)
+        {
+          type: 'start',
+          files: selected,
+          compare,
+          confidence: confidenceBytes,
+          settings: {
+            min_cluster_size: minCluster,
+            min_samples: minSamples,
+            max_candidates: 10,
+          },
+        },
+        [
+          ...selected.map((file) => file.bytes),
+          ...(confidenceBytes ? [confidenceBytes] : []),
+        ]
       );
     } catch (problem) {
       if (generation === epoch.current)
@@ -282,7 +343,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               event.target.value = '';
             }}
           />
-          <p>Up to 5 files · 10 MB each · 25 MB total</p>
+          <p>Up to 20 files · 10 MB each · 25 MB total</p>
           {!!files.length && (
             <p>
               {files.length} {files.length === 1 ? 'structure' : 'structures'}{' '}
@@ -291,6 +352,79 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           )}
         </div>
       </div>
+      {files.length > 1 && (
+        <details className={styles.batchSettings} open>
+          <summary>Batch Analysis Settings</summary>
+          <div className={styles.analysisSettings}>
+            <label className={styles.compareToggle}>
+              <input
+                type="checkbox"
+                checked={compare}
+                disabled={running}
+                onChange={(event) => setCompare(event.target.checked)}
+              />{' '}
+              Compare And Cluster Structures
+            </label>
+            {compare && (
+              <>
+                <p>
+                  MM-align compares matching sequences and chain counts. HDBSCAN
+                  groups similar assemblies; representative structures and
+                  shortlist eligibility are included in the download.
+                </p>
+                <label>
+                  Minimum Cluster Size
+                  <input
+                    type="number"
+                    min="2"
+                    max="20"
+                    value={minCluster}
+                    disabled={running}
+                    onChange={(event) =>
+                      setMinCluster(Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label>
+                  Minimum Samples
+                  <input
+                    type="number"
+                    min="1"
+                    max="19"
+                    value={minSamples}
+                    disabled={running}
+                    onChange={(event) =>
+                      setMinSamples(Number(event.target.value))
+                    }
+                  />
+                </label>
+                <p>
+                  Minimum Samples counts neighboring structures, excluding the
+                  structure itself. Small pools may not support clusters.
+                  Missing prediction confidence remains unavailable.
+                </p>
+                <label>
+                  Optional Confidence CSV
+                  <input
+                    type="file"
+                    accept=".csv"
+                    disabled={running}
+                    onChange={(event) =>
+                      setConfidence(event.target.files?.[0] || null)
+                    }
+                  />
+                </label>
+                <p>
+                  Up to 64 KB. Match the exact structure filenames.{' '}
+                  <a href="/tools/confidence-template.csv" download>
+                    Download A Template
+                  </a>
+                </p>
+              </>
+            )}
+          </div>
+        </details>
+      )}
       <div className={styles.exampleBar}>
         <button
           className={styles.runButton}
@@ -311,10 +445,10 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         best on a desktop.
       </p>
       <p className={styles.notice}>
-        Each structure is assessed independently, using its first model. This
-        mode supports up to 20,000 atoms and 32 polymer chains per model.
-        Pairwise comparisons, clustering, and shortlisting require the full
-        Python pipeline in Server Analysis.
+        Calculations use the first model, up to 20,000 atoms and 32 polymer
+        chains per structure. Batch comparisons also run on your device.
+        Clustering uses scikit-learn HDBSCAN; its implementation is recorded in
+        each report.
       </p>
       {ready && !supported && (
         <p className={styles.error} role="alert">
@@ -329,14 +463,15 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         </p>
       )}
       {progress && (
-        <div
-          className={styles.deviceProgress}
-          data-running={running}
-          role="status"
-        >
-          <i aria-hidden="true" />
-          {progress}
-        </div>
+        <AnalysisProgress
+          label={progress}
+          running={running}
+          startedAt={startedAt}
+          completed={progressStep?.completed}
+          total={progressStep?.total}
+          filename={progressStep?.filename}
+          phase={progressStep?.phase}
+        />
       )}
       {!!models.length && (
         <div className={styles.jobPanel}>
@@ -362,38 +497,105 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 <tr>
                   <th>Structure</th>
                   <th>Assessment</th>
+                  {!!result?.groups?.length && (
+                    <>
+                      <th>Cluster</th>
+                      <th>Shortlist</th>
+                    </>
+                  )}
                   <th>Inspect</th>
                 </tr>
               </thead>
               <tbody>
-                {models.map((model) => (
-                  <tr key={model.id}>
-                    <th scope="row">{model.filename}</th>
-                    <td>
-                      {model.state === 'failed'
-                        ? model.error
-                        : titleCase(model.classification || 'unavailable')}
-                    </td>
-                    <td>
-                      <button
-                        disabled={!result || !model.files || opening}
-                        onClick={() => void inspect(model.id)}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {models.map((model) => {
+                  const group = result?.groups?.find((item) =>
+                    item.ids.includes(model.id)
+                  );
+                  const member = group?.members?.find(
+                    (item) => item.id === model.id
+                  );
+                  return (
+                    <tr key={model.id}>
+                      <th scope="row">{model.filename}</th>
+                      <td>
+                        {model.state === 'failed'
+                          ? model.error
+                          : titleCase(model.classification || 'unavailable')}
+                        {model.comparison_error && (
+                          <p>
+                            Comparison unavailable: {model.comparison_error}
+                          </p>
+                        )}
+                      </td>
+                      {!!result?.groups?.length && (
+                        <>
+                          <td>
+                            {member?.cluster == null
+                              ? 'Not Estimated'
+                              : member.cluster < 0
+                                ? 'Noise'
+                                : `${group.id} / ${member.cluster}`}
+                          </td>
+                          <td>
+                            {member?.selected_rank ? (
+                              `#${member.selected_rank}`
+                            ) : (
+                              <details>
+                                <summary>Not Selected</summary>
+                                {member?.eligibility_reasons?.length ? (
+                                  member.eligibility_reasons.map((reason) => (
+                                    <p key={reason}>{titleCase(reason)}</p>
+                                  ))
+                                ) : (
+                                  <p>
+                                    {group?.clustering_status === 'failed'
+                                      ? group.error
+                                      : 'No eligible selection, or redundant under the diversity rule.'}
+                                  </p>
+                                )}
+                              </details>
+                            )}
+                          </td>
+                        </>
+                      )}
+                      <td>
+                        <button
+                          disabled={!result || !model.files || opening}
+                          onClick={() => void inspect(model.id)}
+                        >
+                          Inspect
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+          {result?.groups?.map((group) => (
+            <p key={group.id} className={styles.caption}>
+              {group.id}:{' '}
+              {group.clustering_status === 'insufficient_pool_size'
+                ? 'Too few comparable structures for these clustering settings. Available comparisons and individual descriptors are retained.'
+                : group.clustering_status === 'failed'
+                  ? group.error
+                  : `${group.representatives?.length || 0} clusters; ${group.shortlist?.length || 0} shortlisted candidates.`}
+            </p>
+          ))}
+          {result?.warnings.map((warning) => (
+            <p className={styles.notice} key={warning}>
+              {warning}
+            </p>
+          ))}
           {result && (
             <p className={styles.caption}>
               Finished in {Math.round(result.elapsed_seconds)} seconds after
               loading the engine. The ZIP contains successful reports, original
               coordinates, component outputs, checksums, and calculation
-              versions. Any failed structures are listed in results.json. No
-              clustering or ranking was performed.
+              versions. Any failed structures are listed in results.json.
+              {result.clustering_status === 'requested'
+                ? ' Comparison groups include distance matrices, clustering, representatives, and shortlist eligibility.'
+                : ' Comparisons and clustering were not requested.'}
             </p>
           )}
         </div>

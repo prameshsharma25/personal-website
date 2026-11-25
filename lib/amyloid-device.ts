@@ -1,15 +1,16 @@
 import type { InputFile } from './amyloid-inspector';
-import type { AnalysisModel } from './amyloid-jobs';
+import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
 
 export const DEVICE_LIMITS = {
-  files: 5,
+  files: 20,
   fileBytes: 10 * 1024 * 1024,
   totalBytes: 25 * 1024 * 1024,
 };
 export type DeviceResult = {
   structures: AnalysisModel[];
   elapsed_seconds: number;
-  clustering_status: 'not_run_on_device';
+  clustering_status: 'not_requested' | 'requested';
+  groups: AnalysisGroup[];
   warnings: string[];
 };
 export type DeviceMessage =
@@ -19,6 +20,7 @@ export type DeviceMessage =
       completed: number;
       total: number;
       filename: string;
+      phase: string;
     }
   | { type: 'model'; model: AnalysisModel }
   | { type: 'error'; message: string }
@@ -32,7 +34,9 @@ export type DeviceArtifacts = Record<string, InputFile[]>;
 
 export function validateDeviceFiles(files: Pick<File, 'name' | 'size'>[]) {
   if (!files.length || files.length > DEVICE_LIMITS.files)
-    throw new Error('Select between 1 and 5 structures.');
+    throw new Error('Select between 1 and 20 structures.');
+  if (new Set(files.map((file) => file.name)).size !== files.length)
+    throw new Error('Rename duplicate filenames before analysis.');
   if (files.some((file) => !/\.(pdb|cif|mmcif)$/i.test(file.name)))
     throw new Error(
       'Choose PDB or mmCIF coordinate files. Open JSON results in Open Existing Reports.'

@@ -338,43 +338,12 @@ class BodyLimit:
 
 
 def parse_confidence(text, filenames):
-    reader = csv.DictReader(io.StringIO(text))
-    if (
-        not reader.fieldnames
-        or "filename" not in reader.fieldnames
-        or len(set(reader.fieldnames)) != len(reader.fieldnames)
-    ):
-        raise HTTPException(
-            400, "Confidence CSV needs a filename column and unique column names."
-        )
-    rows = list(reader)
-    if len(rows) > len(filenames):
-        raise HTTPException(400, "Confidence CSV has too many rows.")
-    result = {}
-    for row in rows:
-        name = row.get("filename", "")
-        if name not in filenames or name in result:
-            raise HTTPException(
-                400,
-                "Confidence CSV filenames must uniquely match the uploaded structures.",
-            )
-        item = {
-            "method": (row.get("method") or "unspecified").strip()[:80] or "unspecified"
-        }
-        for key, upper in [("iptm", 1), ("mean_plddt", 100)]:
-            value = (row.get(key) or "").strip()
-            if not value:
-                item[key] = None
-                continue
-            try:
-                number = float(value)
-            except ValueError:
-                raise HTTPException(400, f"Invalid {key} in confidence CSV.")
-            if not math.isfinite(number) or not 0 <= number <= upper:
-                raise HTTPException(400, f"{key} is outside its allowed range.")
-            item[key] = number
-        result[name] = item
-    return result
+    from analysis.inputs import read_confidence
+
+    try:
+        return read_confidence(text, filenames)
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
 
 
 def create_app(config=None):

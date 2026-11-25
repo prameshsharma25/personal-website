@@ -1,3 +1,4 @@
+import AnalysisProgress from './AnalysisProgress';
 import { useEffect, useRef, useState } from 'react';
 import {
   inspectFiles,
@@ -427,7 +428,8 @@ export default function AmyloidBatchAnalysis({
       {['unconfigured', 'unavailable'].includes(connection) && (
         <p className={styles.notice}>
           Server analysis is not available on this deployment yet. You can
-          calculate individual descriptors using On My Device or choose Open Existing Reports.
+          calculate individual descriptors using On My Device or choose Open
+          Existing Reports.
         </p>
       )}
       {error && (
@@ -449,11 +451,6 @@ export default function AmyloidBatchAnalysis({
                     )
                   : 'Checking Job…'}
               </h2>
-              <p role="status">
-                {job?.progress
-                  ? `${titleCase(job.progress.stage)} · ${job.progress.completed} / ${job.progress.total}`
-                  : 'Waiting For A Worker'}
-              </p>
             </div>
             <div className={styles.controls}>
               {terminal && job?.result && (
@@ -466,6 +463,29 @@ export default function AmyloidBatchAnalysis({
               </button>
             </div>
           </div>
+          <AnalysisProgress
+            label={
+              terminal
+                ? titleCase(
+                    job.state === 'partial' ? 'finished_with_errors' : job.state
+                  )
+                : job?.progress
+                  ? titleCase(job.progress.stage)
+                  : 'Waiting For A Worker'
+            }
+            running={active}
+            phase={job?.progress?.stage}
+            completed={
+              terminal && ['completed', 'partial'].includes(job.state)
+                ? 1
+                : job?.progress?.completed
+            }
+            total={
+              terminal && ['completed', 'partial'].includes(job.state)
+                ? 1
+                : job?.progress?.total
+            }
+          />
           {job?.error && (
             <p role="alert" className={styles.error}>
               {job.error}

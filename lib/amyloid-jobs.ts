@@ -3,6 +3,7 @@ export type AnalysisModel = {
   filename: string;
   state: 'complete' | 'failed';
   error?: string;
+  comparison_error?: string;
   classification?: string;
   qc_status?: string;
   warnings?: string[];

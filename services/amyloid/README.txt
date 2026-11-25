@@ -1,6 +1,7 @@
 Optional Server Analysis
-The website defaults to on-device descriptor calculations and does not require
-this service. Use this worker for full batch alignment/clustering/shortlisting.
+The website defaults to on-device calculations, including bounded batch
+alignment/clustering/shortlisting, and does not require this service. Use this
+worker for larger jobs or the original contrib hdbscan clustering backend.
 See ../../docs/AMYLOID_ON_DEVICE.txt for the browser engine.
 
 AMYLOID ANALYSIS SERVICE

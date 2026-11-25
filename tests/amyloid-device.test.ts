@@ -12,7 +12,8 @@ test('device input limits reject unsupported, empty, oversized, and excessive ba
   );
   for (const files of [
     [],
-    Array(6).fill(file),
+    [file, file],
+    Array.from({ length: 21 }, (_, i) => ({ ...file, name: `model-${i}.pdb` })),
     [{ ...file, name: 'report.json' }],
     [{ ...file, size: 0 }],
     [{ ...file, size: DEVICE_LIMITS.fileBytes + 1 }],

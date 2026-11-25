@@ -5,8 +5,8 @@ Scientific source: https://github.com/DevlinaC/Amyloid_Candidates
 Pinned package commit: 1c85221ea38ffbaa1695eeb0a2962997abf94563
 
 On My Device is the default. It calculates descriptors and warnings locally
-using the actual Python package through Pyodide. No server is required. Small
-batches are processed independently; browser clustering is not implemented.
+using the actual Python package through Pyodide. No server is required. Batches
+can also run WebAssembly MM-align, sklearn HDBSCAN, ranking, and reports locally.
 See docs/AMYLOID_ON_DEVICE.txt for limits, packaging, privacy, and validation.
 
 Server Analysis retains the full comparison/clustering pipeline. Selecting its

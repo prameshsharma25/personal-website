@@ -45,6 +45,9 @@ test('real browser calculations match native Python reports and export verified 
   });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/tools/amyloid-inspector');
+  await expect(
+    page.getByLabel('Choose Structures', { exact: true })
+  ).toBeEnabled();
   await page.getByLabel('Choose Structures', { exact: true }).setInputFiles([
     {
       name: '2beg.pdb',
@@ -119,7 +122,11 @@ with zipfile.ZipFile(sys.argv[1]) as z:
       { encoding: 'utf8' }
     )
   );
-  expect(output.result.clustering_status).toBe('not_run_on_device');
+  expect(output.result.clustering_status).toBe('requested');
+  expect(output.result.groups.map((group) => group.clustering_status)).toEqual([
+    'insufficient_pool_size',
+    'insufficient_pool_size',
+  ]);
   expect(
     output.result.structures.map((model: { state: string }) => model.state)
   ).toEqual(['complete', 'complete', 'complete', 'failed']);
