@@ -120,7 +120,20 @@ export default function Experience() {
         <PageIntro
           eyebrow="About / Computational Biologist"
           title="Pramesh Sharma"
-          description="I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Dr. Lauren Porter’s lab at the National Institutes of Health."
+          description={
+            <>
+              I develop computational tools to study protein structure and
+              conformational change. I’m currently a postbaccalaureate fellow in{' '}
+              <a
+                href="https://irp.nih.gov/pi/lauren-porter"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Dr. Lauren Porter
+              </a>
+              ’s lab at the National Institutes of Health.
+            </>
+          }
           aside={
             <>
               <p className={ui.miniLabel}>Current Research</p>

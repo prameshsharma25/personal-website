@@ -1,0 +1,149 @@
+{
+  "artifacts": {
+    "common": [
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.qc.json",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.chains.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.residue_map.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.chain_edges.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.layers.json"
+    ],
+    "energy": [
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.energy.json",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.atom_energy.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.residue_energy.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.chain_energy.csv"
+    ],
+    "geometry": [
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.geometry.json",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.pairs.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.transforms.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.hydrogen_bonds.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.extensions.csv"
+    ],
+    "packing": [
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.packing.json",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.interface_sasa.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.atom_burial.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.residue_burial.csv",
+      "2beg-ESMFold2-pdb-coord-balanced25-rank-000.polar_satisfaction.csv"
+    ]
+  },
+  "chain_id_source": "pdb_chain_id",
+  "components": {
+    "common": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.qc.json",
+    "energy": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.energy.json",
+    "geometry": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.geometry.json",
+    "packing": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.packing.json"
+  },
+  "model_index": 0,
+  "normalized_assembly_sha256": "7dc642113a76623ce0436c71c67fc45584f61df8618990e63d9836725cfc84dd",
+  "prediction_id": "2beg-ESMFold2-pdb-coord-balanced25-rank-000",
+  "request": {
+    "component_schemas": {
+      "common": "amyloid-common-1.2",
+      "energy": "amyloid-energetics-1.3",
+      "geometry": "amyloid-geometry-1.2",
+      "packing": "amyloid-interface-dryness-1.1"
+    },
+    "input": {
+      "chain_id_source": "auto",
+      "explicit_layer_map_sha256": null,
+      "model_index": 0,
+      "source_file_sha256": "1103ec2c044e588ade1909b5ec58950aa68cbf7f1d875ce6ca1518c0da691133",
+      "structure_format": "pdb"
+    },
+    "prediction_id": "2beg-ESMFold2-pdb-coord-balanced25-rank-000",
+    "schema_version": "amyloid-structural-pipeline-request-1.0",
+    "scientific_parameters": {
+      "common": {
+        "analysis": {
+          "backbone_contact_distance": 5.5,
+          "chain_break_cn_distance": 2.0,
+          "heavy_atom_contact_distance": 4.5,
+          "maximum_pair_rmsd": 3.0,
+          "minimum_mapped_residues": 3,
+          "minimum_sequence_coverage": 0.7,
+          "minimum_sequence_identity": 0.85,
+          "residue_contact_distance": 8.0,
+          "severe_clash_distance": 2.0,
+          "transform_length_relative_tolerance": 0.45,
+          "transform_rotation_tolerance_degrees": 15.0
+        },
+        "normalization": {
+          "remove_hydrogens": true,
+          "remove_waters": true,
+          "residue_name_map": {
+            "MSE": "MET",
+            "PTR": "TYR",
+            "PYL": "LYS",
+            "SEC": "CYS",
+            "TYC": "TYR"
+          },
+          "retain_metals": false,
+          "retain_nonpolymer_names": []
+        }
+      },
+      "energy": {
+        "c_termini": [],
+        "calculate_central_layer_convergence": true,
+        "convergence_relative_tolerance": null,
+        "freesasa_algorithm": "shrake_rupley",
+        "mode": "sawaya_compat",
+        "n_termini": [],
+        "ph": 7.0,
+        "probe_radius": 1.4,
+        "sphere_points": 1000,
+        "terminal_policy": "explicit_only",
+        "unsupported_policy": "error"
+      },
+      "geometry": {
+        "backbone_contact_distance": 5.5,
+        "contact_distance": 8.0,
+        "extension_steps": 1,
+        "hbond_coh_angle": 90.0,
+        "hbond_ho_distance": 2.7,
+        "hbond_nho_angle": 120.0,
+        "hbond_no_distance": 3.5,
+        "heavy_atom_contact_distance": 4.5,
+        "maximum_neighbor_distance": 12.0,
+        "maximum_pair_rmsd": 3.0,
+        "minimum_mapped_residues": 3,
+        "minimum_screw_rotation_degrees": 1.0,
+        "minimum_sequence_coverage": 0.7,
+        "minimum_sequence_identity": 0.85,
+        "model_index": 0,
+        "severe_clash_distance": 2.0,
+        "transform_direction_tolerance_degrees": 25.0,
+        "transform_length_relative_tolerance": 0.45,
+        "transform_rotation_tolerance_degrees": 15.0,
+        "use_pydssp": true
+      },
+      "packing": {
+        "bsa_per_residue_scale": 50.0,
+        "burial_tolerance": 0.1,
+        "clash_overlap": 0.4,
+        "deeply_buried_sasa": 10.0,
+        "freesasa_algorithm": "lee_richards",
+        "generate_virtual_caps": true,
+        "ion_pair_sasa": 50.0,
+        "lateral_candidate_distance": 8.0,
+        "lee_richards_slices": 20,
+        "packing_support_policy": "sasa_only",
+        "probe_radius": 1.4,
+        "sphere_points": 1000
+      }
+    }
+  },
+  "request_fingerprint_sha256": "a8322d12c907b8a9bf7aa5b42caed94ebff90e7e1136683f5fa8359102e68d48",
+  "rows": [
+    {
+      "common": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.qc.json",
+      "energy": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.energy.json",
+      "geometry": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.geometry.json",
+      "packing": "2beg-ESMFold2-pdb-coord-balanced25-rank-000.packing.json",
+      "prediction_id": "2beg-ESMFold2-pdb-coord-balanced25-rank-000"
+    }
+  ],
+  "schema_version": "amyloid-structural-pipeline-manifest-1.1",
+  "source_file_sha256": "1103ec2c044e588ade1909b5ec58950aa68cbf7f1d875ce6ca1518c0da691133"
+}

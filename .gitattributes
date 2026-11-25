@@ -3,3 +3,6 @@
 
 # Preserve the padded columns in deposited PDB records.
 public/structures/**/*.pdb whitespace=-blank-at-eol
+
+# Keep example coordinates byte-identical to the package fixtures for SHA-256 checks.
+public/tools/amyloid-example/*.pdb whitespace=-blank-at-eol,-blank-at-eof

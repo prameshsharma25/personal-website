@@ -1,0 +1,77 @@
+import Link from 'next/link';
+import Seo from '../../components/Seo';
+import PageIntro from '../../components/PageIntro';
+import ui from '../../styles/Interface.module.css';
+import styles from '../../styles/Tools.module.css';
+
+export default function Tools() {
+  return (
+    <>
+      <Seo
+        title="Structural Biology Tools"
+        description="Explore research tools from Pramesh Sharma’s ongoing work. Inspect amyloid candidate structures, package-generated descriptors, and warnings in your browser."
+        path="/tools"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tools', path: '/tools' },
+        ]}
+      />
+      <main className={ui.page}>
+        <PageIntro
+          eyebrow="Tools / Structural Biology"
+          title="A Closer Look At"
+          accent="Your Structures."
+          description="Tools from my ongoing research, built to make structural predictions easier to inspect and question."
+        />
+        <article data-reveal className={styles.toolCard}>
+          <div className={styles.toolVisual} aria-hidden="true">
+            <div className={styles.scan} />
+            {Array.from({ length: 7 }, (_, i) => (
+              <div
+                key={i}
+                className={styles.strand}
+                style={{
+                  transform: `translateY(${i * 24}px) rotate(-18deg)`,
+                  opacity: 1 - i * 0.07,
+                }}
+              >
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+            ))}
+            <span>Structure → Descriptors → Interpretation</span>
+          </div>
+          <div className={styles.toolCopy}>
+            <p className={styles.kicker}>01 / Free Research Tool</p>
+            <h2>Amyloid Warning Inspector</h2>
+            <p>
+              A structure can look convincing and still warrant a closer look.
+              Open an Amyloid Candidates report to explore its geometry,
+              packing, and energy descriptors alongside the predicted assembly.
+            </p>
+            <ul>
+              <li>Interactive PDB and mmCIF structure inspection</li>
+              <li>Warning explanations and questions to investigate</li>
+              <li>Local file reading with SHA-256 consistency checks</li>
+            </ul>
+            <Link href="/tools/amyloid-inspector" className={styles.primary}>
+              Open The Inspector <span aria-hidden="true">↗</span>
+            </Link>
+            <p className={styles.caption}>
+              Report reader · No account required
+            </p>
+          </div>
+        </article>
+        <p className={styles.footerNote}>
+          Developed alongside my{' '}
+          <Link href="/experience#projects">ongoing research</Link>. Scientific
+          calculations come from the Amyloid Candidates package; this interface
+          helps you examine the results.
+        </p>
+      </main>
+    </>
+  );
+}

@@ -1,0 +1,39 @@
+Amyloid Warning Inspector
+
+Routes: /tools and /tools/amyloid-inspector
+Scientific source: https://github.com/DevlinaC/Amyloid_Candidates
+Example source commit: 1c85221ea38ffbaa1695eeb0a2962997abf94563
+
+This release is a local report reader. It uses the package's gate decisions,
+component features, eligibility, and warnings. It does not run Python in the
+browser or infer scientific results from the molecular rendering. No upload
+endpoint, external structure-fetch URL, or browser storage is used.
+
+Inputs: one gate-report 1.0 JSON, optionally one structural-pipeline-manifest
+1.1 JSON and one original PDB/mmCIF. The reader compares SHA-256 over raw bytes:
+gate -> manifest -> coordinates. This establishes file pairing, not authenticity
+or scientific correctness. Editing whitespace in the manifest changes its hash.
+The renderer is limited to model index 0 and never silently substitutes a model.
+Warnings are assembly-level; this version does not map warnings onto residues.
+
+Package invocation (in its installed Python environment):
+amyloid-structural-pipeline --structure candidate.pdb --prediction-id candidate --output-directory results
+amyloid-gates --manifest results/candidate/candidate.manifest.json --output results/candidate/candidate.gates.json
+
+To regenerate the public examples, checkout the pinned package and install it,
+then run from the package directory:
+python examples/pilot5/run.py --target 2BEG --target 6QJH --output-directory /tmp/amyloid-examples
+Then run from this website:
+python scripts/export-amyloid-examples.py /path/to/package /tmp/amyloid-examples
+
+The exporter retains the scientific descriptors and coordinate bytes. It removes
+machine provenance and absolute file paths and updates the manifest hash in the
+portable gate reports. It does not export the component outputs; regenerate them
+with the package. Attribution and environment versions accompany the fixtures.
+
+Validation:
+npm run test
+npm run typecheck
+npm run lint
+npm run build
+TEST_BASE_URL=http://127.0.0.1:3834 npm run test:browser -- tests/browser/amyloid-tools.spec.ts

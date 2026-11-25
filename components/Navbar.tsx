@@ -5,6 +5,7 @@ import styles from '../styles/Navbar.module.css';
 const links = [
   { href: '/', label: 'Home' },
   { href: '/experience', label: 'About' },
+  { href: '/tools', label: 'Tools' },
   { href: '/posts', label: 'Posts' },
   { href: '/resources', label: 'Resources' },
   { href: '/mentorship', label: 'Mentorship' },
