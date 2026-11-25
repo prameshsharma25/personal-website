@@ -32,7 +32,7 @@ export default function Experience() {
         <p className={styles.role}>Computational biologist</p>
         <p className={styles.introduction}>I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Lauren Porter’s lab at the National Institutes of Health.</p>
         <div className={styles.links}>
-          <a href="/resume.pdf" className={styles.resumeLink} target="_blank" rel="noopener noreferrer">Download résumé <span>PDF ↗</span></a>
+          <a href="/resume.pdf" className={styles.resumeLink} target="_blank" rel="noopener noreferrer">Download CV <span>PDF ↗</span></a>
           <a href="https://github.com/prameshsharma25" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
           <Link href="/contact">Contact</Link>
         </div>
