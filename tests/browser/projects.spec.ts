@@ -21,7 +21,7 @@ test('project walkthroughs hydrate cleanly and every step works with a keyboard'
     page.getByRole('heading', { name: 'Projects', exact: true })
   ).toBeVisible();
   const cards = page.locator('article[data-project]');
-  await expect(cards).toHaveCount(3);
+  await expect(cards).toHaveCount(4);
   for (const card of await cards.all()) {
     const steps = card
       .getByRole('list', { name: /Steps$/ })

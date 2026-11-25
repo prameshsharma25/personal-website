@@ -1,6 +1,8 @@
 import { useId } from 'react';
 import type { ResearchProject } from '../lib/research-projects';
-import rfah from '../data/rfah.json';
+import structures from '../data/project-structures.json';
+import ProjectMolecule, { type ProjectStructure } from './ProjectMolecule';
+import AmmperDiagram from './AmmperDiagram';
 import styles from '../styles/ResearchProjects.module.css';
 
 const colors = ['#9af5c9', '#80d8ff', '#c6b2ff'];
@@ -10,8 +12,8 @@ const points = Array.from({ length: 27 }, (_, i) => {
   const radius = 12 + (i % 4) * 10;
   return {
     cluster,
-    x: [119, 340, 242][cluster] + Math.cos(angle) * radius,
-    y: [106, 112, 228][cluster] + Math.sin(angle) * radius,
+    x: Number(([119, 340, 242][cluster] + Math.cos(angle) * radius).toFixed(2)),
+    y: Number(([106, 112, 228][cluster] + Math.sin(angle) * radius).toFixed(2)),
   };
 });
 const attention = [
@@ -34,22 +36,27 @@ function Scene({
   );
 }
 
-function Backbone({
-  fold = 'alpha',
+type DiagramMotion = { step: number; running: boolean; visible: boolean };
+
+function MolecularCartoon({
+  model,
   x,
   y,
-  scale = 1,
+  size,
+  enabled,
+  running,
 }: {
-  fold?: 'alpha' | 'beta';
+  model: ProjectStructure;
   x: number;
   y: number;
-  scale?: number;
+  size: number;
+  enabled: boolean;
+  running: boolean;
 }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale}) translate(-210 -175)`}>
-      <path d={rfah[fold].previewPath} className={styles.backboneGlow} />
-      <path d={rfah[fold].previewPath} className={styles.backbone} />
-    </g>
+    <foreignObject x={x - size / 2} y={y - size / 2} width={size} height={size}>
+      <ProjectMolecule model={model} enabled={enabled} running={running} />
+    </foreignObject>
   );
 }
 
@@ -122,16 +129,18 @@ function Clusters({ medoids, active }: { medoids: boolean; active: boolean }) {
   );
 }
 
-function BriDiagram({ step }: { step: number }) {
+function BriDiagram({ step, running, visible }: DiagramMotion) {
   return (
     <>
       <Scene active={step === 0}>
-        <g className={styles.rotatingTrace}>
-          <Backbone x={133} y={142} scale={0.63} />
-        </g>
-        <g opacity="0.32" transform="rotate(-38 133 142)">
-          <Backbone x={133} y={142} scale={0.63} />
-        </g>
+        <MolecularCartoon
+          model="rfahAlpha"
+          x={133}
+          y={142}
+          size={230}
+          enabled={visible && step === 0}
+          running={running}
+        />
         <circle cx="133" cy="142" r="98" className={styles.orbit} />
         <path d="M240 142 H286 m-8 -6 8 6 -8 6" className={styles.flow} />
         <g transform="translate(308 75)">
@@ -210,7 +219,7 @@ function BriDiagram({ step }: { step: number }) {
   );
 }
 
-function CaatDiagram({ step }: { step: number }) {
+function CaatDiagram({ step, running, visible }: DiagramMotion) {
   const original = 'MKVAFQGITLNEASRG';
   const variant = 'MKVALQGIALNDASRG';
   return (
@@ -349,10 +358,22 @@ function CaatDiagram({ step }: { step: number }) {
         <text x="240" y="30" textAnchor="middle">
           One Protein. Two Reference Folds.
         </text>
-        <Backbone x={128} y={151} scale={0.63} />
-        <g style={{ color: '#c6b2ff' }}>
-          <Backbone fold="beta" x={353} y={151} scale={0.63} />
-        </g>
+        <MolecularCartoon
+          model="rfahAlpha"
+          x={128}
+          y={151}
+          size={218}
+          enabled={visible && step === 3}
+          running={running}
+        />
+        <MolecularCartoon
+          model="rfahBeta"
+          x={353}
+          y={151}
+          size={218}
+          enabled={visible && step === 3}
+          running={running}
+        />
         <path d="M240 63 V240" className={styles.axis} strokeDasharray="3 6" />
         <text x="128" y="266" textAnchor="middle">
           α-Helical Hairpin
@@ -382,59 +403,59 @@ function Assembly({
   scale?: number;
   variant?: number;
 }) {
+  const model = structures[`amyloid${variant}` as ProjectStructure];
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+    <g transform={`translate(${x} ${y - 25 * scale}) scale(${scale})`}>
       <g
         className={styles.assemblyFloat}
         style={{ animationDelay: `${variant * -1.3}s` }}
       >
-        {[0, 1, 2, 3, 4].map((layer) => (
-          <g key={layer} transform={`translate(${layer * 4} ${-layer * 13})`}>
-            <path
-              d={
-                variant === 1
-                  ? 'M-42 5 L-18 -8 13 5 37 -7 42 2 13 15 -18 2 -37 14 Z'
-                  : variant === 2
-                    ? 'M-40 4 L-20 -12 6 -12 29 3 38 -2 42 8 29 14 3 -1 -16 -1 -34 14 Z'
-                    : 'M-42 0 L28 0 28 -5 44 5 28 15 28 10 -42 10 Z'
-              }
-              fill="currentColor"
-              fillOpacity={0.2 + layer * 0.12}
-              stroke="currentColor"
-              strokeWidth="1.2"
-            />
-          </g>
-        ))}
+        <image href={model.poster} x="-76" y="-76" width="152" height="152" />
       </g>
     </g>
   );
 }
 
-function AmyloidDiagram({ step }: { step: number }) {
+function AmyloidDiagram({ step, running, visible }: DiagramMotion) {
   return (
     <>
       <Scene active={step === 0}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <g key={i} style={{ color: colors[i % 3] }}>
-            <Assembly
-              x={94 + (i % 3) * 143}
-              y={112 + Math.floor(i / 3) * 144}
-              scale={0.8}
-              variant={i % 3}
-            />
+            <g
+              transform={
+                i >= 3
+                  ? `rotate(22 ${94 + (i % 3) * 143} ${112 + Math.floor(i / 3) * 144 - 20})`
+                  : undefined
+              }
+            >
+              <Assembly
+                x={94 + (i % 3) * 143}
+                y={112 + Math.floor(i / 3) * 144}
+                scale={0.8}
+                variant={i % 3}
+              />
+            </g>
             <text
               x={100 + (i % 3) * 143}
               y={143 + Math.floor(i / 3) * 144}
               textAnchor="middle"
               className={styles.svgMuted}
             >
-              Model {i + 1}
+              {['2M4J', '2LMN', '2LMP'][i % 3]} · View {Math.floor(i / 3) + 1}
             </text>
           </g>
         ))}
       </Scene>
       <Scene active={step === 1}>
-        <Assembly x={126} y={185} scale={1.5} />
+        <MolecularCartoon
+          model="amyloid0"
+          x={138}
+          y={149}
+          size={245}
+          enabled={visible && step === 1}
+          running={running}
+        />
         <ellipse cx="142" cy="147" rx="98" ry="106" className={styles.orbit} />
         <path d="M240 145 H275" className={styles.flow} />
         {['Geometry', 'Packing', 'Energetics'].map((label, i) => (
@@ -527,9 +548,13 @@ function AmyloidDiagram({ step }: { step: number }) {
 export default function ProjectDiagram({
   project,
   step,
+  running,
+  visible,
 }: {
   project: ResearchProject;
   step: number;
+  running: boolean;
+  visible: boolean;
 }) {
   const id = useId();
   return (
@@ -546,11 +571,13 @@ export default function ProjectDiagram({
       <desc id={`${id}-description`}>{project.steps[step].visual}</desc>
       <g transform="translate(10 10)">
         {project.id === 'bri' ? (
-          <BriDiagram step={step} />
+          <BriDiagram step={step} running={running} visible={visible} />
         ) : project.id === 'caat' ? (
-          <CaatDiagram step={step} />
+          <CaatDiagram step={step} running={running} visible={visible} />
+        ) : project.id === 'amyloid' ? (
+          <AmyloidDiagram step={step} running={running} visible={visible} />
         ) : (
-          <AmyloidDiagram step={step} />
+          <AmmperDiagram step={step} />
         )}
       </g>
     </svg>

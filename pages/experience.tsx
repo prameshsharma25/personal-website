@@ -99,7 +99,7 @@ export default function Experience() {
     <>
       <Seo
         title="About — Computational Biologist"
-        description="Pramesh Sharma’s research in protein structure, AlphaFold attention, and amyloid prediction. Explore ongoing projects, papers, and experience in computational biology."
+        description="Meet Pramesh Sharma, a computational biologist. Explore his background, NIH and NASA experience, protein structure research, AMMPER, projects, and papers."
         path="/experience"
         schema={{
           '@type': 'ProfilePage',
@@ -163,12 +163,72 @@ export default function Experience() {
           </div>
         </PageIntro>
         <nav className={styles.sectionNav} aria-label="About Page Sections">
+          <a href="#background">Background</a>
+          <a href="#experience">Experience</a>
           <a href="#research">Research</a>
           <a href="#projects">Projects</a>
           <a href="#publications">Papers</a>
-          <a href="#experience">Experience</a>
-          <a href="#background">Background</a>
         </nav>
+        <section
+          data-reveal
+          id="background"
+          className={styles.section}
+          aria-labelledby="background-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>01</p>
+            <h2 id="background-heading">Background</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <div className={styles.education}>
+              <h3>University of California, Davis</h3>
+              <p>B.S. in Computer Science · 2024</p>
+            </div>
+            <p>
+              I started at community college before transferring to UC Davis.
+              Internships at Genentech and NASA introduced me to biological
+              research; a year in software engineering strengthened the skills I
+              now bring to it.
+            </p>
+            <p>
+              I was born with Pyruvate Kinase Deficiency. Living with a rare
+              genetic disease shaped the questions I wanted to ask, and helped
+              me see why I wanted to return to biology. I’m interested in
+              understanding how molecular changes affect the way biological
+              systems work.
+            </p>
+            <Link
+              href="/posts/quitting-100k-software-job"
+              className={styles.textLink}
+            >
+              Read About My Move From Software To Research →
+            </Link>
+          </div>
+        </section>
+        <section
+          data-reveal
+          id="experience"
+          className={styles.section}
+          aria-labelledby="experience-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>02</p>
+            <h2 id="experience-heading">Experience</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <ol className={styles.experienceList}>
+              {experiences.map((item) => (
+                <li data-reveal key={`${item.organization}-${item.role}`}>
+                  <p className={styles.dates}>{item.dates}</p>
+                  <h3>{item.role}</h3>
+                  <p className={styles.organization}>{item.organization}</p>
+                  <p className={styles.detail}>{item.detail}</p>
+                  <p>{item.summary}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
         <section
           data-reveal
           id="research"
@@ -176,7 +236,7 @@ export default function Experience() {
           aria-labelledby="research-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>01</p>
+            <p className={styles.eyebrow}>03</p>
             <h2 id="research-heading">Research</h2>
           </div>
           <div className={styles.sectionBody}>
@@ -210,7 +270,7 @@ export default function Experience() {
           aria-labelledby="papers-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>03</p>
+            <p className={styles.eyebrow}>05</p>
             <h2 id="papers-heading">Papers &amp; Preprints</h2>
           </div>
           <div className={styles.sectionBody}>
@@ -233,66 +293,6 @@ export default function Experience() {
                 </li>
               ))}
             </ol>
-          </div>
-        </section>
-        <section
-          data-reveal
-          id="experience"
-          className={styles.section}
-          aria-labelledby="experience-heading"
-        >
-          <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>04</p>
-            <h2 id="experience-heading">Experience</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <ol className={styles.experienceList}>
-              {experiences.map((item) => (
-                <li data-reveal key={`${item.organization}-${item.role}`}>
-                  <p className={styles.dates}>{item.dates}</p>
-                  <h3>{item.role}</h3>
-                  <p className={styles.organization}>{item.organization}</p>
-                  <p className={styles.detail}>{item.detail}</p>
-                  <p>{item.summary}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-        <section
-          data-reveal
-          id="background"
-          className={styles.section}
-          aria-labelledby="background-heading"
-        >
-          <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>05</p>
-            <h2 id="background-heading">Background</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <div className={styles.education}>
-              <h3>University of California, Davis</h3>
-              <p>B.S. in Computer Science · 2024</p>
-            </div>
-            <p>
-              I started at community college before transferring to UC Davis.
-              Internships at Genentech and NASA introduced me to biological
-              research; a year in software engineering strengthened the skills I
-              now bring to it.
-            </p>
-            <p>
-              I was born with Pyruvate Kinase Deficiency. Living with a rare
-              genetic disease shaped the questions I wanted to ask, and helped
-              me see why I wanted to return to biology. I’m interested in
-              understanding how molecular changes affect the way biological
-              systems work.
-            </p>
-            <Link
-              href="/posts/quitting-100k-software-job"
-              className={styles.textLink}
-            >
-              Read About My Move From Software To Research →
-            </Link>
           </div>
         </section>
       </main>

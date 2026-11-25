@@ -1,9 +1,10 @@
-export type ProjectKind = 'bri' | 'caat' | 'amyloid';
+export type ProjectKind = 'bri' | 'caat' | 'amyloid' | 'ammper';
 
 export type ResearchProject = {
   id: ProjectKind;
   name: string;
   field: string;
+  status: 'Ongoing' | 'NASA Research';
   question: string;
   description: string;
   methods: string[];
@@ -16,6 +17,7 @@ export const researchProjects: ResearchProject[] = [
     id: 'bri',
     name: 'Backbone Geometry & Structural Clustering',
     field: 'Protein Structure Analysis',
+    status: 'Ongoing',
     question:
       'When thousands of models disagree, which shapes keep coming back?',
     description:
@@ -31,7 +33,7 @@ export const researchProjects: ResearchProject[] = [
         description:
           'A protein’s position or orientation should not change how we describe its shape. Backbone Rigid Invariants encode geometry without depending on those rigid motions.',
         visual:
-          'The same RfaH backbone trace in two orientations leads to the same schematic geometry descriptor.',
+          'The same RfaH molecular structure rotating in three dimensions leads to the same schematic geometry descriptor.',
       },
       {
         label: 'Compare Models',
@@ -60,6 +62,7 @@ export const researchProjects: ResearchProject[] = [
     id: 'caat',
     name: 'CAAT & Attention-Guided Mutagenesis',
     field: 'Interpreting AlphaFold',
+    status: 'Ongoing',
     question: 'Which residues change the structure AlphaFold predicts?',
     description:
       'With CAAT, I examine AlphaFold’s attention patterns to understand which residues matter to the model. I’m using that information to guide mutation tests and investigate proteins that may adopt more than one fold.',
@@ -95,7 +98,7 @@ export const researchProjects: ResearchProject[] = [
         description:
           'Compare the resulting structures to look for changes in the predicted fold. RfaH’s two reference structures illustrate what distinct folds can look like; they are not the outcome of the mutations shown here.',
         visual:
-          'Real RfaH backbone traces illustrate two reference folds: the alpha-helical hairpin from PDB 2OUG and the beta-barrel from PDB 2LCL.',
+          'Shaded molecular cartoons of RfaH illustrate two reference folds: the alpha-helical hairpin from PDB 2OUG and the beta-barrel from PDB 2LCL.',
       },
     ],
   },
@@ -103,6 +106,7 @@ export const researchProjects: ResearchProject[] = [
     id: 'amyloid',
     name: 'Searching For Amyloid Structures',
     field: 'Collaborative Research',
+    status: 'Ongoing',
     question: 'Which predicted assemblies deserve a closer look?',
     description:
       'I’m working with Devlina Chakravarty and Lauren Porter on ways to sort through predicted amyloid assemblies. We combine structural evidence with clustering to build a diverse shortlist of candidates for further review.',
@@ -117,28 +121,73 @@ export const researchProjects: ResearchProject[] = [
         description:
           'Start with a pool of predicted assemblies for the same target. Different prediction methods and settings can produce many competing models.',
         visual:
-          'Six schematic stacked assemblies represent a pool of competing structure predictions.',
+          'Molecular cartoons of three experimental amyloid references illustrate the geometry of fibril assemblies. These are reference examples, not project predictions.',
       },
       {
         label: 'Assess Structure',
         description:
           'Examine assembly geometry, interface packing, and energetic evidence. Keep model confidence separate so it does not stand in for structural plausibility.',
         visual:
-          'A schematic assembly is examined alongside geometry, packing, and energetics. Model confidence is shown separately.',
+          'A three-dimensional amyloid reference is examined alongside geometry, packing, and energetics. Model confidence is shown separately.',
       },
       {
         label: 'Group Similar Models',
         description:
           'Compare models within a target using MM-align distances and HDBSCAN. Clusters expose repeated structural solutions and help avoid a shortlist filled with near-duplicates.',
         visual:
-          'Illustrative assemblies are organized into three groups according to structural similarity.',
+          'Reference assembly images illustrate three schematic groups according to structural similarity.',
       },
       {
         label: 'Review A Shortlist',
         description:
           'Bring structural evidence, confidence, and cluster centrality together to select diverse candidates for review. A high rank does not establish that a structure is correct or that a protein forms amyloid.',
         visual:
-          'One assembly from each of three structural groups is selected for a diverse review shortlist.',
+          'One reference assembly illustration from each of three schematic groups is selected for a diverse review shortlist.',
+      },
+    ],
+  },
+  {
+    id: 'ammper',
+    name: 'AMMPER: Microbial Life Under Radiation',
+    field: 'NASA Ames / Space Biology',
+    status: 'NASA Research',
+    question:
+      'How does radiation damage to a single cell change an entire population?',
+    description:
+      'At NASA Ames, I worked on AMMPER, an agent-based model of microbial populations exposed to radiation. I helped translate radiobiology findings into simulations of cell behavior and viability, connecting events at the scale of individual yeast cells to changes across a growing population.',
+    methods: ['Agent-Based Modeling', 'Space Radiobiology', 'Microbial Growth'],
+    link: {
+      label: 'Explore AMMPER At NASA',
+      url: 'https://github.com/nasa/AMMPER',
+    },
+    steps: [
+      {
+        label: 'Build A Population',
+        description:
+          'Represent each yeast cell as an individual agent in a three-dimensional environment. Cells grow and divide, so the population changes over time.',
+        visual:
+          'A schematic three-dimensional culture of budding yeast cells. Each cell represents an individual simulated agent.',
+      },
+      {
+        label: 'Trace Radiation',
+        description:
+          'Introduce spatial radiation tracks from NASA’s RITRACKS data. Energy deposits and reactive oxygen species create uneven exposure across the population.',
+        visual:
+          'Radiation tracks pass through a schematic yeast population, with small points illustrating energy deposits near individual cells.',
+      },
+      {
+        label: 'Follow Cell Fates',
+        description:
+          'Track damage, repair, division, and death at the cell level. Different histories for individual cells can produce different population-level outcomes.',
+        visual:
+          'Some illustrative cells remain viable, some show damage, and others stop dividing. These are conceptual states, not results from a simulation run.',
+      },
+      {
+        label: 'Read The Response',
+        description:
+          'Connect cell-level behavior to growth and metabolic activity. AMMPER also models the blue-to-pink-to-clear response of alamarBlue, a dye used in microbial experiments.',
+        visual:
+          'An illustrative population growth curve and blue, pink, and clear dye samples connect cell behavior to observable readouts. No measured data are plotted.',
       },
     ],
   },

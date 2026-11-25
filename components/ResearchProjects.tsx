@@ -84,7 +84,7 @@ function ProjectCard({
             <span>
               0{index + 1} / {project.field}
             </span>
-            <span className={styles.status}>Ongoing</span>
+            <span className={styles.status}>{project.status}</span>
           </div>
           <h3 id={`${prefix}-heading`}>{project.name}</h3>
           <p className={styles.question}>{project.question}</p>
@@ -115,7 +115,12 @@ function ProjectCard({
             </span>
             <span>Schematic</span>
           </div>
-          <ProjectDiagram project={project} step={step} />
+          <ProjectDiagram
+            project={project}
+            step={step}
+            running={running}
+            visible={visible}
+          />
           <figcaption className={styles.visualFooter}>
             <span>{project.steps[step].label}</span>
             {ready && (
@@ -211,17 +216,18 @@ export default function ResearchProjects() {
     >
       <div className={styles.intro} data-reveal>
         <div>
-          <p className={styles.eyebrow}>02 / Ongoing Work</p>
+          <p className={styles.eyebrow}>04 / Selected Work</p>
           <h2 id="projects-heading">Projects</h2>
         </div>
         <div>
           <p className={styles.lead}>
-            From a predicted structure to a better question.
+            From protein structures to life in space.
           </p>
           <p>
-            Much of my work starts with a collection of protein models and a
-            question about what they mean. These are three projects I’m working
-            on to make those models easier to compare, interpret, and test.
+            I build computational tools to understand biological systems: how
+            proteins change shape, how predictions can be tested, and how cells
+            respond to radiation. These projects span my current research and my
+            work at NASA.
           </p>
         </div>
       </div>
@@ -232,7 +238,8 @@ export default function ResearchProjects() {
       </div>
       <p className={styles.figureNote}>
         The walkthroughs illustrate the methods, with example values and
-        schematic groupings. The RfaH backbone traces come from{' '}
+        schematic groupings. The molecular cartoons use experimental reference
+        coordinates: RfaH from{' '}
         <a
           href="https://www.rcsb.org/structure/2OUG"
           target="_blank"
@@ -248,7 +255,40 @@ export default function ResearchProjects() {
         >
           2LCL
         </a>
-        ; they are reference structures, not mutation results.
+        ; amyloid assemblies from{' '}
+        <a
+          href="https://www.rcsb.org/structure/2M4J"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          2M4J
+        </a>
+        ,{' '}
+        <a
+          href="https://www.rcsb.org/structure/2LMN"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          2LMN
+        </a>
+        , and{' '}
+        <a
+          href="https://www.rcsb.org/structure/2LMP"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          2LMP
+        </a>
+        . These illustrate structure, not mutation or candidate-selection
+        results. The AMMPER animation is a conceptual walkthrough based on{' '}
+        <a
+          href="https://ntrs.nasa.gov/citations/20230016450"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          NASA’s research description
+        </a>
+        .
       </p>
     </section>
   );
