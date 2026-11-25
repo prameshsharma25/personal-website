@@ -1,5 +1,12 @@
 Welcome to my personal website!
 
+## Git workflow
+
+The website changes are saved on the `website-growth` branch. Run
+`sh scripts/git.sh status` to see edits and `sh scripts/git.sh log --oneline -8`
+to see saved checkpoints. See [the Git workflow guide](docs/GIT_WORKFLOW.md)
+for reviewing changes, creating commits, and backing up the branch on GitHub.
+
 ## Local development
 
 This project uses Next.js and Node.js 22. This workspace has a project-local
