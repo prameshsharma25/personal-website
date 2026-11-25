@@ -1,0 +1,31 @@
+{
+  "retrieved": "2026-11-25",
+  "purpose": "Experimental amyloid-beta 40 references for explanatory molecular cartoons. Not pipeline predictions, clustering outputs or mutation results.",
+  "structures": [
+    {
+      "pdb": "2M4J",
+      "source": "https://files.rcsb.org/download/2M4J.pdb",
+      "entry": "https://www.rcsb.org/structure/2M4J",
+      "selection": "First deposited coordinate model; all chains. ATOM, TER, HELIX and SHEET records retained without coordinate changes.",
+      "file": "2M4J-model1.pdb",
+      "sha256": "e89bb8a0d0febcd2b5734cab6c9d60cd9fb499630ad474e90af7c6af3082b91a"
+    },
+    {
+      "pdb": "2LMN",
+      "source": "https://files.rcsb.org/download/2LMN.pdb",
+      "entry": "https://www.rcsb.org/structure/2LMN",
+      "selection": "First deposited coordinate model; all chains. ATOM, TER, HELIX and SHEET records retained without coordinate changes.",
+      "file": "2LMN-model1.pdb",
+      "sha256": "e1474df16d8c3e2b03bfc02b4747c1953143e91551da39cca1d207352b25ed9c"
+    },
+    {
+      "pdb": "2LMP",
+      "source": "https://files.rcsb.org/download/2LMP.pdb",
+      "entry": "https://www.rcsb.org/structure/2LMP",
+      "selection": "First deposited coordinate model; all chains. ATOM, TER, HELIX and SHEET records retained without coordinate changes.",
+      "file": "2LMP-model1.pdb",
+      "sha256": "1844a72e4f2ba31f3455fd16adcf54dd3314268f411452fab91714b3fc3aab68"
+    }
+  ],
+  "rendering": "Local 3Dmol.js 3.0.0; cartoon style. Rebuild WebP posters with scripts/render-project-structures.mjs. View settings are recorded in data/project-structures.json."
+}

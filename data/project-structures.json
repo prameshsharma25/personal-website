@@ -1,0 +1,52 @@
+{
+  "rfahAlpha": {
+    "pdb": "2OUG",
+    "name": "RfaH Alpha-Helical Hairpin",
+    "file": "/structures/rfah/2OUG-CTD.pdb",
+    "poster": "/images/projects/rfah-alpha.webp",
+    "colors": ["#98f5c8"],
+    "rotateX": 25,
+    "rotateY": 45,
+    "zoom": 2.0
+  },
+  "rfahBeta": {
+    "pdb": "2LCL",
+    "name": "RfaH Beta-Barrel",
+    "file": "/structures/rfah/2LCL-CTD.pdb",
+    "poster": "/images/projects/rfah-beta.webp",
+    "colors": ["#b9b4ff"],
+    "rotateX": 25,
+    "rotateY": 45,
+    "zoom": 2.0
+  },
+  "amyloid0": {
+    "pdb": "2M4J",
+    "name": "Amyloid-Beta 40 Reference Fibril",
+    "file": "/structures/amyloid/2M4J-model1.pdb",
+    "poster": "/images/projects/amyloid-2m4j.webp",
+    "colors": ["#84d6c3", "#a5e9da", "#c9f5e9"],
+    "rotateX": 65,
+    "rotateY": -35,
+    "zoom": 1.85
+  },
+  "amyloid1": {
+    "pdb": "2LMN",
+    "name": "Amyloid-Beta 40 Two-Fold Fibril",
+    "file": "/structures/amyloid/2LMN-model1.pdb",
+    "poster": "/images/projects/amyloid-2lmn.webp",
+    "colors": ["#74bce6", "#a2d5f4", "#c0e8ff"],
+    "rotateX": 65,
+    "rotateY": -35,
+    "zoom": 1.85
+  },
+  "amyloid2": {
+    "pdb": "2LMP",
+    "name": "Amyloid-Beta 40 Three-Fold Fibril",
+    "file": "/structures/amyloid/2LMP-model1.pdb",
+    "poster": "/images/projects/amyloid-2lmp.webp",
+    "colors": ["#aa99df", "#c6b9f3", "#e1d5ff"],
+    "rotateX": 65,
+    "rotateY": -35,
+    "zoom": 1.85
+  }
+}

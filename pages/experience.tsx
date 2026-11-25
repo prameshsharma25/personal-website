@@ -3,13 +3,14 @@ import ui from '../styles/Interface.module.css';
 import Link from 'next/link';
 import Seo from '../components/Seo';
 import styles from '../styles/Experience.module.css';
+import ResearchProjects from '../components/ResearchProjects';
 
 const experiences = [
   {
     role: 'Postbaccalaureate Fellow',
     organization: 'National Institutes of Health',
     dates: 'Aug 2025 – Present',
-    detail: 'Lauren Porter’s lab · Computational Biology Branch',
+    detail: 'Dr. Lauren Porter’s lab · Computational Biology Branch',
     summary:
       'Developing tools to interpret AlphaFold predictions and identify fold-switching proteins, with an emphasis on reproducible analysis and research software.',
   },
@@ -69,7 +70,7 @@ const publications = [
       'AlphaFold reveals but sometimes distorts an organizational principle of protein folding',
     source: 'bioRxiv version · 2026',
     authors:
-      'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Lauren L. Porter',
+      'Madeleine F. Clore, Joseph F. Thole, Suchetan Dontha, Pramesh Sharma, Naomi Greenberg, Marie-Paule Strub, Mary Starich, Carolyn Ott, Davin Jensen, Brian F. Volkman, Matthew Coudron, Dr. Lauren L. Porter',
     url: 'https://www.biorxiv.org/content/10.64898/2025.12.30.697132v4',
   },
   {
@@ -98,7 +99,7 @@ export default function Experience() {
     <>
       <Seo
         title="About — Computational Biologist"
-        description="Computational biologist at NIH studying protein structure and fold switching. Research, papers, and experience at NIH, NASA, Genentech, and Walmart."
+        description="Meet Pramesh Sharma, a computational biologist. Explore his background, NIH and NASA experience, protein structure research, AMMPER, projects, and papers."
         path="/experience"
         schema={{
           '@type': 'ProfilePage',
@@ -119,13 +120,13 @@ export default function Experience() {
         <PageIntro
           eyebrow="About / Computational Biologist"
           title="Pramesh Sharma"
-          description="I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Lauren Porter’s lab at the National Institutes of Health."
+          description="I develop computational tools to study protein structure and conformational change. I’m currently a postbaccalaureate fellow in Dr. Lauren Porter’s lab at the National Institutes of Health."
           aside={
             <>
               <p className={ui.miniLabel}>Current Research</p>
               <h2>Protein Structure &amp; Fold Switching</h2>
               <p>
-                Lauren Porter’s Lab
+                Dr. Lauren Porter’s Lab
                 <br />
                 National Institutes of Health
               </p>
@@ -162,100 +163,12 @@ export default function Experience() {
           </div>
         </PageIntro>
         <nav className={styles.sectionNav} aria-label="About Page Sections">
-          <a href="#research">Research</a>
-          <a href="#publications">Papers</a>
-          <a href="#experience">Experience</a>
           <a href="#background">Background</a>
+          <a href="#experience">Experience</a>
+          <a href="#research">Research</a>
+          <a href="#projects">Projects</a>
+          <a href="#publications">Papers</a>
         </nav>
-        <section
-          data-reveal
-          id="research"
-          className={styles.section}
-          aria-labelledby="research-heading"
-        >
-          <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>01</p>
-            <h2 id="research-heading">Research</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <p className={styles.lead}>
-              How can the same protein sequence support different structures?
-            </p>
-            <p>
-              My research focuses on fold-switching proteins: proteins that can
-              adopt different structures. I’m interested in how their sequences
-              support those changes, and in what models such as AlphaFold
-              capture or miss.
-            </p>
-            <p>
-              I bring a software engineering background to these questions,
-              building analysis pipelines and tools that help researchers
-              examine model predictions.
-            </p>
-            <ul className={styles.topics} aria-label="Research Interests">
-              <li>Protein Structure</li>
-              <li>Fold Switching</li>
-              <li>Interpretable Machine Learning</li>
-              <li>Research Software</li>
-            </ul>
-          </div>
-        </section>
-        <section
-          data-reveal
-          id="publications"
-          className={styles.section}
-          aria-labelledby="papers-heading"
-        >
-          <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>02</p>
-            <h2 id="papers-heading">Papers &amp; Preprints</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <ol className={styles.publicationList}>
-              {publications.map((paper) => (
-                <li data-reveal key={paper.url}>
-                  <p className={styles.publicationSource}>{paper.source}</p>
-                  <h3>
-                    <a
-                      href={paper.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {paper.title} <span aria-hidden="true">↗</span>
-                    </a>
-                  </h3>
-                  <p className={styles.authors}>
-                    <Authors names={paper.authors} />
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-        <section
-          data-reveal
-          id="experience"
-          className={styles.section}
-          aria-labelledby="experience-heading"
-        >
-          <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>03</p>
-            <h2 id="experience-heading">Experience</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <ol className={styles.experienceList}>
-              {experiences.map((item) => (
-                <li data-reveal key={`${item.organization}-${item.role}`}>
-                  <p className={styles.dates}>{item.dates}</p>
-                  <h3>{item.role}</h3>
-                  <p className={styles.organization}>{item.organization}</p>
-                  <p className={styles.detail}>{item.detail}</p>
-                  <p>{item.summary}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
         <section
           data-reveal
           id="background"
@@ -263,7 +176,7 @@ export default function Experience() {
           aria-labelledby="background-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>04</p>
+            <p className={styles.eyebrow}>01</p>
             <h2 id="background-heading">Background</h2>
           </div>
           <div className={styles.sectionBody}>
@@ -290,6 +203,96 @@ export default function Experience() {
             >
               Read About My Move From Software To Research →
             </Link>
+          </div>
+        </section>
+        <section
+          data-reveal
+          id="experience"
+          className={styles.section}
+          aria-labelledby="experience-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>02</p>
+            <h2 id="experience-heading">Experience</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <ol className={styles.experienceList}>
+              {experiences.map((item) => (
+                <li data-reveal key={`${item.organization}-${item.role}`}>
+                  <p className={styles.dates}>{item.dates}</p>
+                  <h3>{item.role}</h3>
+                  <p className={styles.organization}>{item.organization}</p>
+                  <p className={styles.detail}>{item.detail}</p>
+                  <p>{item.summary}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+        <section
+          data-reveal
+          id="research"
+          className={styles.section}
+          aria-labelledby="research-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>03</p>
+            <h2 id="research-heading">Research</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <p className={styles.lead}>
+              How can the same protein sequence support different structures?
+            </p>
+            <p>
+              My research focuses on fold-switching proteins: proteins that can
+              adopt different structures. I’m interested in how their sequences
+              support those changes, and in what models such as AlphaFold
+              capture or miss.
+            </p>
+            <p>
+              I bring a software engineering background to these questions,
+              building analysis pipelines and tools that help researchers
+              examine model predictions.
+            </p>
+            <ul className={styles.topics} aria-label="Research Interests">
+              <li>Protein Structure</li>
+              <li>Fold Switching</li>
+              <li>Interpretable Machine Learning</li>
+              <li>Research Software</li>
+            </ul>
+          </div>
+        </section>
+        <ResearchProjects />
+        <section
+          data-reveal
+          id="publications"
+          className={styles.section}
+          aria-labelledby="papers-heading"
+        >
+          <div className={styles.sectionLabel}>
+            <p className={styles.eyebrow}>05</p>
+            <h2 id="papers-heading">Papers &amp; Preprints</h2>
+          </div>
+          <div className={styles.sectionBody}>
+            <ol className={styles.publicationList}>
+              {publications.map((paper) => (
+                <li data-reveal key={paper.url}>
+                  <p className={styles.publicationSource}>{paper.source}</p>
+                  <h3>
+                    <a
+                      href={paper.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {paper.title} <span aria-hidden="true">↗</span>
+                    </a>
+                  </h3>
+                  <p className={styles.authors}>
+                    <Authors names={paper.authors} />
+                  </p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
       </main>

@@ -6,7 +6,7 @@ const publishedProducts: Record<GumroadProduct, string> = {
 };
 
 // Called only from page data functions. No purchase files are served by this site.
-export function gumroadProductUrl(product: GumroadProduct, env: NodeJS.ProcessEnv = process.env): string | null {
+export function gumroadProductUrl(product: GumroadProduct, env: Partial<NodeJS.ProcessEnv> = process.env): string | null {
   // Published links work without host configuration; an explicit switch can pause sales.
   if ((env.GUMROAD_SALES_ENABLED ?? 'true') !== 'true') return null;
   const value = env[product === 'uc-annotations' ? 'UC_ANNOTATIONS_GUMROAD_URL' : 'PHD_ESSAYS_GUMROAD_URL'] ?? publishedProducts[product];

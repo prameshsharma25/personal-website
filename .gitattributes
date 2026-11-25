@@ -1,2 +1,5 @@
 # Normalize CSV templates in Git and keep Excel-friendly line endings on checkout.
 *.csv text eol=crlf
+
+# Preserve the padded columns in deposited PDB records.
+public/structures/**/*.pdb whitespace=-blank-at-eol
