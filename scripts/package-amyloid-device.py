@@ -87,6 +87,8 @@ manifest = {
             "batch.py",
             "run-mmalign.mjs",
             "diagnostics.mjs",
+            "alignment-worker.mjs",
+            "alignment-scheduler.mjs",
             "mmalign/mmalign.mjs",
             "mmalign/mmalign.wasm",
             "mmalign/LICENSE.txt",

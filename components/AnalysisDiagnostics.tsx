@@ -77,10 +77,26 @@ export default function AnalysisDiagnostics({
       <div role="region" aria-label="Live Diagnostics" aria-live="off">
         <p className={styles.diagnosticIntro}>
           {inputCount} {inputCount === 1 ? 'Structure' : 'Structures'} ·{' '}
-          {formatBytes(inputBytes)} Of Input · One Analysis Worker · No
-          Structure Uploads
+          {formatBytes(inputBytes)} Of Input · One Python Worker · No Structure
+          Uploads
         </p>
         <dl className={styles.diagnosticGrid}>
+          <div>
+            <dt>Alignment Workers</dt>
+            <dd>
+              <strong>
+                {data?.alignmentPool?.size
+                  ? `${running ? data.alignmentPool.active : 0} / ${data.alignmentPool.size} Active`
+                  : 'Not Started'}
+              </strong>
+              <p>
+                {data?.alignmentPool?.peakActive || 0} active at peak.{' '}
+                {!running || data?.alignmentPool?.stopped
+                  ? 'The alignment pool is stopped.'
+                  : 'Independent MM-align comparisons share the queue.'}
+              </p>
+            </dd>
+          </div>
           <div>
             <dt>Calculation Rate</dt>
             <dd>
@@ -107,8 +123,8 @@ export default function AnalysisDiagnostics({
                     : 'Measuring…'}
               </strong>
               <p>
-                Estimate from up to 20 recent calculations, after at least three
-                samples. Excludes later stages.
+                Estimate from the recent completion rate across workers, after
+                at least three samples. Excludes later stages.
               </p>
             </dd>
           </div>

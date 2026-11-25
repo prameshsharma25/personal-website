@@ -1,6 +1,7 @@
 import type { InputFile } from './amyloid-inspector';
 import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
 import type { DeviceDiagnostics } from './amyloid-diagnostics';
+import type { AlignmentWorkers } from './amyloid-alignment-pool';
 
 export const DEVICE_LIMITS = {
   files: 125,
@@ -13,8 +14,24 @@ export type DeviceResult = {
   clustering_status: 'not_requested' | 'requested';
   groups: AnalysisGroup[];
   warnings: string[];
+  alignment_execution: {
+    requested_workers: AlignmentWorkers;
+    workers: number;
+    fallback: string | null;
+    alignment_elapsed_seconds: number;
+  };
 };
 export type DeviceMessage =
+  | {
+      type: 'alignment-init';
+      requestId: number;
+      choice: AlignmentWorkers;
+      tasks: number;
+      script: ArrayBuffer;
+      binary: ArrayBuffer;
+    }
+  | { type: 'alignment-run'; requestId: number; a: ArrayBuffer; b: ArrayBuffer }
+  | { type: 'alignment-stop'; requestId: number }
   | { type: 'diagnostics'; diagnostics: DeviceDiagnostics }
   | {
       type: 'progress';

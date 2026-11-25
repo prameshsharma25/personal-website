@@ -15,7 +15,11 @@ export function createDiagnostics(clock = () => performance.now()) {
     firstStart: null,
     lastEnd: null,
   };
+  let pool = { size: 0, active: 0, peakActive: 0, stopped: true };
   return {
+    pool(state) {
+      pool = { ...state };
+    },
     phase(next, total = 0) {
       if (stage && stage.endedAt === null) stage.endedAt = clock();
       phase = next;
@@ -30,6 +34,7 @@ export function createDiagnostics(clock = () => performance.now()) {
           endedAt: null,
           lastMs: null,
           samples: [],
+          completionTimes: [clock()],
         };
     },
     operation(milliseconds, { skipped = false, failed = false } = {}) {
@@ -41,6 +46,8 @@ export function createDiagnostics(clock = () => performance.now()) {
         stage.lastMs = Math.max(0, milliseconds);
         stage.samples.push(stage.lastMs);
         if (stage.samples.length > 20) stage.samples.shift();
+        stage.completionTimes.push(clock());
+        if (stage.completionTimes.length > 21) stage.completionTimes.shift();
       }
       if (stage.completed + stage.skipped >= stage.total)
         stage.endedAt = clock();
@@ -89,6 +96,10 @@ export function createDiagnostics(clock = () => performance.now()) {
         : 0;
       const networkDuration =
         (network.lastEnd ?? 0) - (network.firstStart ?? 0);
+      const completionCount = stage ? stage.completionTimes.length - 1 : 0;
+      const completionSpan = completionCount
+        ? stage.completionTimes.at(-1) - stage.completionTimes[0]
+        : 0;
       return {
         elapsedMs: Math.max(0, now - startedAt),
         phase,
@@ -110,12 +121,15 @@ export function createDiagnostics(clock = () => performance.now()) {
                 remaining === 0
                   ? 0
                   : stage.samples.length >= 3
-                    ? mean * remaining
+                    ? completionSpan > 0
+                      ? (remaining * completionSpan) / completionCount
+                      : null
                     : null,
             }
           : null,
         pythonMemoryBytes: memory,
         peakPythonMemoryBytes: peakMemory,
+        alignmentPool: pool,
         network: {
           supported: network.supported,
           requests: network.requests,

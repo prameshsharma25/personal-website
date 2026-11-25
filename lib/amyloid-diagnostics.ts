@@ -1,4 +1,10 @@
 export type DeviceDiagnostics = {
+  alignmentPool: {
+    size: number;
+    active: number;
+    peakActive: number;
+    stopped: boolean;
+  };
   elapsedMs: number;
   phase: string;
   stage: {

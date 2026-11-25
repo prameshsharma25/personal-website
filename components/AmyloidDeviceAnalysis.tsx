@@ -16,6 +16,11 @@ import type { AnalysisModel } from '../lib/amyloid-jobs';
 import AnalysisProgress from './AnalysisProgress';
 import AnalysisDiagnostics from './AnalysisDiagnostics';
 import type { DeviceDiagnostics } from '../lib/amyloid-diagnostics';
+import {
+  AlignmentPool,
+  resolveAlignmentWorkers,
+  type AlignmentWorkers,
+} from '../lib/amyloid-alignment-pool';
 import styles from '../styles/Tools.module.css';
 
 type Props = {
@@ -49,6 +54,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [confidence, setConfidence] = useState<File | null>(null);
   const [minCluster, setMinCluster] = useState(10);
   const [minSamples, setMinSamples] = useState(3);
+  const [alignmentWorkers, setAlignmentWorkers] =
+    useState<AlignmentWorkers>('auto');
+  const alignmentPool = useRef<AlignmentPool | null>(null);
   const worker = useRef<Worker | null>(null);
   const epoch = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,10 +68,62 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     return ++epoch.current;
   }
   function terminate() {
+    alignmentPool.current?.dispose();
+    alignmentPool.current = null;
     worker.current?.terminate();
     worker.current = null;
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
+  }
+  async function handleAlignmentRequest(
+    data: Extract<
+      DeviceMessage,
+      { type: 'alignment-init' | 'alignment-run' | 'alignment-stop' }
+    >,
+    engine: Worker,
+    generation: number
+  ) {
+    try {
+      let value: unknown;
+      if (data.type === 'alignment-init') {
+        alignmentPool.current?.dispose();
+        const pool = new AlignmentPool(data.script, data.binary, {
+          onState: (state) => {
+            if (generation === epoch.current)
+              engine.postMessage({ type: 'alignment-state', state });
+          },
+        });
+        alignmentPool.current = pool;
+        value = await pool.initialize(
+          resolveAlignmentWorkers(
+            data.choice,
+            navigator.hardwareConcurrency,
+            data.tasks
+          )
+        );
+      } else if (data.type === 'alignment-run') {
+        if (!alignmentPool.current)
+          throw new Error('The alignment workers are unavailable.');
+        value = await alignmentPool.current.run(data.a, data.b);
+      } else {
+        alignmentPool.current?.dispose();
+        alignmentPool.current = null;
+        value = null;
+      }
+      if (generation === epoch.current)
+        engine.postMessage({
+          type: 'alignment-reply',
+          requestId: data.requestId,
+          value,
+        });
+    } catch (error) {
+      if (generation === epoch.current)
+        engine.postMessage({
+          type: 'alignment-reply',
+          requestId: data.requestId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+    }
   }
   useEffect(() => {
     setReady(true);
@@ -227,7 +287,13 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       };
       engine.onmessage = ({ data }: MessageEvent<DeviceMessage>) => {
         if (generation !== epoch.current) return;
-        if (data.type === 'diagnostics') {
+        if (
+          data.type === 'alignment-init' ||
+          data.type === 'alignment-run' ||
+          data.type === 'alignment-stop'
+        ) {
+          void handleAlignmentRequest(data, engine, generation);
+        } else if (data.type === 'diagnostics') {
           setDiagnostics(data.diagnostics);
           setDiagnosticsReceivedAt(performance.now());
         } else if (data.type === 'progress') {
@@ -237,7 +303,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
             data.phase === 'setup'
               ? 180000
               : data.phase === 'alignment'
-                ? 120000
+                ? 180000
                 : 300000
           );
         } else if (data.type === 'model') {
@@ -289,6 +355,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           type: 'start',
           files: selected,
           compare,
+          alignmentWorkers,
           confidence: confidenceBytes,
           settings: {
             min_cluster_size: minCluster,
@@ -405,6 +472,32 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   counts are grouped separately, reducing the work. Larger
                   batches can take a long time; keep this tab open. Turn off
                   comparisons to calculate individual reports only.
+                </p>
+                <label>
+                  Parallel Workers
+                  <select
+                    value={alignmentWorkers}
+                    disabled={running}
+                    onChange={(event) =>
+                      setAlignmentWorkers(
+                        event.target.value === 'auto'
+                          ? 'auto'
+                          : (Number(event.target.value) as 1 | 2 | 4)
+                      )
+                    }
+                  >
+                    <option value="auto">Auto (Up To 2)</option>
+                    <option value="1">1 Worker</option>
+                    <option value="2">2 Workers</option>
+                    <option value="4">4 Workers</option>
+                  </select>
+                </label>
+                <p>
+                  MM-align comparisons share a queue across the selected
+                  workers. Auto leaves processor headroom and uses at most two.
+                  Counts are capped by the processors reported by your browser.
+                  More workers use more memory; Python calculations stay in one
+                  worker.
                 </p>
                 <label>
                   Minimum Cluster Size

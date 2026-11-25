@@ -1,10 +1,24 @@
-// No coordinates leave this worker. Network requests load only versioned engine assets.
-import { alignmentRunner } from './run-mmalign.mjs';
+// No coordinates leave this browser. Network requests load only versioned engine assets.
+import { scheduleAlignments } from './alignment-scheduler.mjs';
 import { monitorDiagnostics } from './diagnostics.mjs';
 const BASE = new URL('./', import.meta.url);
 const RUNTIME = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
 let started = false;
 let diagnostics;
+let requestId = 0;
+const requests = new Map();
+function alignmentRequest(type, payload = {}, transfers = []) {
+  return new Promise((resolve, reject) => {
+    const id = ++requestId;
+    requests.set(id, { resolve, reject });
+    try {
+      postMessage({ type, requestId: id, ...payload }, transfers);
+    } catch (error) {
+      requests.delete(id);
+      reject(error);
+    }
+  });
+}
 async function asset(name, expected) {
   const response = await fetch(new URL(name, BASE), {
     cache: 'no-cache',
@@ -32,6 +46,18 @@ function progress(stage, completed, total, filename = '', phase = 'setup') {
   diagnostics?.emit();
 }
 self.onmessage = async ({ data }) => {
+  if (data.type === 'alignment-reply') {
+    const request = requests.get(data.requestId);
+    requests.delete(data.requestId);
+    if (data.error) request?.reject(new Error(data.error));
+    else request?.resolve(data.value);
+    return;
+  }
+  if (data.type === 'alignment-state') {
+    diagnostics?.pool(data.state);
+    diagnostics?.emit();
+    return;
+  }
   if (started || data.type !== 'start') return;
   started = true;
   diagnostics = monitorDiagnostics(
@@ -82,6 +108,15 @@ self.onmessage = async ({ data }) => {
     if (data.confidence && data.confidence.byteLength > 65536)
       throw new Error('Confidence CSV must be at most 64 KB.');
     const batch = Boolean(data.compare && data.files.length > 1);
+    const workerChoice = data.alignmentWorkers ?? 'auto';
+    if (!['auto', 1, 2, 4].includes(workerChoice))
+      throw new Error('Invalid alignment worker count.');
+    const execution = {
+      requested_workers: workerChoice,
+      workers: 0,
+      fallback: null,
+      alignment_elapsed_seconds: 0,
+    };
     let currentIndex = 0;
     const { loadPyodide } = await import(`${RUNTIME}pyodide.mjs`);
     const python = await loadPyodide({
@@ -133,7 +168,7 @@ self.onmessage = async ({ data }) => {
         await asset('analysis.py', engine.files['analysis.py'])
       )
     );
-    let align;
+    let alignmentScript, alignmentBinary;
     if (batch) {
       python.unpackArchive(
         await asset('pipeline.zip', engine.files['pipeline.zip']),
@@ -145,12 +180,13 @@ self.onmessage = async ({ data }) => {
           await asset('batch.py', engine.files['batch.py'])
         )
       );
-      align = await alignmentRunner(
-        await asset('mmalign/mmalign.mjs', engine.files['mmalign/mmalign.mjs']),
-        await asset(
-          'mmalign/mmalign.wasm',
-          engine.files['mmalign/mmalign.wasm']
-        )
+      alignmentScript = await asset(
+        'mmalign/mmalign.mjs',
+        engine.files['mmalign/mmalign.mjs']
+      );
+      alignmentBinary = await asset(
+        'mmalign/mmalign.wasm',
+        engine.files['mmalign/mmalign.wasm']
       );
       for (const name of ['LICENSE.txt', 'build.json'])
         python.FS.writeFile(
@@ -193,49 +229,60 @@ self.onmessage = async ({ data }) => {
       const plan = JSON.parse(await python.runPythonAsync('alignment_plan()'));
       if (plan.tasks.length > limits.max_files ** 2)
         throw new Error('Too many pairwise alignments for this browser run.');
-      const failed = new Set();
-      diagnostics.phase('alignment', plan.tasks.length);
-      diagnostics.emit(true);
-      for (const [index, task] of plan.tasks.entries()) {
-        progress(
-          'Aligning Comparable Structures',
-          index,
-          plan.tasks.length,
-          `${task.a} → ${task.b}`,
-          'alignment'
+      if (plan.tasks.length) {
+        progress('Preparing Alignment Workers', 0, 0, '', 'setup');
+        const pool = await alignmentRequest(
+          'alignment-init',
+          {
+            choice: workerChoice,
+            tasks: plan.tasks.length,
+            script: alignmentScript,
+            binary: alignmentBinary,
+          },
+          [alignmentScript, alignmentBinary]
         );
-        if (!failed.has(task.group)) {
-          const operationStarted = performance.now();
-          let stdout = '',
-            error = '';
-          try {
-            stdout = await align(
-              python.FS.readFile(`/device/artifacts/alignment/${task.a}.pdb`),
-              python.FS.readFile(`/device/artifacts/alignment/${task.b}.pdb`)
+        execution.workers = pool.workers;
+        execution.fallback = pool.fallback;
+        diagnostics.phase('alignment', plan.tasks.length);
+        diagnostics.emit(true);
+        const alignmentStarted = performance.now();
+        await scheduleAlignments(
+          plan.tasks,
+          pool.workers,
+          (task) => {
+            const a = python.FS.readFile(
+              `/device/artifacts/alignment/${task.a}.pdb`
+            ).slice().buffer;
+            const b = python.FS.readFile(
+              `/device/artifacts/alignment/${task.b}.pdb`
+            ).slice().buffer;
+            return alignmentRequest('alignment-run', { a, b }, [a, b]);
+          },
+          async (task, result) => {
+            python.globals.set('_task_json', JSON.stringify(task));
+            python.globals.set('_alignment_stdout', result.stdout);
+            python.globals.set('_alignment_error', result.error);
+            return await python.runPythonAsync(
+              'accept_alignment(_task_json, _alignment_stdout, _alignment_error)'
             );
-          } catch (problem) {
-            error = String(problem);
-            failed.add(task.group);
+          },
+          (task, result, done) => {
+            diagnostics.operation(result.elapsedMs, result);
+            progress(
+              'Aligning Comparable Structures',
+              done,
+              plan.tasks.length,
+              `${task.a} → ${task.b}`,
+              'alignment'
+            );
           }
-          python.globals.set('_task_json', JSON.stringify(task));
-          python.globals.set('_alignment_stdout', stdout);
-          python.globals.set('_alignment_error', error);
-          await python.runPythonAsync(
-            'accept_alignment(_task_json, _alignment_stdout, _alignment_error)'
-          );
-          diagnostics.operation(performance.now() - operationStarted, {
-            failed: Boolean(error),
-          });
-        } else {
-          diagnostics.operation(0, { skipped: true });
-        }
-        progress(
-          'Aligning Comparable Structures',
-          index + 1,
-          plan.tasks.length,
-          `${task.a} → ${task.b}`,
-          'alignment'
         );
+        execution.alignment_elapsed_seconds =
+          (performance.now() - alignmentStarted) / 1000;
+        // Preserve completed-stage measurements even when the whole batch of
+        // comparisons finishes within the one-second sampling interval.
+        diagnostics.emit(true);
+        await alignmentRequest('alignment-stop');
       }
       diagnostics.phase('clustering', plan.groups);
       diagnostics.emit(true);
@@ -267,6 +314,7 @@ self.onmessage = async ({ data }) => {
     diagnostics.phase('export');
     diagnostics.emit(true);
     progress('Preparing Your Download', 0, 0, '', 'export');
+    python.globals.set('_alignment_execution_json', JSON.stringify(execution));
     const result = JSON.parse(await python.runPythonAsync('finish()'));
     const artifacts = {};
     const transfers = [];

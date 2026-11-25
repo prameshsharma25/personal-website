@@ -58,7 +58,7 @@ def accept_alignment(task_json, stdout, error):
     task = json.loads(task_json)
     group = next(g for g in GROUPS if g["id"] == task["group"])
     if group["error"]:
-        return
+        return group["error"]
     try:
         if error:
             raise ValueError(error)
@@ -75,6 +75,7 @@ def accept_alignment(task_json, stdout, error):
         save(ARTIFACTS / "pairs" / f"{a}-{b}.json", parsed)
     except Exception as problem:
         group["error"] = f"{type(problem).__name__}: {problem}"
+    return group["error"]
 
 
 def finish_group(index):

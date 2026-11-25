@@ -713,7 +713,8 @@
   gap: 0.6rem;
   font-size: 0.85rem;
 }
-.analysisSettings input {
+.analysisSettings input,
+.analysisSettings select {
   max-width: 100%;
   border: 1px solid #93c4a74a;
   border-radius: 7px;

@@ -212,6 +212,7 @@ def finish():
     summary = {
         "schema_version": "amyloid-device-results-1.0",
         "execution": "browser_web_worker",
+        "alignment_execution": json.loads(_alignment_execution_json),
         "structures": RESULTS,
         "elapsed_seconds": time.perf_counter() - STARTED,
         "clustering_status": "requested" if BATCH else "not_requested",
@@ -248,6 +249,8 @@ def finish():
             "engine": ENGINE,
         },
     }
+    if summary["alignment_execution"].get("fallback"):
+        summary["warnings"].append(summary["alignment_execution"]["fallback"])
     save(ARTIFACTS / "results.json", summary)
     shutil.copytree("/research/licenses", ARTIFACTS / "licenses", dirs_exist_ok=True)
     if BATCH:

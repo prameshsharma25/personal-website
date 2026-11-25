@@ -3,7 +3,8 @@ Amyloid Structure Analysis — On-Device Pipeline
 Default route: /tools/amyloid-inspector
 No AMYLOID_API_URL, account, local Python installation, or analysis server is
 required. Selecting files alone previews a single structure. Analyze On My Device
-starts calculations in a dedicated module Web Worker. No coordinates, filenames,
+starts calculations in a dedicated Python module Web Worker. Batch comparisons
+use a separate pool of MM-align Web Workers. No coordinates, filenames,
 confidence metadata, or results are uploaded.
 
 CALCULATIONS
@@ -19,18 +20,24 @@ finished construct groups. Failures remain visible. Elapsed time includes loadin
 LIVE DIAGNOSTICS
 The local run displays processed operations per minute, last-operation wall time,
 a rolling mean of up to 20 operations, and an approximate time remaining for the
-current calculation stage after three timing samples. Skips do not increase the
+current calculation stage after three timing samples. Estimates use observed
+completion intervals across all active workers, rather than summing individual
+comparison durations. The rolling window contains up to 20 completion intervals.
+Skips do not increase the
 rate; failure/skip counts remain visible. Estimates exclude later stages and are
 not completion guarantees. Completed-stage statistics freeze when that stage ends.
 
 Python memory is allocated WebAssembly linear memory, read using the public
 Pyodide PyBuffer.getBuffer API on a one-byte probe. Views are refreshed and released
 for every sample to accommodate growth. The sampled peak is not total browser or
-device memory: it excludes the independent MM-align runtime, MEMFS file storage,
+device memory: it excludes the independent MM-align runtimes, MEMFS file storage,
 JavaScript objects, and other page allocations. CPU utilization is not estimated.
 https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.ffi.PyBuffer.getBuffer
 
-A resource PerformanceObserver in the worker counts only engine/runtime requests.
+A resource PerformanceObserver in the Python worker counts engine/runtime requests
+made by that worker. The MM-align binary and wrapper are fetched once there and
+passed to the pool. Worker entry scripts and imports fetched by the page or the
+alignment workers are outside this measurement; it is not a complete network log.
 Transfer bytes use the browser's transferSize including its header-size estimate.
 Average download rate is observed bytes divided by the span from the earliest
 measured request start to the latest measured response end (overlap counted once).
@@ -83,13 +90,41 @@ progress bar uses the actual count after grouping. Smaller batches may still
 exhaust memory on some devices. The cluster-size control allows 2-125 members,
 and minimum samples allows 1-124 neighbors; scientific defaults remain unchanged.
 
+PARALLEL ALIGNMENT
+The Parallel Workers setting offers Auto, 1, 2, and 4. Auto uses at most two
+alignment workers and leaves one reported logical core available when possible:
+min(2, max(1, hardwareConcurrency - 1)). Manual choices are capped by reported
+logical cores and all choices are capped by the actual comparison count. When
+hardwareConcurrency is unavailable, the fallback assumes two logical cores.
+This is a conservative scheduling policy, not a measured optimum for every device.
+
+The page owns the Python worker and every alignment worker. Only one Pyodide
+runtime loads the scientific libraries; descriptors, result acceptance, clustering,
+ranking, and report generation remain serial. A bounded queue dispatches at most
+one directed MM-align comparison per alignment worker. Coordinate buffers are
+transferred between workers; the queue does not copy the entire batch into every
+runtime. Results are accepted into Python serially, and matrix entries retain
+their fixed structure IDs regardless of completion order. Neither scoring nor
+HDBSCAN settings change with the worker count. No Python threading is enabled.
+
+Diagnostics show active/available alignment workers and peak concurrency. Active
+means an assigned comparison, not measured CPU utilization. More workers use more
+memory and may be slower for small inputs or on a busy device. If multiple workers
+cannot initialize, the pool retries with one and records the fallback in the
+downloaded result. A crashed or timed-out worker is terminated and replaced for
+subsequent work. The affected construct group fails explicitly; remaining queued
+comparisons in that group are skipped, with no distances imputed.
+
 Each MM-align invocation gets a fresh Emscripten instance to avoid cross-pair state.
 Its memory may grow to 1 GiB; this is a ceiling, not an allocated amount or an
 estimate for the whole browser job. Memory exhaustion can still stop a job.
 Initialization inactivity timeout: three minutes. Each descriptor/report phase:
-five minutes without a stage update. Each directed alignment: two minutes.
-Cancel terminates the worker immediately and discards that run. Completion and
-navigation also terminate it, freeing the runtime. Results live only in page
+five minutes without a stage update. Each alignment worker startup: 30 seconds.
+Each directed alignment: two minutes. The overall alignment inactivity watchdog
+allows three minutes so individual timeouts and replacement can report failure.
+Cancel terminates the Python worker and all alignment workers immediately and
+discards that run. Completion and navigation also terminate every worker. The
+alignment pool is released before clustering. Results live only in page
 memory; download before leaving/reloading. Switching inspector modes retains the
 active local run. No background continuation after closing the page is promised.
 
@@ -135,6 +170,9 @@ outputs, gate reports, portable manifests, source/normalized hashes, chain mappi
 canonical confidence metadata, and runtime/scientific provenance. Batch jobs add
 alignment coordinates, directed comparison reports, distance matrices, scored
 members, clustering settings/results, representatives, and shortlist eligibility.
+results.json also records alignment_execution: requested worker setting, actual
+worker count, startup fallback (if any), and alignment-stage wall time. Engine
+startup and later clustering/export time are excluded from that alignment timing.
 SHA256.json covers every archive file except itself. Reports are paired with their
 manifest and coordinate bytes using SHA-256 before interactive display.
 
@@ -146,10 +184,16 @@ Browser tests need network access to the pinned runtime CDN. python3 is used onl
 by the TEST RUNNER to inspect ZIP files; visitors need no Python installation.
 Tests compare PDB/mmCIF descriptor outputs to native fixtures, clustering partitions
 on 12 synthetic matrices (noise, ties, duplicates, degenerate pools), and a real
-six-structure browser job against native MM-align distances. The latter uses
+six-structure browser job against native MM-align distances. The same job runs
+with 1, 2, and 4 workers and requires identical distances, clusters, ranking, and
+representatives across modes. Per-mode wall times are attached to test results;
+they measure this small fixture on the test device, not general speedup. It uses
 synthetic chain translations of a public prediction, not experimental or private
 benchmark data. Archive checksums, confidence handling, cancellation, failure/retry,
-progress, mobile layout, and no-upload assertions are included.
+progress, mobile layout, and no-upload assertions are included. Pool unit tests
+cover startup fallback, worker crashes/timeouts, bounded concurrency, and serial
+Python acceptance. A real-browser cancellation test stops all workers during
+alignment, then verifies a fresh run completes.
 The 125-file limit is checked through actual browser selection, worker startup,
 and cancellation. A 21-input single-chain fixture completes all 441 directed
 alignments, clustering, and a checksum-verified ZIP, exercising the former
