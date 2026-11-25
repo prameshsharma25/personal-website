@@ -32,7 +32,7 @@ export default function AmyloidTool() {
             'Analyze predicted amyloid assemblies with structural descriptors, MM-align comparisons, HDBSCAN clustering, candidate ranking, and downloadable reports. Calculations run on your device with an interactive molecular viewer.',
         }}
       />
-      <main className={ui.page}>
+      <main className={`${ui.page} ${styles.toolsPage}`}>
         <div className={styles.breadcrumb}>
           <Link href="/tools">← All Tools</Link>
           <span>Research Preview / Structure Analysis</span>

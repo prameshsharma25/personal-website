@@ -42,26 +42,28 @@ export default function SavedAnalysisRuns({
         Open a run to restore its structures and settings. Completed runs also
         restore results, clusters, and downloads.
       </p>
-      <div
-        className={styles.clusterFilters}
-        role="group"
-        aria-label="Filter Runs By Status"
-      >
-        {(Object.keys(labels) as Status[]).map((status) => (
-          <button
-            key={status}
-            aria-pressed={filter === status}
-            onClick={() => setFilter(status)}
-          >
-            {labels[status]}{' '}
-            <span>
-              {status === 'all'
-                ? runs.length
-                : runs.filter((run) => run.displayStatus === status).length}
-            </span>
-          </button>
-        ))}
-      </div>
+      {!!runs.length && (
+        <div
+          className={styles.clusterFilters}
+          role="group"
+          aria-label="Filter Runs By Status"
+        >
+          {(Object.keys(labels) as Status[]).map((status) => (
+            <button
+              key={status}
+              aria-pressed={filter === status}
+              onClick={() => setFilter(status)}
+            >
+              {labels[status]}{' '}
+              <span>
+                {status === 'all'
+                  ? runs.length
+                  : runs.filter((run) => run.displayStatus === status).length}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       {visible.length ? (
         <ul className={styles.runList} aria-label="Saved Runs">
           {visible.map((run) => (

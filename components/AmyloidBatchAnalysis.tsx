@@ -340,6 +340,7 @@ export default function AmyloidBatchAnalysis({
           <label htmlFor="analysis-structures">Choose Structures</label>
           <input
             id="analysis-structures"
+            aria-describedby="amyloid-server-file-help"
             type="file"
             accept=".pdb,.cif,.mmcif"
             multiple
@@ -349,7 +350,7 @@ export default function AmyloidBatchAnalysis({
               e.target.value = '';
             }}
           />
-          <p>
+          <p id="amyloid-server-file-help">
             {files.length
               ? `${files.length} Structures Selected`
               : 'PDB Or mmCIF'}{' '}
@@ -367,55 +368,62 @@ export default function AmyloidBatchAnalysis({
           </ul>
         </details>
       )}
-      <details className={styles.provenance}>
+      <details className={styles.batchSettings}>
         <summary>Confidence & Clustering Settings</summary>
         <div className={styles.analysisSettings}>
-          <label>
-            Confidence CSV (Optional)
-            <input
-              type="file"
-              accept=".csv"
-              disabled={busy || active}
-              onChange={(e) => setConfidence(e.target.files?.[0] || null)}
-            />
-          </label>
-          <p>
-            Columns: <code>filename,method,iptm,mean_plddt</code>. Use ipTM from
-            0 to 1 and mean pLDDT from 0 to 100. Missing confidence is not
-            inferred from PDB B-factors; it prevents confidence-based
-            shortlisting, but descriptors and clustering still run.{' '}
-            <a href="/tools/confidence-template.csv" download>
-              Download Template
-            </a>
-          </p>
-          <label>
-            Minimum Cluster Size
-            <input
-              type="number"
-              min="2"
-              max="125"
-              value={minCluster}
-              disabled={busy || active}
-              onChange={(e) => setMinCluster(Number(e.target.value))}
-            />
-          </label>
-          <label>
-            Minimum Samples
-            <input
-              type="number"
-              min="1"
-              max="124"
-              value={minSamples}
-              disabled={busy || active}
-              onChange={(e) => setMinSamples(Number(e.target.value))}
-            />
-          </label>
-          <p>
-            HDBSCAN uses EOM selection. Defaults are 10 and 3; a smaller pool
-            may not support clusters. Custom settings and uploaded pools are
-            exploratory. Different sequences or chain counts are analyzed in
-            separate comparison groups.
-          </p>
+          <div className={styles.settingField}>
+            <label>
+              Confidence CSV (Optional)
+              <input
+                type="file"
+                accept=".csv"
+                aria-describedby="amyloid-server-confidence-help"
+                disabled={busy || active}
+                onChange={(e) => setConfidence(e.target.files?.[0] || null)}
+              />
+            </label>
+            <p id="amyloid-server-confidence-help">
+              Columns: <code>filename,method,iptm,mean_plddt</code>. Use ipTM
+              from 0 to 1 and mean pLDDT from 0 to 100. Missing confidence is
+              not inferred from PDB B-factors; it prevents confidence-based
+              shortlisting, but descriptors and clustering still run.{' '}
+              <a href="/tools/confidence-template.csv" download>
+                Download Template
+              </a>
+            </p>
+          </div>
+          <div className={styles.settingField}>
+            <div className={styles.settingPair}>
+              <label>
+                Minimum Cluster Size
+                <input
+                  type="number"
+                  min="2"
+                  max="125"
+                  value={minCluster}
+                  disabled={busy || active}
+                  onChange={(e) => setMinCluster(Number(e.target.value))}
+                />
+              </label>
+              <label>
+                Minimum Samples
+                <input
+                  type="number"
+                  min="1"
+                  max="124"
+                  value={minSamples}
+                  disabled={busy || active}
+                  onChange={(e) => setMinSamples(Number(e.target.value))}
+                />
+              </label>
+            </div>
+            <p>
+              HDBSCAN uses EOM selection. Defaults are 10 and 3; a smaller pool
+              may not support clusters. Custom settings and uploaded pools are
+              exploratory. Different sequences or chain counts are analyzed in
+              separate comparison groups.
+            </p>
+          </div>
         </div>
       </details>
       <div className={styles.exampleBar}>

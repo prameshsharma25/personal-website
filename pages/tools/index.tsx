@@ -16,7 +16,7 @@ export default function Tools() {
           { name: 'Tools', path: '/tools' },
         ]}
       />
-      <main className={ui.page}>
+      <main className={`${ui.page} ${styles.toolsPage}`}>
         <PageIntro
           eyebrow="Tools / Structural Biology"
           title="A Closer Look At"

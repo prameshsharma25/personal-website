@@ -817,6 +817,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           <input
             ref={fileInput}
             id="amyloid-device-files"
+            aria-describedby="amyloid-device-file-help"
             type="file"
             multiple
             accept=".pdb,.cif,.mmcif"
@@ -826,7 +827,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               event.target.value = '';
             }}
           />
-          <p>
+          <p id="amyloid-device-file-help">
             Up to {DEVICE_LIMITS.files} files ·{' '}
             {DEVICE_LIMITS.fileBytes / 1024 ** 2} MB each ·{' '}
             {DEVICE_LIMITS.totalBytes / 1024 ** 2} MB total
@@ -851,32 +852,35 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         <details className={styles.batchSettings} open>
           <summary>Batch Analysis Settings</summary>
           <div className={styles.analysisSettings}>
-            <label>
-              Descriptor Workers
-              <select
-                value={descriptorWorkers}
-                disabled={running}
-                onChange={(event) =>
-                  setDescriptorWorkers(
-                    event.target.value === 'auto'
-                      ? 'auto'
-                      : (Number(event.target.value) as 1 | 2 | 4)
-                  )
-                }
-              >
-                <option value="auto">Auto (Up To 2)</option>
-                <option value="1">1 Worker</option>
-                <option value="2">2 Workers</option>
-                <option value="4">4 Workers</option>
-              </select>
-            </label>
-            <p>
-              Calculate geometry, packing, energetics, and warnings for
-              different structures at the same time. Each worker loads its own
-              Python engine and uses additional memory. Auto uses one worker for
-              fewer than four structures or devices reporting 4 GB of memory or
-              less. Descriptor workers finish before alignment begins.
-            </p>
+            <div className={styles.settingField}>
+              <label>
+                Descriptor Workers
+                <select
+                  value={descriptorWorkers}
+                  disabled={running}
+                  onChange={(event) =>
+                    setDescriptorWorkers(
+                      event.target.value === 'auto'
+                        ? 'auto'
+                        : (Number(event.target.value) as 1 | 2 | 4)
+                    )
+                  }
+                >
+                  <option value="auto">Auto (Up To 2)</option>
+                  <option value="1">1 Worker</option>
+                  <option value="2">2 Workers</option>
+                  <option value="4">4 Workers</option>
+                </select>
+              </label>
+              <p>
+                Calculate geometry, packing, energetics, and warnings for
+                different structures at the same time. Each worker loads its own
+                Python engine and uses additional memory. Auto uses one worker
+                for fewer than four structures or devices reporting 4 GB of
+                memory or less. Descriptor workers finish before alignment
+                begins.
+              </p>
+            </div>
             <label className={styles.compareToggle}>
               <input
                 type="checkbox"
@@ -888,98 +892,110 @@ export default function AmyloidDeviceAnalysis(props: Props) {
             </label>
             {compare && (
               <>
-                <p>
-                  MM-align compares matching sequences and chain counts. HDBSCAN
-                  groups similar assemblies; representative structures and
-                  shortlist eligibility appear in your results and download.
-                </p>
-                <p aria-label="Comparison Workload">
-                  Up to {(files.length ** 2).toLocaleString('en-US')} MM-align
-                  runs for {files.length} structures, including self-checks and
-                  both comparison directions. Different sequences or chain
-                  counts are grouped separately, reducing the work. Larger
-                  batches can take a long time; keep this tab open. Turn off
-                  comparisons to calculate individual reports only.
-                </p>
-                <label>
-                  Parallel Workers
-                  <select
-                    value={alignmentWorkers}
-                    disabled={running}
-                    onChange={(event) =>
-                      setAlignmentWorkers(
-                        event.target.value === 'auto'
-                          ? 'auto'
-                          : (Number(event.target.value) as 1 | 2 | 4)
-                      )
-                    }
-                  >
-                    <option value="auto">Auto (Up To 2)</option>
-                    <option value="1">1 Worker</option>
-                    <option value="2">2 Workers</option>
-                    <option value="4">4 Workers</option>
-                  </select>
-                </label>
-                <p>
-                  MM-align comparisons share a queue across the selected
-                  workers. Auto leaves processor headroom and uses at most two.
-                  Counts are capped by the processors reported by your browser.
-                  More workers use more memory. This setting controls
-                  comparisons; Descriptor Workers controls individual structure
-                  calculations.
-                </p>
-                <label>
-                  Minimum Cluster Size
-                  <input
-                    type="number"
-                    min="2"
-                    max={DEVICE_LIMITS.files}
-                    value={minCluster}
-                    disabled={running}
-                    onChange={(event) =>
-                      setMinCluster(Number(event.target.value))
-                    }
-                  />
-                </label>
-                <label>
-                  Minimum Samples
-                  <input
-                    type="number"
-                    min="1"
-                    max={DEVICE_LIMITS.files - 1}
-                    value={minSamples}
-                    disabled={running}
-                    onChange={(event) =>
-                      setMinSamples(Number(event.target.value))
-                    }
-                  />
-                </label>
-                <p>
-                  Minimum Samples counts neighboring structures, excluding the
-                  structure itself. Small pools may not support clusters.
-                  Missing prediction confidence remains unavailable. The
-                  diversity filter keeps shortlisted candidates at least 0.20
-                  apart on the structural distance scale. Shortlisting requires
-                  prediction confidence, including ipTM and mean pLDDT;
-                  clustering does not.
-                </p>
-                <label>
-                  Optional Confidence CSV
-                  <input
-                    type="file"
-                    accept=".csv"
-                    disabled={running}
-                    onChange={(event) =>
-                      setConfidence(event.target.files?.[0] || null)
-                    }
-                  />
-                </label>
-                <p>
-                  Up to 64 KB. Match the exact structure filenames.{' '}
-                  <a href="/tools/confidence-template.csv" download>
-                    Download A Template
-                  </a>
-                </p>
+                <div className={styles.comparisonHelp}>
+                  <p>
+                    MM-align compares matching sequences and chain counts.
+                    HDBSCAN groups similar assemblies; representative structures
+                    and shortlist eligibility appear in your results and
+                    download.
+                  </p>
+                  <p aria-label="Comparison Workload">
+                    Up to {(files.length ** 2).toLocaleString('en-US')} MM-align
+                    runs for {files.length} structures, including self-checks
+                    and both comparison directions. Different sequences or chain
+                    counts are grouped separately, reducing the work. Larger
+                    batches can take a long time; keep this tab open. Turn off
+                    comparisons to calculate individual reports only.
+                  </p>
+                </div>
+                <div className={styles.settingField}>
+                  <label>
+                    Parallel Workers
+                    <select
+                      value={alignmentWorkers}
+                      disabled={running}
+                      onChange={(event) =>
+                        setAlignmentWorkers(
+                          event.target.value === 'auto'
+                            ? 'auto'
+                            : (Number(event.target.value) as 1 | 2 | 4)
+                        )
+                      }
+                    >
+                      <option value="auto">Auto (Up To 2)</option>
+                      <option value="1">1 Worker</option>
+                      <option value="2">2 Workers</option>
+                      <option value="4">4 Workers</option>
+                    </select>
+                  </label>
+                  <p>
+                    MM-align comparisons share a queue across the selected
+                    workers. Auto leaves processor headroom and uses at most
+                    two. Counts are capped by the processors reported by your
+                    browser. More workers use more memory. This setting controls
+                    comparisons; Descriptor Workers controls individual
+                    structure calculations.
+                  </p>
+                </div>
+                <div className={styles.settingField}>
+                  <div className={styles.settingPair}>
+                    <label>
+                      Minimum Cluster Size
+                      <input
+                        type="number"
+                        min="2"
+                        max={DEVICE_LIMITS.files}
+                        value={minCluster}
+                        disabled={running}
+                        onChange={(event) =>
+                          setMinCluster(Number(event.target.value))
+                        }
+                      />
+                    </label>
+                    <label>
+                      Minimum Samples
+                      <input
+                        type="number"
+                        min="1"
+                        max={DEVICE_LIMITS.files - 1}
+                        value={minSamples}
+                        disabled={running}
+                        onChange={(event) =>
+                          setMinSamples(Number(event.target.value))
+                        }
+                      />
+                    </label>
+                  </div>
+                  <p>
+                    Minimum Samples counts neighboring structures, excluding the
+                    structure itself. Small pools may not support clusters.
+                    Missing prediction confidence remains unavailable. The
+                    diversity filter keeps shortlisted candidates at least 0.20
+                    apart on the structural distance scale. Shortlisting
+                    requires prediction confidence, including ipTM and mean
+                    pLDDT; clustering does not.
+                  </p>
+                </div>
+                <div className={styles.settingField}>
+                  <label>
+                    Optional Confidence CSV
+                    <input
+                      type="file"
+                      accept=".csv"
+                      aria-describedby="amyloid-device-confidence-help"
+                      disabled={running}
+                      onChange={(event) =>
+                        setConfidence(event.target.files?.[0] || null)
+                      }
+                    />
+                  </label>
+                  <p id="amyloid-device-confidence-help">
+                    Up to 64 KB. Match the exact structure filenames.{' '}
+                    <a href="/tools/confidence-template.csv" download>
+                      Download A Template
+                    </a>
+                  </p>
+                </div>
               </>
             )}
           </div>
