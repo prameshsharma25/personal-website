@@ -86,6 +86,7 @@ manifest = {
             "pipeline.zip",
             "batch.py",
             "run-mmalign.mjs",
+            "diagnostics.mjs",
             "mmalign/mmalign.mjs",
             "mmalign/mmalign.wasm",
             "mmalign/LICENSE.txt",

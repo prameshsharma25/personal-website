@@ -797,3 +797,83 @@
 .resultHeading h2 {
   overflow-wrap: anywhere;
 }
+
+.diagnostics {
+  margin: 1.4rem 0 2rem;
+  border: 1px solid #8bc6aa44;
+  border-radius: 14px;
+  background: linear-gradient(130deg, #10281dc9, #080f0db3);
+  padding: 1.3rem;
+}
+.diagnostics > summary {
+  cursor: pointer;
+  color: #d7f5e4;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.diagnosticState {
+  display: inline-block;
+  margin-left: 1rem;
+  color: #a3b8ae;
+  font-size: 0.7rem;
+}
+.diagnosticState[data-running='true'] {
+  color: #a5f5cd;
+}
+.diagnosticIntro,
+.diagnosticNote {
+  font-size: 0.76rem;
+  color: #a8c2b4;
+  line-height: 1.8;
+}
+.diagnosticGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.1rem 0;
+}
+.diagnosticGrid > div {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #8bc6aa26;
+  border-radius: 9px;
+  background: #07140d80;
+}
+.diagnosticGrid dt {
+  font-size: 0.73rem;
+  color: #b4cbbf;
+}
+.diagnosticGrid dd {
+  margin: 0.7rem 0;
+  color: #c0ffdf;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.diagnosticGrid dd strong {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-weight: 500;
+}
+.diagnosticGrid p {
+  margin: 0;
+  font-size: 0.69rem;
+  line-height: 1.65;
+  color: #93afa0;
+}
+@media (max-width: 1000px) {
+  .diagnosticGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .diagnostics {
+    padding: 0.9rem;
+  }
+  .diagnosticGrid > div {
+    padding: 0.7rem;
+  }
+  .diagnosticState {
+    margin-left: 0.5rem;
+  }
+}

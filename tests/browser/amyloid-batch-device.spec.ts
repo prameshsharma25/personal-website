@@ -62,6 +62,19 @@ test('real browser batch passes the former 400-alignment ceiling', async ({
   page,
 }, testInfo) => {
   test.setTimeout(180000);
+  await page.addInitScript(() => {
+    const original = window.Worker;
+    (window as any).__diagnostics = [];
+    window.Worker = class extends original {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        this.addEventListener('message', ({ data }) => {
+          if (data.type === 'diagnostics')
+            (window as any).__diagnostics.push(data.diagnostics);
+        });
+      }
+    };
+  });
   // Small single-chain inputs exercise orchestration, not amyloid classification
   // or a capacity benchmark for 125 full assemblies.
   const original = await readFile(
@@ -86,6 +99,45 @@ test('real browser batch passes the former 400-alignment ceiling', async ({
   await page
     .getByRole('button', { name: 'Analyze On My Device', exact: true })
     .click();
+  const diagnostics = page.getByRole('region', {
+    name: 'Live Diagnostics',
+    exact: true,
+  });
+  await expect(diagnostics).toBeVisible();
+  await expect(
+    diagnostics
+      .locator('dt')
+      .filter({ hasText: /^Interface Delay$/ })
+      .locator('..')
+      .locator('dd strong')
+  ).toContainText(/ms|s/);
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          (window as any).__diagnostics.some(
+            (sample) =>
+              sample.stage?.phase === 'alignment' &&
+              sample.stage.ratePerMinute > 0 &&
+              sample.pythonMemoryBytes > 0
+          )
+        ),
+      { timeout: 120000 }
+    )
+    .toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath('live-diagnostics-desktop.png'),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBe(true);
+  await diagnostics.screenshot({
+    path: testInfo.outputPath('live-diagnostics-mobile.png'),
+  });
   await expect(
     page.getByRole('button', { name: 'Download Local Reports', exact: true })
   ).toBeVisible({ timeout: 150000 });
@@ -128,6 +180,37 @@ with zipfile.ZipFile(sys.argv[1]) as z:
     expect(row).toHaveLength(21);
     for (const distance of row) expect(distance).toBeCloseTo(0, 5);
   }
+  const samples = await page.evaluate(() => (window as any).__diagnostics);
+  expect(
+    samples.some(
+      (sample) =>
+        sample.stage?.phase === 'alignment' && sample.stage.remainingMs > 0
+    )
+  ).toBe(true);
+  const last = samples.at(-1);
+  expect(last.network.supported).toBe(true);
+  expect(last.network.transferBytes).toBeGreaterThan(0);
+  expect(last.network.requests).toBeGreaterThan(5);
+  expect(last.pythonMemoryBytes).toBeGreaterThan(1024 ** 2);
+  expect(last.peakPythonMemoryBytes).toBeGreaterThanOrEqual(
+    last.pythonMemoryBytes
+  );
+  expect(last.stage.remainingMs).toBe(0);
+  expect(last.stage.failed).toBe(0);
+  await expect(diagnostics).toContainText('Last measurements from this run.');
+  await expect(
+    diagnostics
+      .locator('dt')
+      .filter({ hasText: /^Interface Delay$/ })
+      .locator('..')
+  ).toContainText('Stopped');
+  const frozen = await diagnostics.textContent();
+  await page.waitForTimeout(1200);
+  expect(await diagnostics.textContent()).toBe(frozen);
+  await page
+    .getByRole('button', { name: 'Clear Local Results', exact: true })
+    .click();
+  await expect(diagnostics).toHaveCount(0);
 });
 
 test('browser MM-align, HDBSCAN, and ranking complete a synthetic six-structure pool locally', async ({

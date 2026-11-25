@@ -16,6 +16,38 @@ progress has six stages per input: parsing, QC, geometry, packing, energy, repor
 Alignment progress counts completed/skipped directed calls; clustering counts
 finished construct groups. Failures remain visible. Elapsed time includes loading.
 
+LIVE DIAGNOSTICS
+The local run displays processed operations per minute, last-operation wall time,
+a rolling mean of up to 20 operations, and an approximate time remaining for the
+current calculation stage after three timing samples. Skips do not increase the
+rate; failure/skip counts remain visible. Estimates exclude later stages and are
+not completion guarantees. Completed-stage statistics freeze when that stage ends.
+
+Python memory is allocated WebAssembly linear memory, read using the public
+Pyodide PyBuffer.getBuffer API on a one-byte probe. Views are refreshed and released
+for every sample to accommodate growth. The sampled peak is not total browser or
+device memory: it excludes the independent MM-align runtime, MEMFS file storage,
+JavaScript objects, and other page allocations. CPU utilization is not estimated.
+https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.ffi.PyBuffer.getBuffer
+
+A resource PerformanceObserver in the worker counts only engine/runtime requests.
+Transfer bytes use the browser's transferSize including its header-size estimate.
+Average download rate is observed bytes divided by the span from the earliest
+measured request start to the latest measured response end (overlap counted once).
+It is not instantaneous bandwidth or a connection speed test. Zero-byte
+cross-origin records are marked unmeasured because timing restrictions and cache
+hits cannot be distinguished. Same-origin zero-transfer/nonzero-body records are
+counted as local/cache responses. Unsupported APIs show unavailable metrics.
+https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming/transferSize
+
+Interface delay measures excess delay of a one-second main-thread timer; it is
+not network latency. Sampling pauses while the document is hidden. Diagnostics
+emit at most once per second, plus stage boundaries and the final snapshot.
+Synchronous calculation steps can delay samples; their age is shown without
+claiming that a busy worker has stalled. Telemetry does not reset job watchdogs.
+All diagnostics stay in page memory, freeze on cancellation/completion, and reset
+on a new run/selection. They are not sent to analytics or the analysis server.
+
 For multiple files, Compare And Cluster Structures is enabled by default and can
 be turned off. It uses:
 - Package-normalized first-model C-alpha exports with sequential chain/residue IDs

@@ -1,5 +1,6 @@
 import type { InputFile } from './amyloid-inspector';
 import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
+import type { DeviceDiagnostics } from './amyloid-diagnostics';
 
 export const DEVICE_LIMITS = {
   files: 125,
@@ -14,6 +15,7 @@ export type DeviceResult = {
   warnings: string[];
 };
 export type DeviceMessage =
+  | { type: 'diagnostics'; diagnostics: DeviceDiagnostics }
   | {
       type: 'progress';
       stage: string;

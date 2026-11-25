@@ -14,6 +14,8 @@ import {
 } from '../lib/amyloid-device';
 import type { AnalysisModel } from '../lib/amyloid-jobs';
 import AnalysisProgress from './AnalysisProgress';
+import AnalysisDiagnostics from './AnalysisDiagnostics';
+import type { DeviceDiagnostics } from '../lib/amyloid-diagnostics';
 import styles from '../styles/Tools.module.css';
 
 type Props = {
@@ -39,6 +41,10 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     { type: 'progress' }
   > | null>(null);
   const [startedAt, setStartedAt] = useState(0);
+  const [diagnostics, setDiagnostics] = useState<DeviceDiagnostics | null>(
+    null
+  );
+  const [diagnosticsReceivedAt, setDiagnosticsReceivedAt] = useState(0);
   const [compare, setCompare] = useState(true);
   const [confidence, setConfidence] = useState<File | null>(null);
   const [minCluster, setMinCluster] = useState(10);
@@ -107,6 +113,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setProgress('');
     setProgressStep(null);
     setStartedAt(0);
+    setDiagnostics(null);
+    setDiagnosticsReceivedAt(0);
     setConfidence(null);
     setResult(null);
     setArchive(null);
@@ -168,6 +176,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     artifacts.current = {};
     setRunning(true);
     setStartedAt(Date.now());
+    setDiagnostics(null);
+    setDiagnosticsReceivedAt(0);
     setProgressStep(null);
     setProgress('Reading Your Structures');
     callbacks.current.onReset();
@@ -217,7 +227,10 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       };
       engine.onmessage = ({ data }: MessageEvent<DeviceMessage>) => {
         if (generation !== epoch.current) return;
-        if (data.type === 'progress') {
+        if (data.type === 'diagnostics') {
+          setDiagnostics(data.diagnostics);
+          setDiagnosticsReceivedAt(performance.now());
+        } else if (data.type === 'progress') {
           setProgress(data.stage);
           setProgressStep(data);
           watchdog(
@@ -492,6 +505,16 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           total={progressStep?.total}
           filename={progressStep?.filename}
           phase={progressStep?.phase}
+        />
+      )}
+      {!!startedAt && (
+        <AnalysisDiagnostics
+          key={startedAt}
+          data={diagnostics}
+          receivedAt={diagnosticsReceivedAt}
+          running={running}
+          inputCount={files.length}
+          inputBytes={files.reduce((sum, file) => sum + file.size, 0)}
         />
       )}
       {!!models.length && (

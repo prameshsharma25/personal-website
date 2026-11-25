@@ -1,8 +1,10 @@
 // No coordinates leave this worker. Network requests load only versioned engine assets.
 import { alignmentRunner } from './run-mmalign.mjs';
+import { monitorDiagnostics } from './diagnostics.mjs';
 const BASE = new URL('./', import.meta.url);
 const RUNTIME = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
 let started = false;
+let diagnostics;
 async function asset(name, expected) {
   const response = await fetch(new URL(name, BASE), {
     cache: 'no-cache',
@@ -27,10 +29,16 @@ async function asset(name, expected) {
 }
 function progress(stage, completed, total, filename = '', phase = 'setup') {
   postMessage({ type: 'progress', stage, completed, total, filename, phase });
+  diagnostics?.emit();
 }
 self.onmessage = async ({ data }) => {
   if (started || data.type !== 'start') return;
   started = true;
+  diagnostics = monitorDiagnostics(
+    (message) => postMessage(message),
+    BASE,
+    RUNTIME
+  );
   try {
     progress('Loading The Analysis Engine', 0, 0);
     const engine = JSON.parse(
@@ -81,6 +89,7 @@ self.onmessage = async ({ data }) => {
       stdout: () => {},
       stderr: () => {},
     });
+    diagnostics.attachPython(python);
     await python.loadPackage(['numpy', 'biopython', 'freesasa'], {
       checkIntegrity: true,
     });
@@ -152,7 +161,10 @@ self.onmessage = async ({ data }) => {
         );
     }
     python.FS.mkdirTree('/device/inputs');
+    diagnostics.phase('descriptors', data.files.length);
+    diagnostics.emit(true);
     for (let index = 0; index < data.files.length; index++) {
+      const operationStarted = performance.now();
       currentIndex = index;
       const file = data.files[index];
       const id = `model-${String(index + 1).padStart(3, '0')}`;
@@ -171,6 +183,10 @@ self.onmessage = async ({ data }) => {
       const model = JSON.parse(
         await python.runPythonAsync('analyze_entry(_entry_json)')
       );
+      diagnostics.operation(performance.now() - operationStarted, {
+        failed: model.state === 'failed',
+      });
+      diagnostics.emit();
       postMessage({ type: 'model', model });
     }
     if (batch) {
@@ -178,6 +194,8 @@ self.onmessage = async ({ data }) => {
       if (plan.tasks.length > limits.max_files ** 2)
         throw new Error('Too many pairwise alignments for this browser run.');
       const failed = new Set();
+      diagnostics.phase('alignment', plan.tasks.length);
+      diagnostics.emit(true);
       for (const [index, task] of plan.tasks.entries()) {
         progress(
           'Aligning Comparable Structures',
@@ -187,6 +205,7 @@ self.onmessage = async ({ data }) => {
           'alignment'
         );
         if (!failed.has(task.group)) {
+          const operationStarted = performance.now();
           let stdout = '',
             error = '';
           try {
@@ -204,6 +223,11 @@ self.onmessage = async ({ data }) => {
           await python.runPythonAsync(
             'accept_alignment(_task_json, _alignment_stdout, _alignment_error)'
           );
+          diagnostics.operation(performance.now() - operationStarted, {
+            failed: Boolean(error),
+          });
+        } else {
+          diagnostics.operation(0, { skipped: true });
         }
         progress(
           'Aligning Comparable Structures',
@@ -213,6 +237,8 @@ self.onmessage = async ({ data }) => {
           'alignment'
         );
       }
+      diagnostics.phase('clustering', plan.groups);
+      diagnostics.emit(true);
       for (let index = 0; index < plan.groups; index++) {
         progress(
           'Clustering And Ranking',
@@ -222,7 +248,13 @@ self.onmessage = async ({ data }) => {
           'clustering'
         );
         python.globals.set('_group_index', index);
-        await python.runPythonAsync('finish_group(_group_index)');
+        const operationStarted = performance.now();
+        const group = JSON.parse(
+          await python.runPythonAsync('finish_group(_group_index)')
+        );
+        diagnostics.operation(performance.now() - operationStarted, {
+          failed: group.clustering_status === 'failed',
+        });
         progress(
           'Clustering And Ranking',
           index + 1,
@@ -232,6 +264,8 @@ self.onmessage = async ({ data }) => {
         );
       }
     }
+    diagnostics.phase('export');
+    diagnostics.emit(true);
     progress('Preparing Your Download', 0, 0, '', 'export');
     const result = JSON.parse(await python.runPythonAsync('finish()'));
     const artifacts = {};
@@ -249,11 +283,15 @@ self.onmessage = async ({ data }) => {
       '/device/amyloid-device-results.zip'
     ).slice().buffer;
     transfers.push(archive);
+    diagnostics.emit(true);
     postMessage({ type: 'complete', result, artifacts, archive }, transfers);
   } catch (error) {
+    diagnostics.emit(true);
     postMessage({
       type: 'error',
       message: error instanceof Error ? error.message : String(error),
     });
+  } finally {
+    diagnostics.stop();
   }
 };
