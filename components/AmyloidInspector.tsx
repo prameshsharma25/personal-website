@@ -16,6 +16,7 @@ import styles from '../styles/Tools.module.css';
 export default function AmyloidInspector() {
   const [mode, setMode] = useState<'device' | 'analysis'>('device');
   const [serverOpened, setServerOpened] = useState(false);
+  const [serverAvailable, setServerAvailable] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   const [inspection, setInspection] = useState<Inspection | null>(null);
@@ -108,6 +109,10 @@ export default function AmyloidInspector() {
         </button>
         <button
           aria-pressed={mode === 'analysis'}
+          aria-label="Server Analysis"
+          aria-describedby={
+            !serverAvailable ? 'server-release-label' : undefined
+          }
           onClick={() => {
             setMode('analysis');
             setServerOpened(true);
@@ -115,6 +120,11 @@ export default function AmyloidInspector() {
           }}
         >
           Server Analysis
+          {!serverAvailable && (
+            <span id="server-release-label" className={styles.futureBadge}>
+              Future Release
+            </span>
+          )}
         </button>
       </div>
       <div hidden={mode !== 'device'}>
@@ -136,6 +146,7 @@ export default function AmyloidInspector() {
       <div hidden={mode !== 'analysis'}>
         {serverOpened && (
           <AmyloidBatchAnalysis
+            onAvailabilityChange={setServerAvailable}
             onReset={clear}
             onPreview={(structure) => {
               setInspection(null);

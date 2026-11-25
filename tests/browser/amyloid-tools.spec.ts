@@ -19,7 +19,7 @@ test('first Dr. Lauren Porter mention links to NIH and Tools has a dedicated rou
     page
       .getByRole('group', { name: 'Choose An Analysis Mode' })
       .getByRole('button')
-  ).toHaveText(['On My Device', 'Server Analysis']);
+  ).toHaveText(['On My Device', 'Server AnalysisFuture Release']);
   await expect(
     page
       .getByRole('navigation', { name: 'Main Navigation' })
@@ -110,3 +110,53 @@ test('keeps instructions, metadata, and routes available without JavaScript', as
   );
   await context.close();
 });
+
+for (const unavailable of ['unconfigured', 'unreachable']) {
+  test(`server analysis shows a future release preview when ${unavailable}`, async ({
+    page,
+  }) => {
+    const serviceRequests: string[] = [];
+    page.on('request', (request) => {
+      if (/\/(health|jobs)(?:[/?]|$)/.test(request.url()))
+        serviceRequests.push(request.url());
+    });
+    await page.route('**/api/amyloid-config', (route) =>
+      unavailable === 'unreachable'
+        ? route.abort()
+        : route.fulfill({ json: { enabled: false } })
+    );
+    await page.goto('/tools/amyloid-inspector');
+    const server = page.getByRole('button', {
+      name: 'Server Analysis',
+      exact: true,
+    });
+    await expect(server).toContainText('Future Release');
+    await server.click();
+    const preview = page.getByRole('region', {
+      name: 'Server Analysis Preview',
+    });
+    await expect(preview).toContainText('planned for a future release');
+    await expect(preview.locator('input')).toHaveCount(0);
+    await expect(
+      page.getByRole('region', { name: 'Analyze Uploaded Structures' })
+    ).toHaveCount(0);
+    expect(serviceRequests).toEqual([]);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+    await page
+      .getByRole('button', { name: 'On My Device', exact: true })
+      .click();
+    await expect(
+      page.getByLabel('Choose Structures', { exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'On-Device Analysis', exact: true })
+    ).toContainText(
+      'Automatic recovery from saved checkpoints is not available yet.'
+    );
+  });
+}

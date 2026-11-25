@@ -103,10 +103,9 @@ export default function AmyloidTool() {
             the browser adjusts scikit-learn’s setting to follow that
             convention. The backend and effective settings are recorded in each
             report. Tied distances can still lead to different partitions
-            between implementations. Server Analysis retains the native hdbscan
-            implementation for larger jobs; a separately configured worker is
-            required for that mode. You can also run the package on your
-            computer to generate reports independently of this website.
+            between implementations. Hosted Server Analysis is planned for a
+            future release. You can also run the package on your computer to
+            generate reports independently of this website.
           </p>
           <p className={styles.caption}>
             Amyloid Candidates: Dr. Devlina Chakravarty, Pramesh Sharma, and Dr.

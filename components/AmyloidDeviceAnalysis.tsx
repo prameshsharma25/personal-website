@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   inspectFiles,
   readStructure,
@@ -13,6 +13,7 @@ import {
   type DeviceResult,
 } from '../lib/amyloid-device';
 import type { AnalysisModel } from '../lib/amyloid-jobs';
+import { resultFilters } from '../lib/amyloid-result-filters';
 import AnalysisProgress from './AnalysisProgress';
 import AnalysisDiagnostics from './AnalysisDiagnostics';
 import type { DeviceDiagnostics } from '../lib/amyloid-diagnostics';
@@ -47,6 +48,20 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [result, setResult] = useState<DeviceResult | null>(null);
   const [archive, setArchive] = useState<Blob | null>(null);
   const [opening, setOpening] = useState(false);
+  const [filterKey, setFilterKey] = useState('all');
+  const resultsScroll = useRef<HTMLDivElement | null>(null);
+  const filters = useMemo(
+    () => resultFilters(models, result?.groups ?? []),
+    [models, result]
+  );
+  const selectedFilter =
+    filters.find((filter) => filter.key === filterKey) ?? filters[0];
+  const visibleModels = models.filter((model) =>
+    selectedFilter.ids.has(model.id)
+  );
+  const representative = models.find(
+    (model) => model.id === selectedFilter.representative
+  );
   const [progressStep, setProgressStep] = useState<Extract<
     DeviceMessage,
     { type: 'progress' }
@@ -249,6 +264,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setDiagnosticsReceivedAt(0);
     setConfidence(null);
     setResult(null);
+    setFilterKey('all');
     setArchive(null);
     setModels([]);
     setOpening(false);
@@ -302,6 +318,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     terminate();
     setError('');
     setResult(null);
+    setFilterKey('all');
     setArchive(null);
     setModels([]);
     setOpening(false);
@@ -471,6 +488,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setOpening(false);
     setModels([]);
     setResult(null);
+    setFilterKey('all');
     setArchive(null);
     setError('');
     artifacts.current = {};
@@ -576,7 +594,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 <p>
                   MM-align compares matching sequences and chain counts. HDBSCAN
                   groups similar assemblies; representative structures and
-                  shortlist eligibility are included in the download.
+                  shortlist eligibility appear in your results and download.
                 </p>
                 <p aria-label="Comparison Workload">
                   Up to {(files.length ** 2).toLocaleString('en-US')} MM-align
@@ -642,7 +660,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 <p>
                   Minimum Samples counts neighboring structures, excluding the
                   structure itself. Small pools may not support clusters.
-                  Missing prediction confidence remains unavailable.
+                  Missing prediction confidence remains unavailable. The
+                  diversity filter keeps shortlisted candidates at least 0.20
+                  apart on the structural distance scale. Shortlisting requires
+                  prediction confidence, including ipTM and mean pLDDT;
+                  clustering does not.
                 </p>
                 <label>
                   Optional Confidence CSV
@@ -683,7 +705,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         The first run downloads the analysis engine from jsDelivr. Calculations
         use your device’s CPU and memory in a background worker. Keep this page
         open and download your results before leaving. Larger assemblies work
-        best on a desktop.
+        best on a desktop. Progress is held in temporary memory. Refreshing,
+        closing the page, or a browser crash requires a new run. Automatic
+        recovery from saved checkpoints is not available yet.
       </p>
       <p className={styles.notice}>
         Calculations use the first model, up to 20,000 atoms and 32 polymer
@@ -694,8 +718,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       {ready && !supported && (
         <p className={styles.error} role="alert">
           On-device analysis needs WebAssembly, Web Workers, and a secure
-          connection. Try an up-to-date browser or use Server Analysis when
-          available.
+          connection. Try an up-to-date browser. Hosted Server Analysis is
+          planned for a future release.
         </p>
       )}
       {error && (
@@ -741,11 +765,111 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               </div>
             )}
           </div>
+          {!!result?.groups?.length && (
+            <section
+              className={styles.clusterBrowser}
+              aria-label="Browse Clusters"
+            >
+              <div className={styles.resultHeading}>
+                <div>
+                  <p className={styles.kicker}>Explore Your Results</p>
+                  <h3>Browse By Cluster</h3>
+                </div>
+                <span className={styles.badge}>
+                  {
+                    filters.filter(
+                      (filter) =>
+                        filter.cluster !== undefined && filter.cluster >= 0
+                    ).length
+                  }{' '}
+                  Clusters
+                </span>
+              </div>
+              <p className={styles.caption}>
+                Each group contains matching sequences and chain counts. Cluster
+                numbers are local to that group. Noise was not assigned to a
+                cluster.
+              </p>
+              <div
+                className={styles.clusterFilters}
+                role="group"
+                aria-label="Filter Results By Cluster"
+              >
+                {filters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    aria-pressed={selectedFilter.key === filter.key}
+                    onClick={() => {
+                      setFilterKey(filter.key);
+                      resultsScroll.current?.scrollTo({ top: 0, left: 0 });
+                    }}
+                  >
+                    {filter.label} <span>{filter.ids.size}</span>
+                  </button>
+                ))}
+              </div>
+              <div className={styles.clusterSummary} aria-live="polite">
+                <strong>{selectedFilter.label}</strong>
+                <p>
+                  {visibleModels.length}{' '}
+                  {visibleModels.length === 1 ? 'Structure' : 'Structures'}{' '}
+                  Shown
+                  {selectedFilter.group && (
+                    <>
+                      {' '}
+                      ·{' '}
+                      {selectedFilter.group.members?.filter(
+                        (member) =>
+                          selectedFilter.ids.has(member.id) &&
+                          member.selected_rank != null
+                      ).length ?? 0}{' '}
+                      Shortlisted
+                    </>
+                  )}
+                </p>
+                {selectedFilter.key === 'unclustered' && (
+                  <p>
+                    Includes failed structures, incomplete comparisons, and
+                    groups too small for the chosen clustering settings. Check
+                    each assessment below.
+                  </p>
+                )}
+                {selectedFilter.cluster !== undefined &&
+                  selectedFilter.cluster < 0 && (
+                    <p>
+                      HDBSCAN did not assign these structures to a cluster. They
+                      remain available to inspect and download.
+                    </p>
+                  )}
+              </div>
+              {representative && (
+                <div className={styles.clusterRepresentative}>
+                  <div>
+                    <p className={styles.kicker}>Cluster Representative</p>
+                    <strong>{representative.filename}</strong>
+                    <p>
+                      This is the cluster medoid. It is not necessarily a
+                      shortlisted candidate.
+                    </p>
+                  </div>
+                  <button
+                    disabled={!representative.files || opening}
+                    onClick={() => void inspect(representative.id)}
+                  >
+                    Inspect Representative
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
           <p className={styles.resultCount}>
-            {models.length} Of {files.length} Structures Assessed
+            {result
+              ? `${visibleModels.length} Of ${models.length} Structures Shown`
+              : `${models.length} Of ${files.length} Structures Assessed`}
           </p>
           <div
             className={`${styles.tableScroll} ${styles.resultsScroll}`}
+            ref={resultsScroll}
             role="region"
             aria-label="Scrollable Structure Results"
             tabIndex={0}
@@ -766,7 +890,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 </tr>
               </thead>
               <tbody>
-                {models.map((model) => {
+                {visibleModels.map((model) => {
                   const group = result?.groups?.find((item) =>
                     item.ids.includes(model.id)
                   );
@@ -775,7 +899,16 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   );
                   return (
                     <tr key={model.id}>
-                      <th scope="row">{model.filename}</th>
+                      <th scope="row">
+                        {model.filename}
+                        {group?.representatives?.some(
+                          (item) => item.id === model.id
+                        ) && (
+                          <span className={styles.representativeLabel}>
+                            Representative
+                          </span>
+                        )}
+                      </th>
                       <td>
                         {model.state === 'failed'
                           ? model.error

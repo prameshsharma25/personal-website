@@ -256,3 +256,25 @@ Raw ZIPs and diagnostic screenshots stay in the chosen local output directory.
 Timing excludes file selection/read and page rendering; engine initialization,
 calculation, transfers, coordinator setup, merge and ZIP export are included.
 Results do not establish capacity or speedup for 125 large or diverse assemblies.
+
+RESULT BROWSING AND RECOVERY
+Completed browser batches can be filtered by construct group and cluster.
+Cluster labels are scoped to each construct group; noise stays separate from
+missing cluster assignments. Failed structures and groups too small for the
+settings remain available under Not Clustered. A representative is the medoid,
+not necessarily a candidate that passes shortlist eligibility. Filtering does
+not recalculate or change the downloaded archive.
+
+Shortlisting uses the existing QC, four evidence components, pool-relative score
+floor, finite ipTM/pLDDT confidence, non-noise membership, and greedy diversity
+threshold of 0.20. Missing confidence does not prevent descriptors or clustering.
+
+There is currently no saved browser checkpoint. Refresh, tab closure, crashes,
+and explicit cancellation discard an active run. A later recovery implementation
+would need atomic local storage of completed descriptor artifacts, accepted pair
+results, inputs, settings, and engine versions. It could skip completed work but
+would restart any interrupted operation. None of that persistence is added here.
+
+Hosted Server Analysis is a future release on the public website. With no
+connected worker, its tab shows an informational preview without upload controls.
+The prepared backend remains available for explicitly configured local testing.

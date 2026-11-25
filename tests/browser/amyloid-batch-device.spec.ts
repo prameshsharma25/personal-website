@@ -174,6 +174,30 @@ with zipfile.ZipFile(sys.argv[1]) as z:
   expect(output.result.groups[0].clustering_status).not.toBe(
     'insufficient_pool_size'
   );
+  const clusterFilters = page.getByRole('group', {
+    name: 'Filter Results By Cluster',
+  });
+  const noiseFilter = clusterFilters.getByRole('button', {
+    name: 'Group 1 / Noise 21',
+    exact: true,
+  });
+  await noiseFilter.click();
+  await expect(noiseFilter).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page
+      .getByRole('table', { name: 'On-Device Structure Results', exact: true })
+      .locator('tbody tr')
+  ).toHaveCount(21);
+  await expect(
+    page.getByRole('region', { name: 'Browse Clusters' })
+  ).toContainText('HDBSCAN did not assign these structures to a cluster.');
+  await expect(
+    page.getByRole('button', { name: 'Inspect Representative', exact: true })
+  ).toHaveCount(0);
+  await clusterFilters
+    .getByRole('button', { name: 'All Structures 21', exact: true })
+    .click();
+
   expect(output.matrix.distances).toHaveLength(21);
   expect(output.pairs).toBe(441);
   for (const row of output.matrix.distances) {
@@ -358,6 +382,76 @@ with zipfile.ZipFile(sys.argv[1]) as z:
           5
         );
     expect(group.shortlist.length).toBeGreaterThan(0);
+    // Browse actual computed clusters without changing the underlying result.
+    if (workerCount === 2) {
+      const filters = page.getByRole('group', {
+        name: 'Filter Results By Cluster',
+      });
+      const table = page.getByRole('table', {
+        name: 'On-Device Structure Results',
+        exact: true,
+      });
+      for (const representative of group.representatives) {
+        const option = filters.getByRole('button', {
+          name: `Group 1 / Cluster ${representative.cluster} ${representative.size}`,
+          exact: true,
+        });
+        await option.click();
+        await expect(option).toHaveAttribute('aria-pressed', 'true');
+        await expect(table.locator('tbody tr')).toHaveCount(
+          representative.size
+        );
+        const members = group.members.filter(
+          (item) => item.cluster === representative.cluster
+        );
+        for (const member of members) {
+          const model = output.result.structures.find(
+            (item) => item.id === member.id
+          );
+          await expect(table).toContainText(model.filename);
+        }
+        await page
+          .getByRole('button', { name: 'Inspect Representative', exact: true })
+          .click();
+        const model = output.result.structures.find(
+          (item) => item.id === representative.id
+        );
+        await expect(
+          page.getByRole('region', { name: 'Structure Inspection' })
+        ).toBeVisible();
+        await expect(
+          page.getByText('SHA-256 Matched', { exact: true })
+        ).toBeVisible();
+        await expect(
+          page.getByText(representative.id, { exact: true })
+        ).toBeVisible();
+        await expect(
+          page.getByRole('region', { name: 'Browse Clusters' })
+        ).toContainText(model.filename);
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth
+        )
+      ).toBe(true);
+      await page.getByRole('region', { name: 'Browse Clusters' }).screenshot({
+        path: testInfo.outputPath('cluster-browser-mobile.png'),
+      });
+      const nextDownload = page.waitForEvent('download');
+      await page
+        .getByRole('button', { name: 'Download Local Reports', exact: true })
+        .click();
+      const filteredPath = testInfo.outputPath('filtered-view-download.zip');
+      await (await nextDownload).saveAs(filteredPath);
+      expect(await readFile(filteredPath)).toEqual(await readFile(destination));
+      await filters
+        .getByRole('button', { name: 'All Structures 6', exact: true })
+        .click();
+      await expect(table.locator('tbody tr')).toHaveCount(6);
+      await page.setViewportSize({ width: 1280, height: 800 });
+    }
+
     for (const member of group.members)
       expect(member.eligibility_reasons).not.toContain(
         'confidence_not_provided'

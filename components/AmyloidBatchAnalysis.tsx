@@ -26,10 +26,12 @@ export default function AmyloidBatchAnalysis({
   onInspect,
   onPreview,
   onReset,
+  onAvailabilityChange,
 }: {
   onInspect: (result: Inspection) => void;
   onPreview: (structure: NonNullable<Inspection['structure']>) => void;
   onReset: () => void;
+  onAvailabilityChange?: (available: boolean) => void;
 }) {
   const [api, setApi] = useState('');
   const [connection, setConnection] = useState('loading');
@@ -88,6 +90,9 @@ export default function AmyloidBatchAnalysis({
       ++operation.current;
     };
   }, []);
+  useEffect(() => {
+    onAvailabilityChange?.(connection === 'ready');
+  }, [connection, onAvailabilityChange]);
   const terminal =
     !!job &&
     ['completed', 'partial', 'failed', 'cancelled'].includes(job.state);
@@ -306,6 +311,24 @@ export default function AmyloidBatchAnalysis({
       setBusy(false);
     }
   }
+  if (connection !== 'ready' && !access)
+    return (
+      <section
+        className={styles.futurePanel}
+        aria-label="Server Analysis Preview"
+      >
+        <p className={styles.kicker}>Future Release</p>
+        <h2>Hosted Analysis Is Coming Later.</h2>
+        <p>
+          Server Analysis is planned for a future release. Hosted jobs are not
+          available on this website yet.
+        </p>
+        <p>
+          Choose On My Device to calculate descriptors, compare structures,
+          cluster conformations, and download reports using your computer.
+        </p>
+      </section>
+    );
   return (
     <section className={styles.batch} aria-label="Analyze Uploaded Structures">
       <div className={styles.upload}>
@@ -363,9 +386,9 @@ export default function AmyloidBatchAnalysis({
           </label>
           <p>
             Columns: <code>filename,method,iptm,mean_plddt</code>. Use ipTM from
-            0 to 1 and mean pLDDT from 0 to 100. Missing confidence is not inferred
-            from PDB B-factors; it prevents confidence-based shortlisting, but
-            descriptors and clustering still run.{' '}
+            0 to 1 and mean pLDDT from 0 to 100. Missing confidence is not
+            inferred from PDB B-factors; it prevents confidence-based
+            shortlisting, but descriptors and clustering still run.{' '}
             <a href="/tools/confidence-template.csv" download>
               Download Template
             </a>
@@ -427,9 +450,9 @@ export default function AmyloidBatchAnalysis({
       </p>
       {['unconfigured', 'unavailable'].includes(connection) && (
         <p className={styles.notice}>
-          Server analysis is not available on this deployment yet. You can
-          use On My Device to calculate descriptors, compare structures, and
-          run clustering in your browser.
+          Server analysis is not available on this deployment yet. You can use
+          On My Device to calculate descriptors, compare structures, and run
+          clustering in your browser.
         </p>
       )}
       {error && (

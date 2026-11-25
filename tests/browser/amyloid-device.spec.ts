@@ -224,7 +224,7 @@ test('engine failure is recoverable, cancellation terminates the worker, and nav
     .click();
   await expect(
     page.getByRole('region', {
-      name: 'Analyze Uploaded Structures',
+      name: 'Server Analysis Preview',
       exact: true,
     })
   ).toBeVisible();

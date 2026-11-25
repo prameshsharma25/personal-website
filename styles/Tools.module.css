@@ -1009,3 +1009,113 @@
     font-size: 1.6rem;
   }
 }
+
+.futureBadge {
+  display: inline-block;
+  margin-left: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 20px;
+  font-size: 0.62rem;
+  opacity: 0.85;
+  vertical-align: middle;
+}
+.futurePanel {
+  margin: 2rem 0;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid #8bc6aa44;
+  border-radius: 14px;
+  background: linear-gradient(130deg, #10281dc9, #080f0db3);
+}
+.futurePanel h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+.futurePanel > p:not(:first-child) {
+  color: #b4cbbf;
+  line-height: 1.8;
+  max-width: 65ch;
+}
+.clusterBrowser {
+  margin-top: 2rem;
+  min-width: 0;
+}
+.clusterBrowser h3 {
+  margin: 0.5rem 0;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+.clusterFilters {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding: 0.4rem 0.2rem 0.8rem;
+  scrollbar-width: thin;
+  scrollbar-color: #689b83 #0b1711;
+}
+.clusterFilters button,
+.clusterRepresentative button {
+  flex-shrink: 0;
+  border: 1px solid #8bc6aa55;
+  border-radius: 8px;
+  background: #10241a;
+  color: #d7eddf;
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.clusterFilters button[aria-pressed='true'] {
+  background: #b5f4d4;
+  color: #102b1d;
+}
+.clusterFilters button span {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  margin-left: 0.3rem;
+  border-radius: 5px;
+  background: #7eaf9226;
+  font-variant-numeric: tabular-nums;
+}
+.clusterFilters button:focus-visible,
+.clusterRepresentative button:focus-visible {
+  outline: 2px solid #a5f5cd;
+  outline-offset: 2px;
+}
+.clusterSummary {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+}
+.clusterSummary p,
+.clusterRepresentative p {
+  color: #a8c2b4;
+  font-size: 0.76rem;
+  line-height: 1.8;
+}
+.clusterRepresentative {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #8bc6aa33;
+  border-radius: 10px;
+  background: #10241a88;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.clusterRepresentative > div {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+.clusterRepresentative button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.representativeLabel {
+  display: block;
+  color: #a5f5cd;
+  font-size: 0.66rem;
+  margin-top: 0.4rem;
+}
