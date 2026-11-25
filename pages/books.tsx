@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import Seo from '../components/Seo';
 import { useState, useEffect, useRef } from 'react';
 import BookCard from '../components/BookCard';
 import { books } from '../lib/books';
@@ -57,8 +57,6 @@ function PillToggle({ activeTab, setActiveTab, completedCount, readingCount }: P
 
 export default function Books() {
   const [activeTab, setActiveTab] = useState<'reading' | 'completed'>('completed');
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const readingBooks   = books.filter(b => b.status === 'reading');
   const completedBooks = books.filter(b => b.status === 'completed');
@@ -66,21 +64,12 @@ export default function Books() {
 
   return (
     <>
-      <Head>
-        <title>Books | Pramesh Sharma</title>
-        <meta name="description" content="Explore the books I'm reading and have completed." />
-        <link rel="canonical" href="https://prameshsharma.com/books" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://prameshsharma.com/books" />
-        <meta property="og:title" content="Books | Pramesh Sharma" />
-        <meta property="og:description" content="Explore the books I'm reading and have completed." />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="Books | Pramesh Sharma" />
-        <meta name="twitter:description" content="Explore the books I'm reading and have completed." />
-      </Head>
+      <Seo title="Reading List — Science Fiction, Science & Stories" description="Explore Pramesh Sharma’s reading list, including science fiction, space exploration, and stories about the human experience." path="/books" />
 
       <main className={styles.main}>
         <div className={styles.container}>
+          <h1 style={{fontSize:"2rem",marginBottom:"1rem"}}>My reading list</h1>
+          <p style={{color:"var(--text-dim)",marginBottom:"2rem"}}>Science fiction, science, and stories I’m spending time with.</p>
 
           <div className={styles.toggleRow}>
             <PillToggle
@@ -91,7 +80,7 @@ export default function Books() {
             />
           </div>
 
-          {mounted && displayedBooks.length > 0 ? (
+          {displayedBooks.length > 0 ? (
             <div key={activeTab} className={styles.masonry}>
               {displayedBooks.map((book, i) => (
                 <BookCard key={book.id} book={book} index={i} />

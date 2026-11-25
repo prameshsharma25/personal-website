@@ -155,3 +155,6 @@ relatedLinks:
 
 Choose a few relevant destinations and descriptive labels, rather than adding
 repetitive keyword lists. Do not link to unpublished drafts from published posts.
+# Research resources and essay checkout
+
+The free lab-search tracker, Substack invitations, $5 essay bundle, and SEO updates are documented in [docs/WEBSITE_GROWTH_SETUP.md](docs/WEBSITE_GROWTH_SETUP.md). Start there for Stripe test-mode setup, private file delivery, verification commands, and future AdSense configuration. Full paid essays are stored only in the ignored `private-products/` folder.

@@ -1,4 +1,5 @@
-import Head from 'next/head';
+import LabTrackerInvitation from '../components/LabTrackerInvitation';
+import Seo from '../components/Seo';
 import Link from 'next/link';
 import { GetStaticProps } from 'next';
 import styles from '../styles/Mentorship.module.css';
@@ -11,11 +12,7 @@ interface MentorshipPageProps {
 export default function Mentorship({ guides }: MentorshipPageProps) {
   return (
     <div>
-      <Head>
-        <link rel="canonical" href="https://prameshsharma.com/mentorship" />
-        <title>Mentorship - Pramesh Sharma</title>
-        <meta name="description" content="Resume reviews and career guidance for students navigating research, internships, and PhD applications." />
-      </Head>
+      <Seo title="Research Career Mentorship & Free Application Guides" description="Explore research-career guidance, resume reviews, cold-email examples, and resources for students and software engineers considering a path into science." path="/mentorship" />
       <main className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Mentorship</h1>
@@ -88,6 +85,7 @@ export default function Mentorship({ guides }: MentorshipPageProps) {
           </div>
         </section>
 
+        <LabTrackerInvitation source="mentorship" />
         {/* Resources Section */}
         <section className={styles.section} id="guides">
           <div className={styles.sectionContent}>

@@ -1,0 +1,2 @@
+# Normalize CSV templates in Git and keep Excel-friendly line endings on checkout.
+*.csv text eol=crlf

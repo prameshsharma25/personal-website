@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import Seo from '../components/Seo';
 import styles from '../styles/Experience.module.css';
 
 export default function Experience() {
@@ -96,15 +96,7 @@ export default function Experience() {
 
   return (
     <div>
-      <Head>
-        <link rel="canonical" href="https://prameshsharma.com/experience" />
-        <title>About - Pramesh Sharma</title>
-        <meta
-          name="description"
-          content="Postbaccalaureate Fellow at the NIH studying fold-switching proteins. Formerly at NASA, Genentech, and Walmart. UC Davis CS graduate."
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <Seo title="About Pramesh Sharma — Computational Biology & Research" description="My path through community college, UC Davis computer science, software engineering, and computational biology research at NASA, Genentech, and NIH." path="/experience" />
       <main>
         {/* Bio Section */}
         <section className={styles.bioSection}>

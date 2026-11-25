@@ -8,9 +8,18 @@
   --bg: #000000;
   --bg-secondary: #0a0a0a;
   --text: #ffffff;
-  --text-dim: #666666;
-  --border: #1a1a1a;
+  --text-dim: #a2aaa5;
+  --border: #29312c;
+  --accent: #add9bd;
 }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+html { scroll-padding-top: 2rem; }
+button, input, textarea, select { font-family: inherit; }
+img { max-width: 100%; height: auto; }
+.skipLink { position: absolute; top: -80px; left: 1rem; z-index: 100; background: var(--accent); color: #10241e; padding: .8rem 1rem; }
+.skipLink:focus { top: 1rem; }
+@media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 
 body {
   margin: 0;

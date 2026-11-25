@@ -6,9 +6,9 @@ const links = [
   { href: '/', label: 'Home' },
   { href: '/experience', label: 'About' },
   { href: '/posts', label: 'Posts' },
+  { href: '/resources', label: 'Resources' },
   { href: '/mentorship', label: 'Mentorship' },
   { href: '/books', label: 'Books' },
-  { href: '/research-opportunities', label: 'PhD Opportunities' },
   { href: '/contact', label: 'Contact' },
 ];
 

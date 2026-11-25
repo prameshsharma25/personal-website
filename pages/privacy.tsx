@@ -1,19 +1,15 @@
-import Head from 'next/head';
+import Seo from '../components/Seo';
 import styles from '../styles/Guide.module.css';
 
 export default function PrivacyPolicy() {
   return (
     <div>
-      <Head>
-        <link rel="canonical" href="https://prameshsharma.com/privacy" />
-        <title>Privacy Policy - Pramesh Sharma</title>
-        <meta name="description" content="Privacy policy for Pramesh Sharma's personal website" />
-      </Head>
+      <Seo title="Privacy Policy" description="How prameshsharma.com uses analytics, optional newsletter services, purchase information, and advertising services." path="/privacy" />
 
       <main className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Privacy Policy</h1>
-          <p className={styles.subtitle}>Last updated: April 14, 2026</p>
+          <p className={styles.subtitle}>Last updated: November 24, 2026</p>
         </div>
 
         <article className={styles.content}>
@@ -52,7 +48,7 @@ export default function PrivacyPolicy() {
           </p>
           <ul>
             <li>
-              <strong>Google AdSense:</strong> Displays personalized ads based on your interests. Google may use cookies to track your activity across websites.
+              <strong>Google AdSense:</strong> May display ads when advertising placements are enabled. Google may use cookies to track your activity across websites.
             </li>
             <li>
               <strong>Vercel Analytics:</strong> Tracks website performance and user behavior.
@@ -70,7 +66,7 @@ export default function PrivacyPolicy() {
 
           <h2>Google AdSense and Personalized Ads</h2>
           <p>
-            This Site uses Google AdSense to display advertisements. Google uses cookies and web beacons to:
+            Google AdSense is configured for optional advertising placements. Ad scripts load only when those placements are enabled. Google uses cookies and web beacons to:
           </p>
           <ul>
             <li>Serve ads based on your previous visits to this Site and other websites</li>
@@ -88,6 +84,11 @@ export default function PrivacyPolicy() {
             </a>.
           </p>
 
+          <h2>Newsletter signup and free downloads</h2>
+          <p>The lab-search tracker can be downloaded without providing an email address. The spreadsheet stays on your device; this site does not receive its contents. Newsletter signup is optional and takes place through Substack. Opening the embedded signup form connects your browser to Substack. Substack handles subscription information and unsubscribe requests under its own privacy policy.</p>
+          <h2>Digital purchases</h2>
+          <p>When checkout is available, Stripe handles payment details. This site does not receive or store your full card number. Your checkout email address is used to deliver files and handle purchase support; buying does not subscribe you to a newsletter. Payment status is checked before downloads are released. Private files are stored using Vercel Blob, and transactional emails are sent through the seller’s email service. Stripe checkout metadata records completed email delivery.</p>
+          <p>The purchase-download page does not run this site’s analytics. It keeps your purchase reference in browser session storage so you can retry a download in the same browser session. Keep your purchase email and access link private.</p>
           <h2>Data Sharing</h2>
           <p>
             We do not sell your personal information. However, we share information with third-party service providers including Google, Vercel, and analytics platforms to operate the Site and display advertisements.

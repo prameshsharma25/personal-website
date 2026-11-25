@@ -1,57 +1,42 @@
 import Link from 'next/link';
-import Head from 'next/head';
-import { GetStaticPaths, GetStaticProps } from 'next';
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { serialize } from 'next-mdx-remote/serialize';
+import type { GetStaticPaths, GetStaticProps } from 'next';
+import { MDXRemote, type MDXRemoteSerializeResult } from 'next-mdx-remote';
 import Seo from '../../components/Seo';
-import { getAllPosts, getPostBySlug, PostMetadata } from '../../lib/posts';
+import ArticleContents from '../../components/ArticleContents';
+import LabTrackerInvitation from '../../components/LabTrackerInvitation';
+import NewsletterInvitation from '../../components/NewsletterInvitation';
+import AdSlot from '../../components/AdSlot';
+import { prepareArticle, type Heading } from '../../lib/article';
+import { getAllPosts, getPostBySlug, type PostMetadata } from '../../lib/posts';
 import styles from '../../styles/Posts.module.css';
-
-interface Props {
-  post: Omit<PostMetadata, 'content'>;
-  source: MDXRemoteSerializeResult;
+import resource from '../../styles/Resources.module.css';
+interface Props { post: Omit<PostMetadata,'content'>; source: MDXRemoteSerializeResult; headings: Heading[]; readingMinutes: number }
+export default function PostPage({ post, source, headings, readingMinutes }: Props) {
+  const career = post.category === 'Research careers';
+  return <>
+    <Seo title={post.seoTitle || post.title} description={post.description} path={`/posts/${post.slug}`} date={post.date} article noindex={post.draft} image={`/images/social/posts-${post.slug}.png`} breadcrumbs={[{name:'Home',path:'/'},{name:'Posts',path:'/posts'},{name:post.title,path:`/posts/${post.slug}`}]} />
+    <main className={styles.container}><div className={styles.postsList}>
+      <nav className={resource.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href="/posts">Posts</Link><span>/ {post.category}</span></nav>
+      <article>
+        {post.draft && <p className={styles.draftNotice}>Draft preview</p>}
+        <header className={styles.postHeader}><p className={resource.badge}>{post.category}</p><h1 className={styles.title}>{post.title}</h1><p className={styles.postDescription}>{post.description}</p>
+          <p className={resource.meta}>By <Link href="/experience">Pramesh Sharma</Link> · {readingMinutes} min read{post.date && <> · <time dateTime={post.date}>{new Date(post.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})}</time></>}</p>
+          {post.substackUrl && <p className={styles.substackNote}>Also published on <a href={post.substackUrl}>Substack</a>.</p>}
+        </header>
+        {post.slug === 'how-i-found-an-nih-postbac-lab' && <LabTrackerInvitation source={`post_${post.slug}`} />}
+        <ArticleContents headings={headings} />
+        <div className={styles.postContent}><MDXRemote {...source} /></div>
+        {post.relatedLinks.length > 0 && <nav className={styles.relatedTopics} aria-label="Related reading"><h2 className={styles.postTitle}>Continue exploring</h2><ul>{post.relatedLinks.map(link=><li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul></nav>}
+      </article>
+      {career && post.slug !== 'how-i-found-an-nih-postbac-lab' ? <LabTrackerInvitation source={`post_${post.slug}`} /> : <NewsletterInvitation source={`post_${post.slug}`} />}
+      <AdSlot /><Link href="/posts" className={resource.textLink}>← Read more essays</Link>
+    </div></main>
+  </>;
 }
-
-export default function PostPage({ post, source }: Props) {
-  return (
-    <>
-      <Seo title={post.title} description={post.description} path={`/posts/${post.slug}`} date={post.date} article />
-      {post.draft && <Head><meta name="robots" content="noindex, nofollow" /></Head>}
-      <main className={styles.container}>
-        <div className={styles.postsList}>
-          <Link href="/posts">← All posts</Link>
-          <article>
-            {post.draft && <p className={styles.draftNotice}>Draft preview — fill in the TODO sections before publishing.</p>}
-            <header className={styles.postHeader}>
-              <h1 className={styles.title}>{post.title}</h1>
-              <p className={styles.postDescription}>{post.description}</p>
-              {post.date && <time dateTime={post.date} className={styles.postDate}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</time>}
-              {post.substackUrl && <p className={styles.substackNote}>Originally published on <a href={post.substackUrl}>Substack</a>.</p>}
-            </header>
-            <div className={styles.postContent}><MDXRemote {...source} /></div>
-            {post.relatedLinks.length > 0 && (
-              <nav className={styles.relatedTopics} aria-label="Explore related topics">
-                <h2 className={styles.postTitle}>Explore related topics</h2>
-                <ul>
-                  {post.relatedLinks.map(link => <li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}
-                </ul>
-              </nav>
-            )}
-          </article>
-          <Link href="/posts">← Read more essays</Link>
-        </div>
-      </main>
-    </>
-  );
-}
-
-export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: getAllPosts().map(post => ({ params: { slug: post.slug } })),
-  fallback: false,
-});
-
-export const getStaticProps: GetStaticProps<Props> = async ({ params }) => {
-  const { content, ...post } = getPostBySlug(params?.slug as string);
-  if (post.draft && process.env.NODE_ENV !== 'development') return { notFound: true };
-  return { props: { post, source: await serialize(content) }, revalidate: 60 };
+export const getStaticPaths: GetStaticPaths = async () => ({ paths:getAllPosts().map(post=>({params:{slug:post.slug}})), fallback:false });
+export const getStaticProps: GetStaticProps<Props> = async ({params}) => {
+  const {content,...post} = getPostBySlug(params?.slug as string);
+  if (post.draft && process.env.NODE_ENV !== 'development') return {notFound:true};
+  if (!post.relatedLinks.length) post.relatedLinks = [{label:'Research guides and free tools',href:'/resources'},{label:'More personal essays',href:'/posts'}];
+  return {props:{post,...await prepareArticle(content)},revalidate:60};
 };

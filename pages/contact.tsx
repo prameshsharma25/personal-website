@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Head from 'next/head';
+import Seo from '../components/Seo';
 import styles from '../styles/Contact.module.css';
 
 export default function Contact() {
@@ -42,12 +42,7 @@ export default function Contact() {
 
   return (
     <div>
-      <Head>
-        <link rel="canonical" href="https://prameshsharma.com/contact" />
-        <title>Contact Me</title>
-        <meta name="description" content="Get in touch with me." />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <Seo title="Contact Pramesh Sharma" description="Contact Pramesh Sharma about research, mentorship, writing, or support for a digital download." path="/contact" />
 
       <main className={styles.container}>
         <h1 className={styles.heading}>Contact Me</h1>

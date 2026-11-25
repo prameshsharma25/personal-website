@@ -7,6 +7,7 @@ const guidesDirectory = path.join(process.cwd(), 'guides');
 export interface GuideMetadata {
   title: string;
   description: string;
+  seoTitle?: string;
   date?: string;
   slug: string;
 }
@@ -29,6 +30,7 @@ export function getGuideBySlug(slug: string): Guide {
     slug,
     title: data.title || 'Untitled',
     description: data.description || '',
+    seoTitle: data.seoTitle || data.title || 'Untitled',
     date: data.date,
     content,
   };
@@ -52,6 +54,7 @@ export function getAllGuides(): GuideMetadata[] {
         slug,
         title: data.title || 'Untitled',
         description: data.description || '',
+        seoTitle: data.seoTitle || data.title || 'Untitled',
         date: data.date,
       };
     });
