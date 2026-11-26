@@ -244,7 +244,7 @@ export async function listCheckpoints() {
       ...meta,
       busy,
       displayStatus:
-        meta.status === 'complete'
+        meta.status === 'complete' || meta.analysisStatus === 'completed'
           ? 'completed'
           : busy && meta.activity === 'running'
             ? 'running'
@@ -415,6 +415,35 @@ export async function setCheckpointActivity(
     });
   });
 }
+// Analysis completion and successful browser persistence are distinct outcomes.
+// The page still owns the run lock while this small metadata update commits.
+export async function markCheckpointFinished(id, attempt, outcome, elapsedMs) {
+  return transaction(['run'], 'readwrite', (tx, done, fail, guard) => {
+    const store = tx.objectStore('run');
+    const request = store.get(id);
+    request.onsuccess = guard(() => {
+      checkRun(request.result, id);
+      if (!attempt || request.result.attempt !== attempt)
+        throw new Error(
+          'A newer attempt owns this run. Its status was not changed.'
+        );
+      const saved = request.result.status === 'complete';
+      const meta = {
+        ...request.result,
+        analysisStatus: 'completed',
+        resultStorage: saved ? 'saved' : 'not_saved',
+        activity: 'paused',
+        error: '',
+        saveError: saved ? '' : outcome.saveError,
+        hasErrors: outcome.hasErrors,
+        elapsedMs: savedElapsed(request.result, elapsedMs),
+        updatedAt: Date.now(),
+      };
+      store.put(meta, id);
+      done(meta);
+    });
+  });
+}
 export async function deleteCheckpoint(id) {
   const release = await acquireCheckpointLock(id);
   try {
@@ -433,6 +462,7 @@ export async function scienceDigest(engine) {
   const {
     ['worker.mjs']: worker,
     ['checkpoints.mjs']: storage,
+    ['run-report.py']: presentation,
     ...files
   } = engine.files || {};
   return digest({ ...settings, files });
@@ -472,6 +502,9 @@ export async function openCheckpoint(
       attempt,
       activity: 'running',
       error: '',
+      analysisStatus: undefined,
+      resultStorage: undefined,
+      saveError: '',
       updatedAt: Date.now(),
     };
   } else {
@@ -663,6 +696,9 @@ function checkpointWriter(meta) {
                 updated[store]++;
               if (store === 'completion' && key === 'current') {
                 updated.status = 'complete';
+                updated.analysisStatus = 'completed';
+                updated.resultStorage = 'saved';
+                updated.saveError = '';
                 updated.error = '';
                 updated.hasErrors =
                   payload.result?.structures?.some(

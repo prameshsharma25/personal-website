@@ -2,6 +2,89 @@ import { test, expect } from '@playwright/test';
 
 const url = '/tools/amyloid-device/v1/checkpoints.mjs';
 
+test('completed analysis without a saved ZIP stays completed after reload and can rebuild', async ({
+  page,
+}) => {
+  await page.goto('/tools/amyloid-inspector');
+  const first = await page.evaluate(async (url) => {
+    const store = await import(url);
+    const input = { files: [] };
+    const run = await store.openCheckpoint(
+      input,
+      {},
+      undefined,
+      'completed-no-copy'
+    );
+    await run.put('descriptors', 'a', {
+      model: { id: 'a', state: 'complete' },
+    });
+    await store.markCheckpointFinished(
+      run.meta.id,
+      run.meta.attempt,
+      { hasErrors: false, saveError: 'QuotaExceededError' },
+      123456
+    );
+    return {
+      meta: await store.readCheckpointSummary(run.meta.id),
+      runs: await store.listCheckpoints(),
+      result: await store.readCheckpointCompletion(run.meta.id),
+    };
+  }, url);
+  expect(first.meta).toMatchObject({
+    status: 'incomplete',
+    analysisStatus: 'completed',
+    resultStorage: 'not_saved',
+    elapsedMs: 123456,
+    error: '',
+    saveError: 'QuotaExceededError',
+  });
+  expect(first.runs[0].displayStatus).toBe('completed');
+  expect(first.result).toBeNull();
+  await page.reload();
+  const history = page.getByRole('region', {
+    name: 'Run History',
+    exact: true,
+  });
+  await expect(
+    history.getByRole('button', { name: 'Completed 1', exact: true })
+  ).toBeVisible();
+  await expect(history).toContainText('Results Not Saved In Browser');
+  await expect(
+    page.getByRole('button', { name: 'Open Saved Results', exact: true })
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', {
+      name: 'Rebuild Download From Checkpoints',
+      exact: true,
+    })
+  ).toBeVisible();
+  const resumed = await page.evaluate(async (url) => {
+    const store = await import(url);
+    const old = await store.readCheckpointSummary('completed-no-copy');
+    const resumed = await store.openCheckpoint({ files: [] }, {}, old.id);
+    let refused = false;
+    try {
+      await store.markCheckpointFinished(
+        old.id,
+        old.attempt,
+        { hasErrors: false, saveError: '' },
+        999999
+      );
+    } catch {
+      refused = true;
+    }
+    return {
+      refused,
+      meta: await store.readCheckpointSummary(old.id),
+      assessment: await resumed.get('descriptors', 'a'),
+    };
+  }, url);
+  expect(resumed.refused).toBe(true);
+  expect(resumed.meta.analysisStatus).toBeUndefined();
+  expect(resumed.meta.elapsedMs).toBe(123456);
+  expect(resumed.assessment.model.id).toBe('a');
+});
+
 test('retry saves finished output while preserving checkpoints, elapsed time, and other runs', async ({
   page,
 }) => {

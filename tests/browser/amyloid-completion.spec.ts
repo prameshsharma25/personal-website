@@ -6,6 +6,7 @@ const moduleURL = '/tools/amyloid-device/v1/checkpoints.mjs';
 for (const fixture of [
   'amyloid-pre-chunk-engine.json',
   'amyloid-chunked-engine.json',
+  'amyloid-save-retry-engine.json',
 ])
   test(`preceding release ${fixture} can resume its saved assessments and comparisons`, async ({
     page,
@@ -276,11 +277,29 @@ test('corrupted completion chunks cannot be reopened as valid results', async ({
   expect(failure).toContain('integrity check');
 });
 
-for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
+for (const mode of [
+  'shortlisted',
+  'no shortlist',
+  'save failed',
+  'metadata failed',
+]) {
   test(`completed UI shows the correct initial structure and persistence status: ${mode}`, async ({
     page,
   }) => {
     page.on('dialog', (dialog) => dialog.accept());
+    if (mode === 'metadata failed')
+      await page.addInitScript(() => {
+        const original = IDBObjectStore.prototype.put;
+        IDBObjectStore.prototype.put = function (value: any, key: any) {
+          if (
+            this.name === 'run' &&
+            value.analysisStatus === 'completed' &&
+            value.resultStorage === 'not_saved'
+          )
+            throw new DOMException('', 'QuotaExceededError');
+          return original.call(this, value, key);
+        };
+      });
     let workers = 0;
     page.on('worker', () => workers++);
     const errors: string[] = [];
@@ -308,7 +327,7 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
         }
         const selected=${JSON.stringify(mode !== 'no shortlist')};
         const completed={type:'complete',result:{structures:models,groups:[{id:'group-001',ids:['first','chosen'],clustering_status:'complete',shortlist:selected?['chosen']:[],members:models.map(m=>({id:m.id,cluster:0,selected_rank:selected&&m.id==='chosen'?1:null,rank_score:1,eligibility_reasons:[]})),representatives:[{id:'first',cluster:0,size:2}]}],warnings:[],elapsed_seconds:1,clustering_status:'requested'},artifacts,archive:new Uint8Array([1,2,3]).buffer,checkpointSaved:true};
-        if(${JSON.stringify(mode === 'save failed')}){
+        if(${JSON.stringify(mode.endsWith('failed'))}){
           completed.checkpointSaved=false;
           completed.checkpointFailure=checkpointFailure(new DOMException('', 'QuotaExceededError'));
           postMessage({type:'checkpoint-warning',failure:completed.checkpointFailure,message:'Saving progress stopped: QuotaExceededError'});
@@ -369,21 +388,35 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
     });
     await expect(
       history.getByRole('button', {
-        name: mode === 'save failed' ? 'Failed 1' : 'Completed 1',
+        name: 'Completed 1',
         exact: true,
       })
     ).toBeVisible();
-    if (mode === 'save failed') {
-      await expect(page.locator('main [role=alert]')).toContainText(
-        'final results could not be saved'
+    if (mode.endsWith('failed')) {
+      await expect(
+        page.getByRole('region', { name: 'Browser Storage', exact: true })
+      ).toContainText('Your results are ready to download');
+      await expect(page.getByRole('status')).toContainText(
+        'Analysis Completed'
       );
-      await expect(page.getByRole('status')).toContainText('Results Not Saved');
-      await expect(page.locator('main [role=alert]')).toContainText(
-        'QuotaExceededError'
-      );
-      await expect(page.locator('main [role=alert]')).toContainText(
-        'Estimated Storage For This Site'
-      );
+      await expect(
+        page.getByRole('region', { name: 'Browser Storage', exact: true })
+      ).toContainText('QuotaExceededError');
+      await expect(
+        page.getByRole('region', { name: 'Browser Storage', exact: true })
+      ).toContainText('Estimated Storage For This Site');
+      await expect(history).toContainText('Results Not Saved In Browser');
+      const initialWorkers = workers;
+      await page
+        .getByRole('button', { name: 'View Current Results', exact: true })
+        .click();
+      await expect(
+        page.getByRole('button', {
+          name: 'Download Local Reports',
+          exact: true,
+        })
+      ).toBeVisible();
+      expect(workers).toBe(initialWorkers);
       const time = await page.getByRole('timer').textContent();
       const before = workers;
       // Fail once more in the page, then recover without a new analysis worker.
@@ -400,11 +433,11 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
       await page
         .getByRole('button', { name: 'Retry Saving Results', exact: true })
         .click();
-      await expect(page.locator('main [role=alert]')).toContainText(
-        'UnknownError'
-      );
       await expect(
-        history.getByRole('button', { name: 'Failed 1', exact: true })
+        page.getByRole('region', { name: 'Browser Storage', exact: true })
+      ).toContainText('UnknownError');
+      await expect(
+        history.getByRole('button', { name: 'Completed 1', exact: true })
       ).toBeVisible();
       await page
         .getByRole('button', { name: 'Retry Saving Results', exact: true })
@@ -412,8 +445,14 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
       await expect(
         history.getByRole('button', { name: 'Completed 1', exact: true })
       ).toBeVisible();
+      await expect(
+        page.getByRole('region', { name: 'Browser Storage', exact: true })
+      ).toHaveCount(0);
+      await expect(history).toContainText('Results Saved In Browser');
       await expect(page.locator('main [role=alert]')).toHaveCount(0);
-      await expect(page.getByRole('status')).toContainText('Analysis Complete');
+      await expect(page.getByRole('status')).toContainText(
+        'Analysis Completed'
+      );
       await expect(page.getByRole('timer')).toHaveText(time!);
       expect(workers).toBe(before);
       const saved = await page.evaluate(async (url) => {

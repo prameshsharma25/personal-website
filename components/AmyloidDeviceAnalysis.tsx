@@ -47,6 +47,7 @@ import {
   readCheckpointInputs,
   checkpointFailure,
   retryCheckpointCompletion,
+  markCheckpointFinished,
   type CheckpointFailure,
   type CheckpointSummary,
   type CheckpointInput,
@@ -64,8 +65,8 @@ function completionLabel(result: DeviceResult) {
   return result.structures.every(
     (model) => model.state === 'complete' && !model.comparison_error
   ) && !result.groups?.some((group) => group.clustering_status === 'failed')
-    ? 'Analysis Complete'
-    : 'Finished With Errors';
+    ? 'Analysis Completed'
+    : 'Completed With Errors';
 }
 
 export default function AmyloidDeviceAnalysis(props: Props) {
@@ -106,6 +107,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     id: string;
     attempt: string;
     diagnostics?: DeviceDiagnostics;
+    hasErrors: boolean;
+    resultsSaved: boolean;
   } | null>(null);
   const firstInspection = useMemo(
     () =>
@@ -221,6 +224,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         }
       );
       if (mounted.current && generation === epoch.current) {
+        if (completedRun.current) completedRun.current.resultsSaved = true;
         setCompletionSaveFailed(false);
         setSaveFailure(null);
         setCheckpointMessage('');
@@ -237,7 +241,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     } catch (error) {
       if (mounted.current && generation === epoch.current) {
         setSaveFailure(checkpointFailure(error, 'completion'));
-        setProgress('Calculations Complete; Results Not Saved');
+        setProgress(completionLabel(result));
         setProgressStep({
           type: 'progress',
           stage: 'Complete',
@@ -261,7 +265,20 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     try {
       const summaries = (await listCheckpoints()) as CheckpointSummary[];
       if (mounted.current) {
-        setSavedRuns(summaries);
+        const current = completedRun.current;
+        setSavedRuns(
+          summaries.map((run) =>
+            current?.id === run.id && current.attempt === run.attempt
+              ? {
+                  ...run,
+                  displayStatus: 'completed',
+                  analysisStatus: 'completed',
+                  hasErrors: current.hasErrors,
+                  resultStorage: current.resultsSaved ? 'saved' : 'not_saved',
+                }
+              : run
+          )
+        );
         setHistoryMessage('');
         if (!historyInitialized.current) {
           historyInitialized.current = true;
@@ -317,6 +334,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   }
   async function openSavedRun(run: CheckpointSummary) {
     if (running || storageBusy) return;
+    if (archive && result && completedRun.current?.id === run.id) {
+      setSelectedRunId(run.id);
+      if (firstInspection) void inspect(firstInspection.model.id);
+      return;
+    }
     if (run.status === 'complete') {
       await start(run.id);
       return;
@@ -350,9 +372,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       clock.current.restore(summary.elapsedMs);
       setElapsedMs(clock.current.elapsedMs);
       setProgress(
-        run.displayStatus === 'failed'
-          ? 'Stopped. Saved Progress Is Ready To Resume.'
-          : 'Paused. Saved Progress Is Ready To Resume.'
+        summary.analysisStatus === 'completed'
+          ? 'Analysis Completed'
+          : run.displayStatus === 'failed'
+            ? 'Stopped. Saved Progress Is Ready To Resume.'
+            : 'Paused. Saved Progress Is Ready To Resume.'
       );
       artifacts.current = {};
       callbacks.current.onReset();
@@ -379,7 +403,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   function invalidate() {
     return ++epoch.current;
   }
-  function terminate(activity?: 'paused' | 'failed', message = '') {
+  function terminate(
+    activity?: 'paused' | 'failed',
+    message = '',
+    completion?: { hasErrors: boolean; saveError: string }
+  ) {
     const elapsed = clock.current.running ? clock.current.stop() : undefined;
     if (elapsed !== undefined && mounted.current) setElapsedMs(elapsed);
     descriptorPool.current?.dispose();
@@ -390,18 +418,23 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     worker.current = null;
     const release = releaseCheckpoint.current;
     const id = lockRun.current;
+    const attempt = checkpointAttempt.current;
     releaseCheckpoint.current = null;
     lockRun.current = null;
     checkpointAttempt.current = null;
     if (release) {
       finishing.current = (async () => {
         try {
-          if (id && activity)
+          if (id && completion && attempt)
+            await markCheckpointFinished(id, attempt, completion, elapsed);
+          else if (id && activity)
             await setCheckpointActivity(id, activity, message, elapsed);
         } catch {
           if (mounted.current)
             setCheckpointMessage(
-              'The run stopped, but its status could not be saved. Earlier checkpoints remain available.'
+              completion
+                ? 'Analysis completed. Its history status could not be saved in this browser. Download the results before leaving.'
+                : 'The run stopped, but its status could not be saved. Earlier checkpoints remain available.'
             );
         } finally {
           await release();
@@ -867,16 +900,20 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   id: lockRun.current,
                   attempt: checkpointAttempt.current,
                   diagnostics: data.diagnostics,
+                  hasErrors:
+                    completionLabel(data.result) === 'Completed With Errors',
+                  resultsSaved: !saveFailed,
                 }
               : null;
-          const stopped = terminate(
-            saveFailed ? 'failed' : 'paused',
-            saveFailed
+          const stopped = terminate(undefined, '', {
+            hasErrors: completionLabel(data.result) === 'Completed With Errors',
+            saveError: saveFailed
               ? data.checkpointFailure
                 ? `${data.checkpointFailure.name} while saving ${data.checkpointFailure.stage}: ${data.checkpointFailure.message}`
-                : 'Final results could not be saved. Resume to rebuild them from saved calculations.'
-              : ''
-          );
+                : 'The browser copy could not be saved. Results remain available to download.'
+              : '',
+          });
+          setCheckpointMessage('');
           if (checkpointAvailable) void stopped.then(refreshCheckpoint);
           setRunning(false);
           setResult(data.result);
@@ -889,11 +926,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
             total: 1,
             filename: '',
           });
-          setProgress(
-            saveFailed
-              ? 'Calculations Complete; Results Not Saved'
-              : completionLabel(data.result)
-          );
+          setProgress(completionLabel(data.result));
           setArchive(new Blob([data.archive], { type: 'application/zip' }));
           artifacts.current = Object.fromEntries(
             Object.entries(data.artifacts).map(([id, inputs]) => [
@@ -992,6 +1025,21 @@ export default function AmyloidDeviceAnalysis(props: Props) {
             assessments and comparisons are reused. An interrupted calculation
             runs again.
           </p>
+          {savedRun.analysisStatus === 'completed' &&
+            savedRun.status !== 'complete' && (
+              <p className={styles.caption}>
+                Analysis completed. The final browser copy was not saved.
+                {archive && completedRun.current?.id === savedRun.id
+                  ? ' Your results are ready to download below.'
+                  : ' Rebuild the download from the saved checkpoints to access results again.'}
+              </p>
+            )}
+          {savedRun.saveError && (
+            <details>
+              <summary>Browser Storage Details</summary>
+              <p>{savedRun.saveError}</p>
+            </details>
+          )}
           {savedRun.error && (
             <p className={styles.caption}>Last Run Error: {savedRun.error}</p>
           )}
@@ -1003,11 +1051,19 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 !checkpointAvailable ||
                 !!savedRun.busy
               }
-              onClick={() => void start(savedRun.id)}
+              onClick={() =>
+                archive && completedRun.current?.id === savedRun.id
+                  ? void openSavedRun(savedRun)
+                  : void start(savedRun.id)
+              }
             >
-              {savedRun.status === 'complete'
-                ? 'Open Saved Results'
-                : 'Resume Saved Run'}
+              {archive && completedRun.current?.id === savedRun.id
+                ? 'View Current Results'
+                : savedRun.status === 'complete'
+                  ? 'Open Saved Results'
+                  : savedRun.analysisStatus === 'completed'
+                    ? 'Rebuild Download From Checkpoints'
+                    : 'Resume Saved Run'}
             </button>
             <button
               disabled={running || storageBusy || !!savedRun.busy}
@@ -1324,25 +1380,36 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         />
       )}
       {result && completionSaveFailed && (
-        <div className={styles.error} role="alert">
+        <div
+          className={styles.storageNotice}
+          role="region"
+          aria-label="Browser Storage"
+        >
+          <h3>Analysis Completed. Browser Copy Not Saved.</h3>
           <p>
-            Calculations finished, but the final results could not be saved on
-            this device. Download Local Reports before leaving this page.
+            Your results are ready to download. Browser storage could not keep a
+            copy, so download the ZIP before leaving this page.
           </p>
-          {saveFailure && (
-            <p>
-              <strong>{saveFailure.name}</strong> while saving{' '}
-              {saveFailure.stage}: {saveFailure.message}
-            </p>
-          )}
-          {storageEstimate && (
-            <p>
-              Estimated Storage For This Site:{' '}
-              {formatBytes(storageEstimate.usage)} Used Of{' '}
-              {formatBytes(storageEstimate.quota)} Allowed. Browser limits and
-              available disk space can still prevent saving.
-            </p>
-          )}
+          <details>
+            <summary>Save Details</summary>
+            {saveFailure && (
+              <p>
+                <strong>{saveFailure.name}</strong> while saving{' '}
+                {saveFailure.stage}: {saveFailure.message}
+              </p>
+            )}
+            {storageEstimate && (
+              <p>
+                Estimated Storage For This Site:{' '}
+                {formatBytes(storageEstimate.usage)} Used Of{' '}
+                {formatBytes(storageEstimate.quota)} Allowed. Browser limits and
+                available disk space can still prevent saving.
+              </p>
+            )}
+          </details>
+          <div className={styles.controls}>
+            <button onClick={download}>Download Results ZIP</button>
+          </div>
           {completedRun.current ? (
             <>
               <p>
@@ -1653,6 +1720,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               reports, original coordinates, component outputs, checksums, and
               calculation versions. Any failed structures are listed in
               results.json.
+              {result.exports &&
+                ' Extract the ZIP and open Run Summary.html for the run report. Selected structures and their individual reports are collected in shortlisted/.'}
               {result.clustering_status === 'requested'
                 ? ' Comparison groups include distance matrices, clustering, representatives, and shortlist eligibility.'
                 : ' Comparisons and clustering were not requested.'}

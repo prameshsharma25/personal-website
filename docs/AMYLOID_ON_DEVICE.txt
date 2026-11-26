@@ -209,6 +209,17 @@ outputs, gate reports, portable manifests, source/normalized hashes, chain mappi
 canonical confidence metadata, and runtime/scientific provenance. Batch jobs add
 alignment coordinates, directed comparison reports, distance matrices, scored
 members, clustering settings/results, representatives, and shortlist eligibility.
+Run Summary.html is a standalone report with counts, group outcomes, annotated
+members, representatives, selection reasons, candidate scores, failures, settings,
+and links to the exported artifacts. Extract the full ZIP before opening links.
+The report uses no external assets or scripts and can be printed from a browser.
+shortlisted/index.json maps each within-group rank to its original and copied
+files. shortlisted/<group>/rank-<rank>-<id>/ contains original coordinates,
+reports, manifests, and their component files. For mmCIF, an additional alignment
+PDB is explicitly labeled C-alpha only; the original full mmCIF is preserved.
+No shortlist produces an empty index and an explanation, not a claimed success.
+The report exporter does not change calculation, clustering, or selection code.
+All new artifacts are included in SHA256.json.
 results.json also records alignment_execution: requested worker setting, actual
 worker count, startup fallback (if any), and alignment-stage wall time. Engine
 startup and later clustering/export time are excluded from that alignment timing.
@@ -295,11 +306,13 @@ Large binary outputs are sealed and written in parts of at most 8 MiB, avoiding
 Chrome's roughly 127 MiB serialized-value limit. Only after all parts commit are
 the completion manifest and run's complete status committed atomically. Reopening
 verifies each part and reconstructs the identical bytes. Earlier whole-record
-completed runs remain readable. An interrupted final save cannot appear complete;
+completed runs remain readable. An interrupted final save is never treated as a
+durably saved browser copy;
 its abandoned parts are removed on resume, preserving assessments and alignments.
 Storage quota errors are still possible. If final saving fails, downloads remain
-available in the open page, the UI says Results Not Saved, and history records a
-failed save with a resume action instead of silently showing Paused. Existing
+available in the open page. The UI and history mark the analysis Completed and
+show browser storage separately as Results Not Saved In Browser. After a reload,
+Rebuild Download From Checkpoints recovers the export using the saved work. Existing
 unfinished runs from the previous release can resume with their saved work to
 rebuild clustering, selection, and final downloads using the smaller-record format.
 
@@ -338,6 +351,18 @@ Immutable run IDs and per-attempt tokens fence stale writes. Storage
 errors stop checkpoint writes with a visible warning but allow the calculation
 and download to finish. Earlier committed work remains recoverable. Integrity or
 engine mismatches stop recovery explicitly without deleting the saved data.
+
+Completion means an exportable analysis, independently of browser storage.
+Run metadata records analysisStatus and resultStorage separately from the legacy
+status field that indicates whether a finished ZIP is durably stored. An
+exportable run without that browser copy displays Completed, with Results Not
+Saved In Browser. Calculation failures that still produce a ZIP are Completed
+With Errors; an interrupted calculation is not completed. Small completion
+metadata is attempted even if saving the archive failed. If all browser writes
+fail, the active page preserves the completed label in memory; it cannot promise
+to persist that status after reload. Opening the current completed run retains
+its in-memory download. After reload, a completed run without a saved copy offers
+Rebuild Download From Checkpoints rather than pretending saved results exist.
 
 Saving warnings preserve the browser error name and the failing storage stage,
 even when the DOMException message is empty. The completed result panel shows

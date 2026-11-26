@@ -724,7 +724,18 @@ self.onmessage = async ({ data }) => {
       (performance.now() - runStarted) / 1000
     );
     python.globals.set('_recovery_json', JSON.stringify(recovery));
-    const result = JSON.parse(await python.runPythonAsync('finish()'));
+    let result = JSON.parse(await python.runPythonAsync('finish()'));
+    progress('Writing Run Summary', 0, 0, '', 'export');
+    python.FS.writeFile(
+      '/research/run_report.py',
+      await asset('run-report.py', engine.files['run-report.py'])
+    );
+    python.globals.set('_finished_result_json', JSON.stringify(result));
+    result = JSON.parse(
+      await python.runPythonAsync(
+        "from run_report import export_run_report\nexport_run_report(ARTIFACTS, WORK / 'amyloid-device-results.zip', json.loads(_finished_result_json))"
+      )
+    );
     const artifacts = {};
     const transfers = [];
     for (const model of result.structures) {

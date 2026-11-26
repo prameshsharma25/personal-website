@@ -61,7 +61,7 @@ with zipfile.ZipFile(TARGET / "pipeline.zip", "w", zipfile.ZIP_DEFLATED) as bund
         bundle.writestr(info, data)
 manifest = {
     # Prior coordinator/storage release; runtime/scientific hash must also match.
-    "checkpoint_compatible_engines": [{"engine": "d41a5f7743f755ac61cc5c39be21efb72f9aa3d7c3e9d7ee2deb8156fa7e8cec", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "bb4f296c5bc18f600aa417aba2a47ad34d7ca070b37932dc87303d88dff813e5", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "7f5fbe2ccfb8663a4e1e2fc4348697aecdb8c3446761e46da103e97fec721e85", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "38e645a34acd3a6777055c23b7489b72c96f135ba65280d359b45aa8cd8f314b", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}],
+    "checkpoint_compatible_engines": [{"engine": "d41a5f7743f755ac61cc5c39be21efb72f9aa3d7c3e9d7ee2deb8156fa7e8cec", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "bb4f296c5bc18f600aa417aba2a47ad34d7ca070b37932dc87303d88dff813e5", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "7f5fbe2ccfb8663a4e1e2fc4348697aecdb8c3446761e46da103e97fec721e85", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "38e645a34acd3a6777055c23b7489b72c96f135ba65280d359b45aa8cd8f314b", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}, {"engine": "0427832ac7516fb2f03fd4cd8d6caaa5a92e401f8e0f68b93517446bba5fdff3", "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"}],
     "schema_version": "amyloid-device-engine-1.0",
     "package_commit": COMMIT,
     "package_url": "https://github.com/DevlinaC/Amyloid_Candidates",
@@ -85,6 +85,7 @@ manifest = {
         for name in [
             "package.zip",
             "analysis.py",
+            "run-report.py",
             "worker.mjs",
             "checkpoints.mjs",
             "pipeline.zip",

@@ -1571,3 +1571,26 @@
 .settingPair input {
   margin-top: auto;
 }
+
+.storageNotice {
+  margin: 1.5rem 0;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid rgba(224, 185, 103, 0.55);
+  border-radius: 1rem;
+  background: rgba(110, 82, 27, 0.14);
+  color: #e7d7b6;
+}
+.storageNotice h3 {
+  margin: 0 0 0.75rem;
+  color: #f5e6c8;
+}
+.storageNotice p {
+  margin: 0.75rem 0;
+}
+.storageNotice details {
+  margin: 1rem 0;
+  overflow-wrap: anywhere;
+}
+.storageNotice summary {
+  cursor: pointer;
+}

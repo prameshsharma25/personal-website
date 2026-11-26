@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 test.use({ actionTimeout: 15000 });
 
@@ -282,6 +283,15 @@ def clean(v):
 with zipfile.ZipFile(sys.argv[1]) as a, zipfile.ZipFile(sys.argv[2]) as b:
     for z in [a,b]:
         for name,digest in json.loads(z.read('SHA256.json')).items(): assert hashlib.sha256(z.read(name)).hexdigest()==digest,name
+        assert 'Run Summary.html' in z.namelist()
+        result=json.loads(z.read('results.json'))
+        assert result['exports']['summary']=='Run Summary.html'
+        selected=json.loads(z.read('shortlisted/index.json'))
+        assert [(item['group'],item['id']) for item in selected]==[(group['id'],id) for group in result['groups'] for id in group.get('shortlist',[])]
+        assert selected, 'This fixture should produce a selected candidate'
+        for item in selected:
+            assert z.read(item['files']['structure'])==z.read(item['original_files']['structure'])
+            assert item['filename'].encode() in z.read('Run Summary.html')
     ar,br=[json.loads(z.read('results.json')) for z in [a,b]]
     assert ar['groups']==br['groups']
     assert ar['structures']==br['structures']
@@ -297,6 +307,48 @@ with zipfile.ZipFile(sys.argv[1]) as a, zipfile.ZipFile(sys.argv[2]) as b:
   );
   expect(verification).toContain('Scientific values');
   expect(writes).toEqual([]);
+  const reportFolder = testInfo.outputPath('extracted-report');
+  execFileSync('python3', [
+    '-c',
+    'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])',
+    recovered,
+    reportFolder,
+  ]);
+  const preview = await context.newPage();
+  const network: string[] = [];
+  preview.on('request', (request) => {
+    if (/^https?:/.test(request.url())) network.push(request.url());
+  });
+  await preview.goto(pathToFileURL(reportFolder + '/Run Summary.html').href);
+  await expect(
+    preview.getByRole('heading', { name: 'Run Overview', exact: true })
+  ).toBeVisible();
+  await expect(preview.locator('#candidates')).toContainText('recovery-');
+  await preview
+    .getByText('All Cluster Annotations', { exact: true })
+    .first()
+    .click();
+  await preview.screenshot({
+    path: testInfo.outputPath('run-summary-desktop.png'),
+    fullPage: true,
+  });
+  await preview.pdf({
+    path: testInfo.outputPath('run-summary.pdf'),
+    format: 'A4',
+    printBackground: true,
+  });
+  await preview.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await preview.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBe(true);
+  await preview.screenshot({
+    path: testInfo.outputPath('run-summary-mobile.png'),
+    fullPage: true,
+  });
+  expect(network).toEqual([]);
+  await preview.close();
 });
 
 test('serial recovery reuses a saved failed input and cancellation keeps a recoverable run', async ({
@@ -564,17 +616,18 @@ test('a blank checkpoint quota failure permits saving real finished results with
     .click();
   await waitComplete(page);
   await expect(
-    page.getByRole('region', { name: 'On-Device Analysis', exact: true })
+    page.getByRole('region', { name: 'Browser Storage', exact: true })
   ).toContainText(
-    'Saving progress stopped: QuotaExceededError while saving descriptors. The browser could not allocate enough storage.'
+    'QuotaExceededError while saving descriptors: The browser could not allocate enough storage.'
   );
   const checkpoint = await saved(page);
   expect(checkpoint.status).toBe('incomplete');
   expect(checkpoint.descriptors).toBe(0);
-  await expect(page.locator('main [role=alert]')).toContainText(
-    'final results could not be saved'
-  );
-  await expect.poll(async () => (await saved(page)).activity).toBe('failed');
+  await expect(page.getByRole('status')).toContainText('Analysis Completed');
+  await expect(page.locator('main [role=alert]')).toHaveCount(0);
+  await expect
+    .poll(async () => (await saved(page)).analysisStatus)
+    .toBe('completed');
   const time = await page.getByRole('timer').textContent();
   const count = workers;
   const before = testInfo.outputPath('before-retry.zip');

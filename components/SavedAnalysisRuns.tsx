@@ -39,8 +39,9 @@ export default function SavedAnalysisRuns({
         </button>
       </div>
       <p className={styles.caption}>
-        Open a run to restore its structures and settings. Completed runs also
-        restore results, clusters, and downloads.
+        Open a run to restore its structures and settings. Runs with saved
+        results also restore clusters and downloads. Completed runs without a
+        browser copy can rebuild their download from checkpoints.
       </p>
       {!!runs.length && (
         <div
@@ -91,6 +92,13 @@ export default function SavedAnalysisRuns({
                   {run.descriptors} Saved Assessments · {run.alignments} Saved
                   Comparisons
                 </span>
+                {run.displayStatus === 'completed' && (
+                  <span>
+                    {run.status === 'complete'
+                      ? 'Results Saved In Browser'
+                      : 'Results Not Saved In Browser'}
+                  </span>
+                )}
                 <span className={styles.runDate}>
                   Started {new Date(run.createdAt).toLocaleString()} ·{' '}
                   {run.id.slice(0, 8)}

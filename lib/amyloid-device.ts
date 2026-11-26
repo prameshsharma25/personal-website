@@ -18,6 +18,7 @@ export const DEVICE_LIMITS = {
   totalBytes: 100 * 1024 * 1024,
 };
 export type DeviceResult = {
+  exports?: { summary: string; shortlist: string };
   structures: AnalysisModel[];
   recovery?: {
     resumed: boolean;

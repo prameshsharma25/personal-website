@@ -9,6 +9,7 @@ export {
   saveCheckpointElapsed,
   checkpointFailure,
   retryCheckpointCompletion,
+  markCheckpointFinished,
 } from '../public/tools/amyloid-device/v1/checkpoints.mjs';
 export type CheckpointFailure = {
   name: string;
@@ -27,6 +28,9 @@ export type CheckpointSummary = {
   busy?: boolean;
   hasErrors?: boolean;
   error?: string;
+  analysisStatus?: 'completed';
+  resultStorage?: 'saved' | 'not_saved';
+  saveError?: string;
   inputCount: number;
   inputBytes: number;
   descriptors: number;
