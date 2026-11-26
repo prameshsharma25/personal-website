@@ -21,7 +21,10 @@ import AnalysisProgress from './AnalysisProgress';
 import { AnalysisClock } from '../lib/analysis-clock';
 import SavedAnalysisRuns from './SavedAnalysisRuns';
 import AnalysisDiagnostics from './AnalysisDiagnostics';
-import type { DeviceDiagnostics } from '../lib/amyloid-diagnostics';
+import {
+  formatBytes,
+  type DeviceDiagnostics,
+} from '../lib/amyloid-diagnostics';
 import {
   AlignmentPool,
   resolveAlignmentWorkers,
@@ -42,6 +45,9 @@ import {
   setCheckpointActivity,
   saveCheckpointElapsed,
   readCheckpointInputs,
+  checkpointFailure,
+  retryCheckpointCompletion,
+  type CheckpointFailure,
   type CheckpointSummary,
   type CheckpointInput,
 } from '../lib/amyloid-checkpoints';
@@ -53,6 +59,14 @@ type Props = {
   onPreview: (structure: NonNullable<Inspection['structure']>) => void;
   onInspect: (result: Inspection) => void;
 };
+
+function completionLabel(result: DeviceResult) {
+  return result.structures.every(
+    (model) => model.state === 'complete' && !model.comparison_error
+  ) && !result.groups?.some((group) => group.clustering_status === 'failed')
+    ? 'Analysis Complete'
+    : 'Finished With Errors';
+}
 
 export default function AmyloidDeviceAnalysis(props: Props) {
   const [supported, setSupported] = useState(false);
@@ -80,6 +94,19 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [models, setModels] = useState<AnalysisModel[]>([]);
   const [result, setResult] = useState<DeviceResult | null>(null);
   const [completionSaveFailed, setCompletionSaveFailed] = useState(false);
+  const [saveFailure, setSaveFailure] = useState<CheckpointFailure | null>(
+    null
+  );
+  const [savingResults, setSavingResults] = useState(false);
+  const [storageEstimate, setStorageEstimate] = useState<{
+    usage: number | null;
+    quota: number | null;
+  } | null>(null);
+  const completedRun = useRef<{
+    id: string;
+    attempt: string;
+    diagnostics?: DeviceDiagnostics;
+  } | null>(null);
   const firstInspection = useMemo(
     () =>
       result ? initialInspection(result.structures, result.groups ?? []) : null,
@@ -130,6 +157,105 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const artifacts = useRef<DeviceArtifacts>({});
   const callbacks = useRef(props);
   callbacks.current = props;
+
+  async function measureStorage() {
+    const generation = epoch.current;
+    try {
+      const estimate = await navigator.storage?.estimate();
+      if (mounted.current && generation === epoch.current)
+        setStorageEstimate({
+          usage: estimate?.usage ?? null,
+          quota: estimate?.quota ?? null,
+        });
+    } catch {
+      if (mounted.current && generation === epoch.current)
+        setStorageEstimate(null);
+    }
+  }
+
+  async function retrySaving() {
+    const completed = completedRun.current;
+    if (!completed || !archive || !result || running || storageBusy) return;
+    const generation = epoch.current;
+    setStorageBusy(true);
+    setSavingResults(true);
+    setProgress('Saving Your Results');
+    setProgressStep(null);
+    try {
+      await finishing.current;
+      const payload = {
+        type: 'complete',
+        result,
+        archive: await archive.arrayBuffer(),
+        artifacts: Object.fromEntries(
+          Object.entries(artifacts.current).map(([id, inputs]) => [
+            id,
+            inputs.map((input) => ({
+              name: input.name,
+              bytes:
+                input.bytes.byteOffset === 0 &&
+                input.bytes.byteLength === input.bytes.buffer.byteLength
+                  ? input.bytes.buffer
+                  : input.bytes.slice().buffer,
+            })),
+          ])
+        ),
+        diagnostics: completed.diagnostics,
+        checkpointSaved: true,
+      };
+      await retryCheckpointCompletion(
+        completed.id,
+        completed.attempt,
+        payload,
+        clock.current.elapsedMs,
+        (done: number, total: number) => {
+          if (mounted.current && generation === epoch.current)
+            setProgressStep({
+              type: 'progress',
+              stage: 'Saving Your Results',
+              phase: 'saving',
+              completed: done,
+              total,
+              filename: '',
+            });
+        }
+      );
+      if (mounted.current && generation === epoch.current) {
+        setCompletionSaveFailed(false);
+        setSaveFailure(null);
+        setCheckpointMessage('');
+        setProgress(completionLabel(result));
+        setProgressStep({
+          type: 'progress',
+          stage: 'Complete',
+          phase: 'export',
+          completed: 1,
+          total: 1,
+          filename: '',
+        });
+      }
+    } catch (error) {
+      if (mounted.current && generation === epoch.current) {
+        setSaveFailure(checkpointFailure(error, 'completion'));
+        setProgress('Calculations Complete; Results Not Saved');
+        setProgressStep({
+          type: 'progress',
+          stage: 'Complete',
+          phase: 'export',
+          completed: 1,
+          total: 1,
+          filename: '',
+        });
+      }
+    } finally {
+      if (mounted.current && generation === epoch.current) {
+        setSavingResults(false);
+        setStorageBusy(false);
+        await refreshCheckpoint();
+        await measureStorage();
+      }
+    }
+  }
 
   async function refreshCheckpoint() {
     try {
@@ -214,6 +340,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       setModels(models);
       setResult(null);
       setArchive(null);
+      setCompletionSaveFailed(false);
+      setSaveFailure(null);
+      completedRun.current = null;
       setFilterKey('all');
       setDiagnostics(null);
       setProgressStep(null);
@@ -424,14 +553,18 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     };
   }, []);
   useEffect(() => {
-    if (!running) return;
+    if (!running && !savingResults) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = '';
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [running]);
+  }, [running, savingResults]);
+
+  useEffect(() => {
+    if (completionSaveFailed) void measureStorage();
+  }, [completionSaveFailed]);
 
   useEffect(() => {
     if (!running) return;
@@ -495,6 +628,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setResult(null);
     setFilterKey('all');
     setCompletionSaveFailed(false);
+    setSaveFailure(null);
+    completedRun.current = null;
     setArchive(null);
     setModels([]);
     setOpening(false);
@@ -555,6 +690,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setResult(null);
     setFilterKey('all');
     setCompletionSaveFailed(false);
+    setSaveFailure(null);
+    completedRun.current = null;
     setArchive(null);
     setModels([]);
     setOpening(false);
@@ -694,6 +831,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           activeCheckpoint.current = data.summary.id;
         } else if (data.type === 'checkpoint-warning') {
           setCheckpointMessage(data.message);
+          if (data.failure) setSaveFailure(data.failure);
         } else if (data.type === 'diagnostics') {
           setDiagnostics(data.diagnostics);
           setDiagnosticsReceivedAt(performance.now());
@@ -722,10 +860,21 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           }
           const saveFailed = data.checkpointSaved === false;
           setCompletionSaveFailed(saveFailed);
+          if (data.checkpointFailure) setSaveFailure(data.checkpointFailure);
+          completedRun.current =
+            lockRun.current && checkpointAttempt.current
+              ? {
+                  id: lockRun.current,
+                  attempt: checkpointAttempt.current,
+                  diagnostics: data.diagnostics,
+                }
+              : null;
           const stopped = terminate(
             saveFailed ? 'failed' : 'paused',
             saveFailed
-              ? 'Final results could not be saved. Resume to rebuild them from saved calculations.'
+              ? data.checkpointFailure
+                ? `${data.checkpointFailure.name} while saving ${data.checkpointFailure.stage}: ${data.checkpointFailure.message}`
+                : 'Final results could not be saved. Resume to rebuild them from saved calculations.'
               : ''
           );
           if (checkpointAvailable) void stopped.then(refreshCheckpoint);
@@ -743,15 +892,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           setProgress(
             saveFailed
               ? 'Calculations Complete; Results Not Saved'
-              : data.result.structures.every(
-                    (model) =>
-                      model.state === 'complete' && !model.comparison_error
-                  ) &&
-                  !data.result.groups?.some(
-                    (group) => group.clustering_status === 'failed'
-                  )
-                ? 'Analysis Complete'
-                : 'Finished With Errors'
+              : completionLabel(data.result)
           );
           setArchive(new Blob([data.archive], { type: 'application/zip' }));
           artifacts.current = Object.fromEntries(
@@ -938,7 +1079,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                 Descriptor Workers
                 <select
                   value={descriptorWorkers}
-                  disabled={running}
+                  disabled={running || storageBusy}
                   onChange={(event) =>
                     setDescriptorWorkers(
                       event.target.value === 'auto'
@@ -966,7 +1107,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               <input
                 type="checkbox"
                 checked={compare}
-                disabled={running}
+                disabled={running || storageBusy}
                 onChange={(event) => setCompare(event.target.checked)}
               />{' '}
               Compare And Cluster Structures
@@ -994,7 +1135,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                     Parallel Workers
                     <select
                       value={alignmentWorkers}
-                      disabled={running}
+                      disabled={running || storageBusy}
                       onChange={(event) =>
                         setAlignmentWorkers(
                           event.target.value === 'auto'
@@ -1027,7 +1168,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                         min="2"
                         max={DEVICE_LIMITS.files}
                         value={minCluster}
-                        disabled={running}
+                        disabled={running || storageBusy}
                         onChange={(event) =>
                           setMinCluster(Number(event.target.value))
                         }
@@ -1040,7 +1181,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                         min="1"
                         max={DEVICE_LIMITS.files - 1}
                         value={minSamples}
-                        disabled={running}
+                        disabled={running || storageBusy}
                         onChange={(event) =>
                           setMinSamples(Number(event.target.value))
                         }
@@ -1064,7 +1205,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                       type="file"
                       accept=".csv"
                       aria-describedby="amyloid-device-confidence-help"
-                      disabled={running}
+                      disabled={running || storageBusy}
                       onChange={(event) =>
                         setConfidence(event.target.files?.[0] || null)
                       }
@@ -1087,7 +1228,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           <input
             type="checkbox"
             checked={saveProgress}
-            disabled={running || !checkpointAvailable || !checkpointReady}
+            disabled={
+              running || storageBusy || !checkpointAvailable || !checkpointReady
+            }
             onChange={(event) => setSaveProgress(event.target.checked)}
           />{' '}
           Save Progress On This Device
@@ -1172,7 +1315,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       {progress && (
         <AnalysisProgress
           label={progress}
-          running={running}
+          running={running || savingResults}
           elapsedMs={elapsedMs}
           completed={progressStep?.completed}
           total={progressStep?.total}
@@ -1181,12 +1324,47 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         />
       )}
       {result && completionSaveFailed && (
-        <p className={styles.error} role="alert">
-          Calculations finished, but the final results could not be saved on
-          this device. Download Local Reports before leaving this page. The
-          saved run is marked Failed because saving failed. Resume Saved Run
-          reuses saved assessments and comparisons to rebuild the final results.
-        </p>
+        <div className={styles.error} role="alert">
+          <p>
+            Calculations finished, but the final results could not be saved on
+            this device. Download Local Reports before leaving this page.
+          </p>
+          {saveFailure && (
+            <p>
+              <strong>{saveFailure.name}</strong> while saving{' '}
+              {saveFailure.stage}: {saveFailure.message}
+            </p>
+          )}
+          {storageEstimate && (
+            <p>
+              Estimated Storage For This Site:{' '}
+              {formatBytes(storageEstimate.usage)} Used Of{' '}
+              {formatBytes(storageEstimate.quota)} Allowed. Browser limits and
+              available disk space can still prevent saving.
+            </p>
+          )}
+          {completedRun.current ? (
+            <>
+              <p>
+                Retry saving the finished results without repeating
+                calculations. Saved assessments and comparisons are retained.
+              </p>
+              <div className={styles.controls}>
+                <button
+                  onClick={() => void retrySaving()}
+                  disabled={storageBusy}
+                >
+                  {savingResults ? 'Saving Results' : 'Retry Saving Results'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <p>
+              Resume Saved Run reuses saved assessments and comparisons to
+              rebuild the final results.
+            </p>
+          )}
+        </div>
       )}
       {!!startedAt && (
         <AnalysisDiagnostics

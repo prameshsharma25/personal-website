@@ -7,6 +7,26 @@ const STORES = ['run', 'inputs', 'descriptors', 'alignments', 'completion'];
 const COMPLETION_CHUNK_BYTES = 8 * 1024 * 1024;
 let connection;
 const releasingLocks = new Map();
+export function checkpointFailure(error, stage = 'completion') {
+  const name =
+    typeof error?.name === 'string' && error.name ? error.name : 'Error';
+  const fallback =
+    name === 'QuotaExceededError'
+      ? 'The browser could not allocate enough storage. Free disk space or remove unneeded saved runs, then retry saving. This run has not been deleted.'
+      : name === 'UnknownError'
+        ? 'The browser could not write the results. Its storage service did not provide a reason.'
+        : name === 'AbortError'
+          ? 'The browser interrupted the save. You can retry saving the results.'
+          : 'The browser did not provide an error message. You can retry saving the results.';
+  return {
+    name,
+    stage,
+    message:
+      typeof error?.message === 'string' && error.message.trim()
+        ? error.message
+        : fallback,
+  };
+}
 export async function digest(value) {
   async function canonical(item) {
     if (item instanceof ArrayBuffer || ArrayBuffer.isView(item)) {
@@ -497,7 +517,57 @@ export async function openCheckpoint(
       });
     }
   );
-  const id = meta.id;
+  return checkpointWriter(meta);
+}
+
+// Retry only the finished output. Keep input, descriptor, and alignment records
+// intact, and refuse stale tabs before reclaiming this attempt's partial save.
+export async function retryCheckpointCompletion(
+  id,
+  attempt,
+  payload,
+  elapsedMs,
+  onProgress
+) {
+  const release = await acquireCheckpointLock(id);
+  try {
+    const meta = await transaction(
+      ['run', 'completion'],
+      'readwrite',
+      (tx, done, fail, guard) => {
+        const store = tx.objectStore('run');
+        const request = store.get(id);
+        request.onsuccess = guard(() => {
+          checkRun(request.result, id);
+          if (!attempt || request.result.attempt !== attempt)
+            throw new Error(
+              'This run was resumed in another tab. Open its latest saved results before saving again.'
+            );
+          if (request.result.status === 'complete') return done(request.result);
+          tx.objectStore('completion').delete(runRange(id));
+          const meta = {
+            ...request.result,
+            elapsedMs: savedElapsed(request.result, elapsedMs),
+          };
+          store.put(meta, id);
+          done(meta);
+        });
+      }
+    );
+    if (meta.status === 'complete') return meta;
+    return await checkpointWriter(meta).put(
+      'completion',
+      'current',
+      payload,
+      onProgress
+    );
+  } finally {
+    await release();
+  }
+}
+
+function checkpointWriter(meta) {
+  const { id, attempt } = meta;
   const session = {
     meta,
     async keys(store) {
@@ -593,6 +663,7 @@ export async function openCheckpoint(
                 updated[store]++;
               if (store === 'completion' && key === 'current') {
                 updated.status = 'complete';
+                updated.error = '';
                 updated.hasErrors =
                   payload.result?.structures?.some(
                     (model) =>

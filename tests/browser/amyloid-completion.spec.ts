@@ -3,58 +3,65 @@ import { readFile } from 'node:fs/promises';
 
 const moduleURL = '/tools/amyloid-device/v1/checkpoints.mjs';
 
-test('the preceding release can resume its saved assessments and comparisons', async ({
-  page,
-}) => {
-  const previous = JSON.parse(
-    await readFile('tests/fixtures/amyloid-pre-chunk-engine.json', 'utf8')
-  );
-  await page.goto('/tools/amyloid-inspector');
-  const result = await page.evaluate(
-    async ({ url, previous }) => {
-      const store = await import(url);
-      const input = {
-        files: [
-          { name: 'existing-run.pdb', bytes: new Uint8Array([1, 2, 3]).buffer },
-        ],
-      };
-      const old = await store.openCheckpoint(
-        input,
-        previous,
-        undefined,
-        'previous-release'
-      );
-      await old.put('descriptors', 'a', {
-        model: { id: 'a', state: 'complete' },
-      });
-      await old.put('alignments', 'a:a', { distance: 0 });
-      await store.setCheckpointActivity(old.meta.id, 'paused', '', 3022000);
-      const current = await (
-        await fetch('/tools/amyloid-device/v1/engine.json')
-      ).json();
-      const resumed = await store.openCheckpoint(input, current, old.meta.id);
-      return {
-        sameScience:
-          (await store.scienceDigest(previous)) ===
-          (await store.scienceDigest(current)),
-        count: resumed.meta.descriptors,
-        pairs: resumed.meta.alignments,
-        elapsed: resumed.meta.elapsedMs,
-        model: await resumed.get('descriptors', 'a'),
-        alignment: await resumed.get('alignments', 'a:a'),
-      };
-    },
-    { url: moduleURL, previous }
-  );
-  expect(result).toEqual({
-    sameScience: true,
-    count: 1,
-    pairs: 1,
-    elapsed: 3022000,
-    model: { model: { id: 'a', state: 'complete' } },
-    alignment: { distance: 0 },
+for (const fixture of [
+  'amyloid-pre-chunk-engine.json',
+  'amyloid-chunked-engine.json',
+])
+  test(`preceding release ${fixture} can resume its saved assessments and comparisons`, async ({
+    page,
+  }) => {
+    const previous = JSON.parse(
+      await readFile(`tests/fixtures/${fixture}`, 'utf8')
+    );
+    await page.goto('/tools/amyloid-inspector');
+    const result = await page.evaluate(
+      async ({ url, previous }) => {
+        const store = await import(url);
+        const input = {
+          files: [
+            {
+              name: 'existing-run.pdb',
+              bytes: new Uint8Array([1, 2, 3]).buffer,
+            },
+          ],
+        };
+        const old = await store.openCheckpoint(
+          input,
+          previous,
+          undefined,
+          'previous-release'
+        );
+        await old.put('descriptors', 'a', {
+          model: { id: 'a', state: 'complete' },
+        });
+        await old.put('alignments', 'a:a', { distance: 0 });
+        await store.setCheckpointActivity(old.meta.id, 'paused', '', 3022000);
+        const current = await (
+          await fetch('/tools/amyloid-device/v1/engine.json')
+        ).json();
+        const resumed = await store.openCheckpoint(input, current, old.meta.id);
+        return {
+          sameScience:
+            (await store.scienceDigest(previous)) ===
+            (await store.scienceDigest(current)),
+          count: resumed.meta.descriptors,
+          pairs: resumed.meta.alignments,
+          elapsed: resumed.meta.elapsedMs,
+          model: await resumed.get('descriptors', 'a'),
+          alignment: await resumed.get('alignments', 'a:a'),
+        };
+      },
+      { url: moduleURL, previous }
+    );
+    expect(result).toEqual({
+      sameScience: true,
+      count: 1,
+      pairs: 1,
+      elapsed: 3022000,
+      model: { model: { id: 'a', state: 'complete' } },
+      alignment: { distance: 0 },
+    });
   });
-});
 
 test('large completed results survive reload with bounded records and identical bytes', async ({
   page,
@@ -274,13 +281,15 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
     page,
   }) => {
     page.on('dialog', (dialog) => dialog.accept());
+    let workers = 0;
+    page.on('worker', () => workers++);
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.route('**/amyloid-device/v1/worker.mjs', (route) =>
       route.fulfill({
         contentType: 'text/javascript',
         body: `
-      import {openCheckpoint,readCheckpointSummary,readCheckpointCompletion} from './checkpoints.mjs';
+      import {openCheckpoint,readCheckpointSummary,readCheckpointCompletion,checkpointFailure} from './checkpoints.mjs';
       onmessage=async({data})=>{
         if(data.type!=='start')return;
         if(data.resumeId && (await readCheckpointSummary(data.resumeId)).status==='complete'){
@@ -301,7 +310,8 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
         const completed={type:'complete',result:{structures:models,groups:[{id:'group-001',ids:['first','chosen'],clustering_status:'complete',shortlist:selected?['chosen']:[],members:models.map(m=>({id:m.id,cluster:0,selected_rank:selected&&m.id==='chosen'?1:null,rank_score:1,eligibility_reasons:[]})),representatives:[{id:'first',cluster:0,size:2}]}],warnings:[],elapsed_seconds:1,clustering_status:'requested'},artifacts,archive:new Uint8Array([1,2,3]).buffer,checkpointSaved:true};
         if(${JSON.stringify(mode === 'save failed')}){
           completed.checkpointSaved=false;
-          postMessage({type:'checkpoint-warning',message:'Saving progress stopped: Simulated storage failure'});
+          completed.checkpointFailure=checkpointFailure(new DOMException('', 'QuotaExceededError'));
+          postMessage({type:'checkpoint-warning',failure:completed.checkpointFailure,message:'Saving progress stopped: QuotaExceededError'});
         }else{
           postMessage({type:'progress',stage:'Saving Your Results',phase:'saving',completed:0,total:1});
           const summary=await session.put('completion','current',completed);
@@ -368,6 +378,62 @@ for (const mode of ['shortlisted', 'no shortlist', 'save failed']) {
         'final results could not be saved'
       );
       await expect(page.getByRole('status')).toContainText('Results Not Saved');
+      await expect(page.locator('main [role=alert]')).toContainText(
+        'QuotaExceededError'
+      );
+      await expect(page.locator('main [role=alert]')).toContainText(
+        'Estimated Storage For This Site'
+      );
+      const time = await page.getByRole('timer').textContent();
+      const before = workers;
+      // Fail once more in the page, then recover without a new analysis worker.
+      await page.evaluate(() => {
+        const original = IDBObjectStore.prototype.put;
+        IDBObjectStore.prototype.put = function (value: any, key: any) {
+          if (this.name === 'completion') {
+            IDBObjectStore.prototype.put = original;
+            throw new DOMException('', 'UnknownError');
+          }
+          return original.call(this, value, key);
+        };
+      });
+      await page
+        .getByRole('button', { name: 'Retry Saving Results', exact: true })
+        .click();
+      await expect(page.locator('main [role=alert]')).toContainText(
+        'UnknownError'
+      );
+      await expect(
+        history.getByRole('button', { name: 'Failed 1', exact: true })
+      ).toBeVisible();
+      await page
+        .getByRole('button', { name: 'Retry Saving Results', exact: true })
+        .click();
+      await expect(
+        history.getByRole('button', { name: 'Completed 1', exact: true })
+      ).toBeVisible();
+      await expect(page.locator('main [role=alert]')).toHaveCount(0);
+      await expect(page.getByRole('status')).toContainText('Analysis Complete');
+      await expect(page.getByRole('timer')).toHaveText(time!);
+      expect(workers).toBe(before);
+      const saved = await page.evaluate(async (url) => {
+        const store = await import(url);
+        const run = (await store.listCheckpoints())[0];
+        const completed = await store.readCheckpointCompletion(run.id);
+        return {
+          bytes: Array.from(new Uint8Array(completed.archive)),
+          descriptors: run.descriptors,
+          error: run.error,
+        };
+      }, moduleURL);
+      expect(saved).toEqual({ bytes: [1, 2, 3], descriptors: 2, error: '' });
+      await page.reload();
+      await page
+        .getByRole('button', { name: 'Open Saved Results', exact: true })
+        .click();
+      await expect(selection).toContainText('Shortlist #1');
+      await expect(page.getByRole('timer')).toHaveText(time!);
+      await expect(page.locator('main [role=alert]')).toHaveCount(0);
     } else {
       await expect(page.locator('main [role=alert]')).toHaveCount(0);
       await page.reload();

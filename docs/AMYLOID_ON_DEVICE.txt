@@ -339,6 +339,17 @@ errors stop checkpoint writes with a visible warning but allow the calculation
 and download to finish. Earlier committed work remains recoverable. Integrity or
 engine mismatches stop recovery explicitly without deleting the saved data.
 
+Saving warnings preserve the browser error name and the failing storage stage,
+even when the DOMException message is empty. The completed result panel shows
+an estimated site storage usage and quota when the browser exposes them. These
+estimates do not prove enough physical disk space is available.
+Retry Saving Results saves the in-memory finished output without starting Python,
+descriptor workers, or alignments again. It holds the same per-run lock, requires
+the original attempt token, and clears only that incomplete run's completion
+chunks before retrying. Inputs, assessments, comparisons, other runs, and active
+analysis time are preserved. A newer attempt in another tab prevents a stale
+retry. Reloading before a successful save still requires Resume Saved Run.
+
 Checkpoint storage is browser managed, not a backup guarantee. Clearing site
 data, private browsing, storage eviction, and quotas can prevent recovery. A run
 can only resume on the same origin in the same browser profile. The runtime still

@@ -7,7 +7,14 @@ export {
   listCheckpoints,
   setCheckpointActivity,
   saveCheckpointElapsed,
+  checkpointFailure,
+  retryCheckpointCompletion,
 } from '../public/tools/amyloid-device/v1/checkpoints.mjs';
+export type CheckpointFailure = {
+  name: string;
+  stage: string;
+  message: string;
+};
 export type CheckpointSummary = {
   format: number;
   id: string;

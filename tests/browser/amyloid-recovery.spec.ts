@@ -536,10 +536,12 @@ for (const problem of ['engine', 'corrupt input']) {
   });
 }
 
-test('a checkpoint quota failure is visible and analysis still finishes', async ({
+test('a blank checkpoint quota failure permits saving real finished results without recalculation', async ({
   page,
-}) => {
+}, testInfo) => {
   test.setTimeout(90000);
+  let workers = 0;
+  page.on('worker', () => workers++);
   const module = await readFile(
     'public/tools/amyloid-device/v1/checkpoints.mjs',
     'utf8'
@@ -549,7 +551,7 @@ test('a checkpoint quota failure is visible and analysis still finishes', async 
       contentType: 'text/javascript',
       body: module.replace(
         'async put(store, key, payload, onProgress) {',
-        "async put(store, key, payload, onProgress) { if (store === 'descriptors') throw new DOMException('Test checkpoint quota', 'QuotaExceededError');"
+        "async put(store, key, payload, onProgress) { if (store === 'descriptors') throw new DOMException('', 'QuotaExceededError');"
       ),
     })
   );
@@ -563,7 +565,9 @@ test('a checkpoint quota failure is visible and analysis still finishes', async 
   await waitComplete(page);
   await expect(
     page.getByRole('region', { name: 'On-Device Analysis', exact: true })
-  ).toContainText('Saving progress stopped: Test checkpoint quota');
+  ).toContainText(
+    'Saving progress stopped: QuotaExceededError while saving descriptors. The browser could not allocate enough storage.'
+  );
   const checkpoint = await saved(page);
   expect(checkpoint.status).toBe('incomplete');
   expect(checkpoint.descriptors).toBe(0);
@@ -571,4 +575,25 @@ test('a checkpoint quota failure is visible and analysis still finishes', async 
     'final results could not be saved'
   );
   await expect.poll(async () => (await saved(page)).activity).toBe('failed');
+  const time = await page.getByRole('timer').textContent();
+  const count = workers;
+  const before = testInfo.outputPath('before-retry.zip');
+  const after = testInfo.outputPath('after-retry.zip');
+  await download(page, before);
+  await page
+    .getByRole('button', { name: 'Retry Saving Results', exact: true })
+    .click();
+  await expect.poll(async () => (await saved(page)).status).toBe('complete');
+  await expect(page.locator('main [role=alert]')).toHaveCount(0);
+  await expect(page.getByRole('timer')).toHaveText(time!);
+  expect(workers).toBe(count);
+  await page.reload();
+  await page
+    .getByRole('button', { name: 'Open Saved Results', exact: true })
+    .click();
+  await waitComplete(page);
+  await download(page, after);
+  expect(await readFile(after)).toEqual(await readFile(before));
+  await expect(page.getByRole('timer')).toHaveText(time!);
+  await expect(page.locator('main [role=alert]')).toHaveCount(0);
 });

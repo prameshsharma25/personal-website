@@ -1,6 +1,9 @@
 import type { InputFile } from './amyloid-inspector';
 import type { AnalysisModel, AnalysisGroup } from './amyloid-jobs';
-import type { CheckpointSummary } from './amyloid-checkpoints';
+import type {
+  CheckpointSummary,
+  CheckpointFailure,
+} from './amyloid-checkpoints';
 import type { DeviceDiagnostics } from './amyloid-diagnostics';
 import type {
   DescriptorEntry,
@@ -44,7 +47,7 @@ export type DeviceResult = {
 };
 export type DeviceMessage =
   | { type: 'checkpoint'; summary: CheckpointSummary }
-  | { type: 'checkpoint-warning'; message: string }
+  | { type: 'checkpoint-warning'; message: string; failure?: CheckpointFailure }
   | {
       type: 'descriptor-init';
       requestId: number;
@@ -86,6 +89,8 @@ export type DeviceMessage =
       artifacts: Record<string, { name: string; bytes: ArrayBuffer }[]>;
       archive: ArrayBuffer;
       checkpointSaved?: boolean;
+      checkpointFailure?: CheckpointFailure;
+      diagnostics?: DeviceDiagnostics;
     };
 export type DeviceArtifacts = Record<string, InputFile[]>;
 

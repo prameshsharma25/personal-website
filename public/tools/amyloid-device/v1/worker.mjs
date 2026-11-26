@@ -6,6 +6,7 @@ import {
   openCheckpoint,
   readCheckpointSummary,
   readCheckpointCompletion,
+  checkpointFailure,
 } from './checkpoints.mjs';
 const BASE = new URL('./', import.meta.url);
 const RUNTIME = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
@@ -206,17 +207,20 @@ self.onmessage = async ({ data }) => {
     let checkpoint = null,
       checkpointWrites = true,
       lastCheckpointMessage = 0;
+    let lastCheckpointFailure;
     function checkpointNotice(summary, force = false) {
       if (force || performance.now() - lastCheckpointMessage > 1000) {
         postMessage({ type: 'checkpoint', summary });
         lastCheckpointMessage = performance.now();
       }
     }
-    function checkpointWarning(error) {
+    function checkpointWarning(error, stage = 'inputs') {
       checkpointWrites = false;
+      lastCheckpointFailure = checkpointFailure(error, stage);
       postMessage({
         type: 'checkpoint-warning',
-        message: `Saving progress stopped: ${error instanceof Error ? error.message : String(error)} Calculations can continue, but only earlier saved work can be recovered.`,
+        failure: lastCheckpointFailure,
+        message: `Saving progress stopped: ${lastCheckpointFailure.name} while saving ${stage}. ${lastCheckpointFailure.message} Calculations can continue, but only earlier saved work can be recovered.`,
       });
     }
     async function persist(store, key, output) {
@@ -234,7 +238,7 @@ self.onmessage = async ({ data }) => {
         checkpointNotice(summary, store === 'completion');
         return true;
       } catch (error) {
-        checkpointWarning(error);
+        checkpointWarning(error, store);
         return false;
       }
     }
@@ -747,6 +751,8 @@ self.onmessage = async ({ data }) => {
     };
     const saved = await persist('completion', 'current', completed);
     if (data.checkpoint || data.resumeId) completed.checkpointSaved = saved;
+    if (lastCheckpointFailure)
+      completed.checkpointFailure = lastCheckpointFailure;
     postMessage(completed, transfers);
   } catch (error) {
     diagnostics.emit(true);
