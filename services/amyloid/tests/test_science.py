@@ -77,6 +77,40 @@ def test_incomplete_mmalign_is_rejected():
         to_distance([[1, 0.2], [0.3, 1]])
 
 
+def test_candidate_budgets_are_nested_without_relaxing_diversity():
+    # Three clusters with eight eligible members each. Their within-cluster
+    # distances still exceed the diversity threshold, so the budget is binding.
+    entries = [
+        {"id": f"model-{i:03d}", "confidence": {"method": "test", "iptm": 0.8, "mean_plddt": 80}}
+        for i in range(24)
+    ]
+    reports = {entry["id"]: report() for entry in entries}
+    labels = np.repeat(np.arange(3), 8)
+    matrix = np.where(labels[:, None] == labels[None, :], 0.25, 0.9)
+    np.fill_diagonal(matrix, 0)
+    selections = []
+    for budget in [5, 10, 15, 20]:
+        result, _ = group_analysis(
+            entries, reports, matrix,
+            {"min_cluster_size": 3, "min_samples": 1, "max_candidates": budget},
+            fit_labels=lambda distance, settings: labels,
+        )
+        assert len(result["shortlist"]) == budget
+        selections.append(result["shortlist"])
+    for chosen in selections:
+        assert chosen == selections[-1][:len(chosen)]
+
+    # The larger budget cannot force redundant candidates into the shortlist.
+    matrix[labels[:, None] == labels[None, :]] = 0.03
+    np.fill_diagonal(matrix, 0)
+    result, _ = group_analysis(
+        entries, reports, matrix,
+        {"min_cluster_size": 3, "min_samples": 1, "max_candidates": 20},
+        fit_labels=lambda distance, settings: labels,
+    )
+    assert len(result["shortlist"]) == 3
+
+
 def test_browser_clustering_preserves_partition_and_selection_conventions():
     from analysis.browser_clustering import sklearn_labels
 

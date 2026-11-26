@@ -12,6 +12,8 @@ import type {
 } from './amyloid-descriptor-pool';
 import type { AlignmentWorkers } from './amyloid-alignment-pool';
 
+export const CANDIDATE_BUDGETS = [5, 10, 15, 20];
+
 export const DEVICE_LIMITS = {
   files: 125,
   fileBytes: 10 * 1024 * 1024,

@@ -84,6 +84,12 @@ LIMITS AND LIFECYCLE
 Up to 125 unique filenames, 10 MiB each, 100 MiB total; PDB/mmCIF, first model only,
 20,000 normalized atoms and 32 polymer chains per structure. Confidence CSV <=64 KiB.
 Default clustering: min_cluster_size 10, min_samples 3 (4 including self in sklearn).
+Candidate Budget offers 5, 10, 15, or 20 shortlisted structures per comparable
+group, defaulting to 10. All inputs are still assessed. Eligibility, ranking and
+the 0.20 diversity threshold are unchanged; the same ordered selection is stopped
+at the chosen budget and may contain fewer candidates. The selected budget is
+recorded in saved inputs and exported settings. Resuming or opening a saved run
+restores its original budget, including 10 for runs from earlier releases.
 Pools too small for the settings get unavailable clusters, not fabricated noise.
 There can be at most 15,625 directed MM-align executions; comparable singleton groups
 need none. Runtime and memory use depend on the device, structure, and batch size.

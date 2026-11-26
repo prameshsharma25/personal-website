@@ -13,7 +13,7 @@ test('NIH and cold-email articles have tracker invitations and usable contents l
   for(const url of ['/posts/how-i-found-an-nih-postbac-lab','/mentorship/cold-emailing']){
     await page.goto(url);await expect(page.getByRole('link',{name:'Get The Lab-Search Tracker'})).toBeVisible();
     await page.getByText('On This Page',{exact:true}).click();const first=page.getByRole('navigation',{name:'Article Contents'}).getByRole('link').first();const href=await first.getAttribute('href');await first.click();expect(await page.locator(href!).count()).toBe(1);
-    await expect(page.locator('h1')).toHaveCount(1);await expect(page.locator('script[src*="adsbygoogle"]')).toHaveCount(0);
+    await expect(page.locator('h1')).toHaveCount(1);await expect(page.locator('head script[src*="adsbygoogle"]')).toHaveCount(1);
   }
 });
 test('product page offers Gumroad checkout and does not expose paid files',async({page,request})=>{
