@@ -67,6 +67,17 @@ failures do not hide other available report components. Shared requests, bounded
 windows, server caches, timeouts, and CDN caching limit upstream traffic.
 No API credentials or upstream error bodies are returned to visitors.
 
+INTERACTIVE VIEWS CHART
+Hover to inspect a date, or click or tap to pin it. The Explore Days slider
+supports touch and keyboard navigation, including arrow keys, Home, and End.
+Daily and Cumulative modes use the same fetched report without extra API calls.
+Cumulative views sum reported daily rows within the selected period, not lifetime
+views. Missing dates remain unavailable, break the cumulative line, and are never
+filled with zero. Peak Day selects the earliest highest reported daily count.
+Download CSV exports the video ID, reported dates, daily views, and cumulative
+reported views. The table and CSV omit unreported rows while keeping genuine zero
+counts. Switching videos or date ranges resets the chart selection.
+
 LIMITS
 Returning viewers are not a documented metric in the YouTube Analytics API.
 Studio's 48-hour/hourly realtime estimates are not provided by these APIs.

@@ -216,16 +216,151 @@
 }
 .chart {
   width: 100%;
-  height: auto;
+  height: 230px;
   display: block;
-  margin: 1.5rem 0;
+  touch-action: pan-y;
+  cursor: crosshair;
 }
-.chart rect {
-  fill: #a6f4d1;
+.viewBar {
+  fill: #78c9ac;
+  opacity: 0.7;
+  transition:
+    fill 140ms,
+    opacity 140ms;
+}
+.activeBar {
+  fill: #c0ffe5;
+  filter: drop-shadow(0 0 5px #a1ffd866);
+}
+.cumulativeLine {
+  fill: none;
+  stroke: #9fe6ee;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.dataDot {
+  fill: #9fe6ee;
+}
+.crosshair {
+  stroke: #d0fff2;
+  stroke-dasharray: 3 4;
+  opacity: 0.65;
+  pointer-events: none;
+}
+.activeDot {
+  fill: #ecfff7;
+  stroke: #10291e;
+  stroke-width: 2;
+  pointer-events: none;
 }
 .chart text {
   fill: #9db7a8;
   font-size: 11px;
+}
+.interactiveChart {
+  min-width: 0;
+}
+.chartToolbar,
+.chartActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+.chartToolbar {
+  margin-bottom: 1rem;
+}
+.chartButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 44px;
+  border: 1px solid #89c6a64d;
+  border-radius: 9px;
+  background: #153324;
+  color: #d9f7e8;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  font-size: 0.73rem;
+  cursor: pointer;
+  transition:
+    border-color 160ms,
+    background 160ms;
+}
+.chartButton:hover {
+  border-color: #a6e9c8;
+  background: #204432;
+}
+.chartButton:focus-visible,
+.chartSlider input:focus-visible {
+  outline: 2px solid #b6ffe4;
+  outline-offset: 4px;
+}
+.chartButton span {
+  color: #a8dfc0;
+}
+.chartReadout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: 98px;
+  padding: 1rem;
+  background: linear-gradient(115deg, #163c2c, #112a27);
+  border: 1px solid #7fc9a944;
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.chartReadout > div {
+  min-width: 0;
+}
+.readoutLabel,
+.readoutValue span {
+  display: block;
+  font-size: 0.65rem;
+  color: #b7d4c6;
+  line-height: 1.6;
+}
+.chartReadout time {
+  display: block;
+  color: #e4fff0;
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+}
+.readoutValue {
+  text-align: right;
+}
+.readoutValue strong {
+  display: block;
+  color: #c3ffe7;
+  font:
+    500 clamp(1.1rem, 2vw, 1.8rem)/1.3 var(--font-display),
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+.chartStage {
+  margin: 0.75rem 0 0;
+}
+.chartSlider {
+  display: grid;
+  font-size: 0.7rem;
+  color: #c6e6d4;
+}
+.chartSlider > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.chartSlider input {
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  accent-color: #a6f4d1;
+  cursor: pointer;
 }
 .gridLine {
   stroke: #9fdcbd22;
@@ -316,7 +451,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .poster {
+  .poster,
+  .viewBar,
+  .chartButton {
     transition: none;
   }
   .play:hover .poster {

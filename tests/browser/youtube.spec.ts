@@ -1,4 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/pagead/js/adsbygoogle.js?*', (route) =>
+    route.fulfill({ contentType: 'application/javascript', body: '' })
+  );
+});
 
 const first = 'oDGqUMBvrpY',
   second = 'future12345';
@@ -33,14 +40,14 @@ const report = {
   summary: { views: 23, minutesWatched: 20, averageSeconds: 52 },
   searchTerms: [{ term: 'computational biology', views: 8 }],
 };
-async function mock(page: Page) {
+async function mock(page: Page, selectedReport = report) {
   await page.route('**/api/youtube*', (route) => {
     const url = new URL(route.request().url());
     if (!url.searchParams.has('video')) return route.fulfill({ json: feed });
     return route.fulfill({
       json:
         url.searchParams.get('video') === first
-          ? report
+          ? selectedReport
           : {
               ...report,
               videoId: second,
@@ -168,4 +175,163 @@ test('mobile video analytics remain readable with reduced motion', async ({
     )
   ).toBe(true);
   await section.screenshot({ path: info.outputPath('youtube-mobile.png') });
+});
+
+test('views chart supports hover, pinning, keyboard dates, cumulative views, peak selection, and CSV export', async ({
+  page,
+}, info) => {
+  await mock(page);
+  await page.goto('/posts#videos');
+  const details = page.getByLabel('Selected Day Details');
+  const firstBar = page.locator('svg rect[data-date="2026-11-20"]');
+  const peakBar = page.locator('svg rect[data-date="2026-11-22"]');
+  await firstBar.hover();
+  await expect(details).toContainText('Nov 20, 2026');
+  await expect(details.locator('strong')).toHaveText('5');
+  await firstBar.click();
+  await peakBar.hover();
+  await expect(details).toContainText('Pinned Day');
+  await expect(details).toContainText('Nov 20, 2026');
+  await page.getByRole('button', { name: 'Unpin Day', exact: true }).click();
+  await peakBar.hover();
+  await expect(details.locator('strong')).toHaveText('18');
+
+  const slider = page.getByRole('slider', { name: 'Explore Chart Days' });
+  await slider.focus();
+  await slider.press('ArrowLeft');
+  await expect(slider).toHaveAttribute(
+    'aria-valuetext',
+    'Nov 21, 2026: Not Reported'
+  );
+  await expect(details.locator('strong')).toHaveText('Not Reported');
+  await slider.press('Home');
+  await expect(details).toContainText('Oct 28, 2026');
+  await slider.press('End');
+  await expect(details).toContainText('Nov 24, 2026');
+  await slider.press('ArrowLeft');
+  await slider.press('ArrowLeft');
+
+  await page.getByRole('button', { name: 'Cumulative', exact: true }).click();
+  await expect(
+    page.getByRole('img', { name: 'Cumulative reported video views' })
+  ).toBeVisible();
+  await expect(details.locator('strong')).toHaveText('23');
+  await expect(slider).toHaveAttribute(
+    'aria-valuetext',
+    'Nov 22, 2026: 23 Cumulative Reported Views'
+  );
+  const line = await page
+    .getByRole('img', { name: 'Cumulative reported video views' })
+    .locator('path')
+    .getAttribute('d');
+  expect(line?.match(/M /g)).toHaveLength(2);
+  await page.getByRole('button', { name: 'Daily', exact: true }).click();
+  await page.getByRole('button', { name: /Peak Day/ }).click();
+  await expect(details.locator('strong')).toHaveText('18');
+
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download CSV' }).click();
+  const download = await downloaded;
+  expect(download.suggestedFilename()).toBe(
+    `youtube-views-${first}-2026-10-28-to-2026-11-24.csv`
+  );
+  const destination = info.outputPath('views.csv');
+  await download.saveAs(destination);
+  const csv = await readFile(destination, 'utf8');
+  expect(csv).toContain(`"${first}","2026-11-20","5","5"`);
+  expect(csv).toContain(`"${first}","2026-11-22","18","23"`);
+  expect(csv).not.toContain('2026-11-21');
+  expect(csv.trim().split('\r\n')).toHaveLength(3);
+  await page
+    .getByRole('region', { name: 'YouTube Videos', exact: true })
+    .screenshot({ path: info.outputPath('youtube-interactive-desktop.png') });
+});
+
+test('chart resets when the video or date range changes without requesting data for local controls', async ({
+  page,
+}) => {
+  let analyticsRequests = 0;
+  await page.route('**/api/youtube*', (route) => {
+    const url = new URL(route.request().url());
+    if (!url.searchParams.has('video')) return route.fulfill({ json: feed });
+    analyticsRequests++;
+    const next = url.searchParams.get('video') === second;
+    const long = url.searchParams.get('days') === '90';
+    return route.fulfill({
+      json: {
+        ...report,
+        videoId: next ? second : first,
+        startDate: long ? '2026-08-27' : report.startDate,
+        daily: next ? [{ date: '2026-11-23', views: 0 }] : report.daily,
+      },
+    });
+  });
+  await page.goto('/posts#videos');
+  await expect(page.getByLabel('Selected Day Details')).toContainText(
+    'Nov 22, 2026'
+  );
+  const before = analyticsRequests;
+  await page.getByRole('button', { name: 'Cumulative', exact: true }).click();
+  await page.getByRole('button', { name: /Peak Day/ }).click();
+  expect(analyticsRequests).toBe(before);
+  await page.getByRole('button', { name: '90 Days', exact: true }).click();
+  await expect(
+    page.getByRole('slider', { name: 'Explore Chart Days' })
+  ).toHaveAttribute('max', '89');
+  await expect(
+    page.getByRole('button', { name: 'Daily', exact: true })
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page.getByRole('button', { name: 'Unpin Day', exact: true })
+  ).toHaveCount(0);
+  await page.getByLabel('Recent Videos').selectOption(second);
+  await expect(page.getByLabel('Selected Day Details')).toContainText(
+    'Nov 23, 2026'
+  );
+  await expect(
+    page.getByLabel('Selected Day Details').locator('strong')
+  ).toHaveText('0');
+  await page.getByRole('button', { name: /Peak Day/ }).click();
+  await expect(page.getByLabel('Selected Day Details')).toContainText(
+    'Pinned Day'
+  );
+  const chart = page.getByRole('img', { name: 'Reported daily video views' });
+  expect(await chart.innerHTML()).not.toMatch(/NaN|Infinity/);
+});
+
+test('touch selects and pins days while the mobile chart and controls stay within the viewport', async ({
+  browser,
+}, info) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  try {
+    await page.route('**/pagead/js/adsbygoogle.js?*', (route) =>
+      route.fulfill({ body: '' })
+    );
+    await mock(page);
+    await page.goto(
+      (process.env.TEST_BASE_URL || 'http://127.0.0.1:3817') + '/posts#videos'
+    );
+    await page.locator('svg rect[data-date="2026-11-20"]').tap();
+    const details = page.getByLabel('Selected Day Details');
+    await expect(details).toContainText('Nov 20, 2026');
+    await expect(details).toContainText('Pinned Day');
+    await page.getByRole('button', { name: 'Cumulative', exact: true }).tap();
+    await expect(details.locator('strong')).toHaveText('5');
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+    await page
+      .getByRole('region', { name: 'YouTube Videos', exact: true })
+      .screenshot({ path: info.outputPath('youtube-interactive-touch.png') });
+  } finally {
+    await context.close();
+  }
 });
