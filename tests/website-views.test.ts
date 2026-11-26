@@ -291,7 +291,7 @@ test('API only counts published articles with same-origin valid browser POST req
         return this;
       },
     };
-    await handler(req as NextApiRequest, res as unknown as NextApiResponse);
+    await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
     return result;
   }
   try {

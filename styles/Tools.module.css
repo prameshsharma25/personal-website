@@ -43,6 +43,9 @@
 .toolCopy {
   padding: var(--tool-panel-padding);
 }
+.toolCard + .toolCard {
+  margin-top: 2rem;
+}
 .toolCopy h2,
 .upload h2,
 .resultHeading h2,

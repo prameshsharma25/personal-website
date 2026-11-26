@@ -9,7 +9,7 @@ export default function Tools() {
     <>
       <Seo
         title="Structural Biology Tools"
-        description="Explore structural biology tools from Pramesh Sharma. Analyze amyloid structures, compare and cluster conformations, and review ranked candidates in your browser."
+        description="Explore structural biology tools from Pramesh Sharma. Analyze amyloid structures and connect protein regions to UniProt and InterPro annotations in your browser."
         path="/tools"
         breadcrumbs={[
           { name: 'Home', path: '/' },
@@ -68,11 +68,32 @@ export default function Tools() {
             </p>
           </div>
         </article>
+        <article data-reveal className={styles.toolCard}>
+          <div className={styles.toolVisual} aria-hidden="true">
+            <div className={styles.scan} />
+            <svg viewBox="0 0 500 360" width="100%" height="360" fill="none">
+              <path d="M70 220C40 100 190 65 210 170S340 300 360 170S465 60 435 235" stroke="#3e668b" strokeWidth="28" strokeLinecap="round" />
+              <path d="M70 220C40 100 190 65 210 170S340 300 360 170S465 60 435 235" stroke="#93c7ef" strokeWidth="13" strokeLinecap="round" />
+              <path d="M210 170C230 275 330 280 350 210" stroke="#ffc473" strokeWidth="18" strokeLinecap="round" />
+              <rect x="184" y="158" width="187" height="133" rx="20" stroke="#60dfd3" strokeWidth="2" strokeDasharray="6 7" />
+              <circle cx="277" cy="253" r="10" fill="#ffc473" />
+            </svg>
+            <span>Select → Map → Annotate → Explore</span>
+          </div>
+          <div className={styles.toolCopy}>
+            <p className={styles.kicker}>02 / Free Research Tool</p>
+            <h2>Protein Annotation Explorer</h2>
+            <p>Highlight a region in your protein and explore its reference annotations. Keep the sequence, structure, and supporting evidence together.</p>
+            <ul><li>Linked residue selection in sequence and 3D</li><li>UniProt features and InterPro domains</li><li>Reference mapping, research notes, and downloadable reviews</li></ul>
+            <Link href="/tools/protein-annotations" className={styles.primary}>Open Annotation Explorer <span aria-hidden="true">↗</span></Link>
+            <p className={styles.caption}>Your Protein · Public Annotations · Traceable Evidence</p>
+          </div>
+        </article>
         <p className={styles.footerNote}>
           Developed alongside my{' '}
           <Link href="/experience#projects">ongoing research</Link>. Scientific
-          calculations come from the Amyloid Candidates package; this interface
-          helps you examine the results.
+          calculations in Amyloid Structure Analysis come from the Amyloid Candidates package.
+          The annotation explorer connects your proteins to credited public resources.
         </p>
       </main>
     </>
