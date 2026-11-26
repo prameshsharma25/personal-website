@@ -59,7 +59,7 @@ export default function ProjectMolecule({
         if (!pdb.includes('ATOM')) throw new Error('Invalid structure');
         if (cancelled) return;
         scene = library.createViewer(element, {
-          backgroundColor: '#06100c',
+          backgroundColor: '#0a0a0a',
           backgroundAlpha: 0,
           antialias: true,
           cartoonQuality: 8,

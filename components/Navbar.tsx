@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import DnaMark from './DnaMark';
 import styles from '../styles/Navbar.module.css';
 
 const links = [
@@ -20,7 +21,10 @@ export default function Navbar() {
     <nav className={styles.navbar} aria-label="Main Navigation">
       <div className={styles.container}>
         <div className={styles.logo}>
-          <Link href="/" className={styles.logoLink}>Pramesh Sharma</Link>
+          <Link href="/" className={styles.logoLink}>
+            <DnaMark className={styles.dnaMark} />
+            <span>Pramesh Sharma</span>
+          </Link>
         </div>
         <ul className={styles.navLinks}>
           {links.map(({ href, label }) => {

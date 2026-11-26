@@ -22,7 +22,7 @@
 .conversation > p:last-of-type {
   font-size: 0.9rem;
   line-height: 1.9;
-  color: #abbfb0;
+  color: #bababa;
 }
 .signalLines {
   display: flex;
@@ -32,14 +32,14 @@
 .signalLines span {
   height: 2px;
   width: 25%;
-  background: linear-gradient(90deg, #96f5bd, transparent);
+  background: linear-gradient(90deg, #e1e1e1, transparent);
   transform-origin: left;
   animation: lineArrival 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .signalLines span:nth-child(2) {
   animation-delay: 0.15s;
   width: 18%;
-  background: linear-gradient(90deg, #87d5e8, transparent);
+  background: linear-gradient(90deg, #c9c9c9, transparent);
 }
 .signalLines span:nth-child(3) {
   animation-delay: 0.3s;
@@ -54,16 +54,16 @@
 .formPanel {
   padding: 2.2rem;
   border-radius: 18px;
-  border: 1px solid #99c9ae4a;
+  border: 1px solid #bebebe4a;
   background:
-    radial-gradient(ellipse at top right, #9cfbcb0d, transparent 65%), #0b1510;
+    radial-gradient(ellipse at top right, #e8e8e80d, transparent 65%), #131313;
   box-shadow: 0 24px 70px #0004;
 }
 .formHeader {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  color: #99d0b3;
+  color: #c4c4c4;
   font-size: 0.65rem;
   margin-bottom: 1.6rem;
   letter-spacing: 0.06em;
@@ -79,7 +79,7 @@
   margin-bottom: 0.7rem;
 }
 .formIntro {
-  color: #abc0b2;
+  color: #bbbbbb;
   font-size: 0.84rem;
   line-height: 1.8;
   margin-bottom: 1.8rem;
@@ -90,7 +90,7 @@
 }
 .fields label {
   display: block;
-  color: #c3d4c8;
+  color: #d0d0d0;
   font-size: 0.78rem;
   margin-bottom: 0.55rem;
 }
@@ -108,10 +108,10 @@
   display: block;
   width: 100%;
   padding: 0.9rem;
-  border: 1px solid #849d8b4a;
+  border: 1px solid #9797974a;
   border-radius: 9px;
-  background: #050d09;
-  color: #f1fff4;
+  background: #0b0b0b;
+  color: #fbfbfb;
   margin-top: 0;
   font: inherit;
   font-size: 1rem;
@@ -126,16 +126,16 @@
 }
 .fields input::placeholder,
 .fields textarea::placeholder {
-  color: #8a9c91;
+  color: #989898;
   font-size: 0.8rem;
 }
 .fields input:focus,
 .fields textarea:focus {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  background: #0b1710;
-  border-color: #9ef5c6;
-  box-shadow: 0 0 24px #8ffcbd12;
+  background: #141414;
+  border-color: #e3e3e3;
+  box-shadow: 0 0 24px #e6e6e612;
 }
 .fields button {
   width: 100%;
@@ -144,9 +144,9 @@
 .status {
   padding: 1rem;
   margin-top: 1rem;
-  border: 1px solid #7bd1a94a;
+  border: 1px solid #c0c0c04a;
   border-radius: 8px;
-  color: #beeacc;
+  color: #dfdfdf;
   font-size: 0.85rem;
 }
 .status[data-state='error'] {
@@ -156,9 +156,9 @@
 .availability {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  border: 1px solid #99c9ae4a;
+  border: 1px solid #bebebe4a;
   border-radius: 8px;
-  color: #c3d4c8;
+  color: #d0d0d0;
   font-size: 0.85rem;
   line-height: 1.7;
 }
@@ -166,12 +166,12 @@
   display: grid;
   gap: 0.4rem;
   margin-top: 1.4rem;
-  color: #abc0b2;
+  color: #bbbbbb;
   font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
 .directEmail a {
-  color: #b5f4d4;
+  color: #e6e6e6;
   text-decoration: underline;
   text-underline-offset: 0.2em;
   width: fit-content;

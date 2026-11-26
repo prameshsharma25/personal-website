@@ -185,7 +185,6 @@ export default function YouTubeSection({
               </p>
             </aside>
           </div>
-          <YouTubeResearchCards videoId={video.id} />
           <div className={styles.analyticsHeader}>
             <div>
               <p className={ui.miniLabel}>Behind The Views</p>
@@ -334,6 +333,7 @@ export default function YouTubeSection({
               </a>
             </div>
           </div>
+          <YouTubeResearchCards videoId={video.id} />
         </>
       ) : (
         <p className={styles.availability}>

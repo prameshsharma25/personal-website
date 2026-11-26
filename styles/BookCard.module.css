@@ -3,8 +3,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 14px;
-  border: 1px solid #84ae923d;
-  background: linear-gradient(145deg, #112016, #090f0c);
+  border: 1px solid #a4a4a43d;
+  background: linear-gradient(145deg, #1d1d1d, #0e0e0e);
   transition:
     transform 0.3s,
     box-shadow 0.3s,
@@ -13,7 +13,7 @@
 .cover {
   position: relative;
   padding: 1.15rem;
-  background: radial-gradient(ellipse at center, #bed2b515, transparent 75%);
+  background: radial-gradient(ellipse at center, #cccccc15, transparent 75%);
   overflow: hidden;
 }
 .image {
@@ -37,8 +37,8 @@
 .fallback {
   aspect-ratio: 2 / 3;
   padding: 1rem;
-  background: linear-gradient(140deg, #23503b, #102b25);
-  border: 1px solid #95d5b350;
+  background: linear-gradient(140deg, #484848, #262626);
+  border: 1px solid #c7c7c750;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -46,7 +46,7 @@
 }
 .fallback span {
   font-size: 0.7rem;
-  color: #bfdfcc;
+  color: #d7d7d7;
 }
 .fallback strong {
   font:
@@ -58,8 +58,8 @@
   top: 1.6rem;
   left: 1.6rem;
   padding: 0.4rem 0.6rem;
-  background: #b3fbd2;
-  color: #102a1c;
+  background: #ebebeb;
+  color: #252525;
   border-radius: 6px;
   font-size: 0.6rem;
   font-weight: 650;
@@ -75,18 +75,18 @@
   margin-bottom: 0.5rem;
 }
 .author {
-  color: #a8baad;
+  color: #b5b5b5;
   font-size: 0.75rem;
   line-height: 1.7;
 }
 .rating {
-  color: #a6edc2;
+  color: #dddddd;
   font-size: 0.8rem;
   letter-spacing: 0.12em;
   margin: 0.7rem 0;
 }
 .details {
-  border-top: 1px solid #96b49e2a;
+  border-top: 1px solid #adadad2a;
   margin-top: 1rem;
   padding-top: 0.9rem;
 }
@@ -96,7 +96,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   cursor: pointer;
-  color: #b8e5c9;
+  color: #dadada;
   font-size: 0.7rem;
   list-style: none;
   min-height: 30px;
@@ -114,7 +114,7 @@
   margin-top: 0.8rem;
   font-size: 0.78rem;
   line-height: 1.9;
-  color: #b6c5bb;
+  color: #c1c1c1;
   animation: detailArrival 0.35s ease-out;
 }
 @keyframes detailArrival {

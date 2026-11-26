@@ -24,12 +24,12 @@
   font-weight: 500;
 }
 .intro p:not(.eyebrow) {
-  color: #adbbb2;
+  color: #b7b7b7;
   font-size: 1rem;
   line-height: 1.85;
 }
 .intro .lead {
-  color: #e6f8ec !important;
+  color: #f3f3f3 !important;
   font-size: 1.4rem !important;
   line-height: 1.5 !important;
   margin-bottom: 0.8rem;
@@ -40,14 +40,14 @@
   gap: 2rem;
 }
 .card {
-  --project-accent: #9af5c9;
-  --project-glow: #6bebae0f;
+  --project-accent: #e2e2e2;
+  --project-glow: #d4d4d40f;
   --play-state: paused;
   position: relative;
   min-width: 0;
-  border: 1px solid #759f8b45;
+  border: 1px solid #96969645;
   border-radius: 18px;
-  background: linear-gradient(135deg, #101e18, #080f0d 75%);
+  background: linear-gradient(135deg, #1b1b1b, #0e0e0e 75%);
   box-shadow: 0 18px 55px #0003;
   scroll-margin-top: 2rem;
   transition:
@@ -55,12 +55,12 @@
     box-shadow 0.35s;
 }
 .card[data-project='caat'] {
-  --project-accent: #80d8ff;
-  --project-glow: #52bdf515;
+  --project-accent: #cdcdcd;
+  --project-glow: #b2b2b215;
 }
 .card[data-project='amyloid'] {
-  --project-accent: #c6b2ff;
-  --project-glow: #b3a0ff13;
+  --project-accent: #bdbdbd;
+  --project-glow: #adadad13;
 }
 .card[data-project='ammper'] {
   --project-accent: #f3ca8e;
@@ -70,7 +70,7 @@
   --play-state: running;
 }
 .card:hover {
-  border-color: #95ccb478;
+  border-color: #c0c0c078;
   box-shadow: 0 18px 55px #0005;
 }
 .cardBody {
@@ -92,10 +92,10 @@
 }
 .status {
   padding: 0.2rem 0.5rem;
-  border: 1px solid #a7c3b62b;
+  border: 1px solid #bdbdbd2b;
   border-radius: 4px;
   font-size: 0.6rem;
-  color: #adbbb2;
+  color: #b7b7b7;
 }
 .copy h3 {
   font-size: clamp(1.55rem, 2.5vw, 1.95rem);
@@ -103,16 +103,16 @@
   line-height: 1.2;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  color: #f1fbf6;
+  color: #f9f9f9;
 }
 .question {
-  color: #d8e8df;
+  color: #e4e4e4;
   font-size: 0.97rem;
   line-height: 1.6;
   margin: 1.15rem 0 0.8rem;
 }
 .description {
-  color: #a9bdb1;
+  color: #b8b8b8;
   font-size: 0.86rem;
   line-height: 1.85;
 }
@@ -124,10 +124,10 @@
 }
 .methods li {
   font-size: 0.65rem;
-  border: 1px solid #9fbbae2d;
+  border: 1px solid #b5b5b52d;
   padding: 0.25rem 0.5rem;
   border-radius: 5px;
-  color: #c0d4c8;
+  color: #cfcfcf;
 }
 .sourceLink {
   display: inline-flex;
@@ -148,7 +148,7 @@
 .visual {
   min-width: 0;
   margin: 0;
-  border-left: 1px solid #91b6a329;
+  border-left: 1px solid #aeaeae29;
   border-radius: 0 18px 0 0;
   padding: 1.1rem 1.25rem;
   display: flex;
@@ -156,8 +156,8 @@
   justify-content: space-between;
   background:
     radial-gradient(ellipse at 50% 50%, var(--project-glow), transparent 75%),
-    linear-gradient(#99cbb006 1px, transparent 1px),
-    linear-gradient(90deg, #99cbb006 1px, transparent 1px), #060e0c;
+    linear-gradient(#c0c0c006 1px, transparent 1px),
+    linear-gradient(90deg, #c0c0c006 1px, transparent 1px), #0c0c0c;
   background-size:
     auto,
     24px 24px,
@@ -172,7 +172,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  color: #a6bbb0;
+  color: #b6b6b6;
   font-size: 0.62rem;
 }
 .visualHeader > span:first-child {
@@ -243,7 +243,7 @@
 }
 .growthCurve {
   fill: none;
-  stroke: #98dfc2;
+  stroke: #d0d0d0;
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 450;
@@ -291,7 +291,7 @@
     sans-serif;
 }
 .diagram .svgMuted {
-  fill: #96afa2;
+  fill: #a9a9a9;
   font-size: 12px;
 }
 .diagram .sequenceLetter {
@@ -312,9 +312,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: #abc6b30a;
-  color: #d2e8db;
-  border: 1px solid #acc4b938;
+  background: #bfbfbf0a;
+  color: #e3e3e3;
+  border: 1px solid #bebebe38;
   border-radius: 6px;
   font-size: 0.68rem;
   min-height: 44px;
@@ -325,24 +325,24 @@
     border-color 0.2s;
 }
 .playButton:hover {
-  background: #abc6b31a;
+  background: #bfbfbf1a;
   border-color: var(--project-accent);
 }
 .walkthrough {
-  border-top: 1px solid #91b6a329;
+  border-top: 1px solid #aeaeae29;
 }
 .steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 0;
   list-style: none;
-  border-bottom: 1px solid #91b6a329;
+  border-bottom: 1px solid #aeaeae29;
 }
 .steps li {
   min-width: 0;
 }
 .steps li + li {
-  border-left: 1px solid #91b6a329;
+  border-left: 1px solid #aeaeae29;
 }
 .steps button {
   display: flex;
@@ -357,7 +357,7 @@
   background: transparent;
   border: 0;
   box-shadow: inset 0 2px transparent;
-  color: #95a99e;
+  color: #a4a4a4;
   cursor: pointer;
   transition:
     color 0.25s,
@@ -365,8 +365,8 @@
     box-shadow 0.25s;
 }
 .steps button:hover {
-  color: #effff6;
-  background: #add6c00a;
+  color: #fbfbfb;
+  background: #cdcdcd0a;
 }
 .steps button[aria-pressed='true'] {
   background: var(--project-glow);
@@ -408,10 +408,10 @@
 }
 .stepCounter span {
   font-size: 0.7rem;
-  color: #84998c;
+  color: #949494;
 }
 .stepDetail p {
-  color: #b4c7bb;
+  color: #c2c2c2;
   font-size: 0.85rem;
   line-height: 1.8;
 }
@@ -435,14 +435,14 @@
 }
 .staticSteps {
   padding: 0 2rem 2rem 3rem;
-  color: #b4c7bb;
+  color: #c2c2c2;
   font-size: 0.85rem;
 }
 .staticSteps li {
   margin-top: 0.75rem;
 }
 .figureNote {
-  color: #90a899;
+  color: #a2a2a2;
   font-size: 0.72rem;
   line-height: 1.8;
   max-width: 760px;
@@ -450,7 +450,7 @@
   text-align: center;
 }
 .figureNote a {
-  color: #b8d6c5;
+  color: #cfcfcf;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -498,7 +498,7 @@
   animation-play-state: var(--scene-play-state);
 }
 .panel {
-  fill: #a9cbba07;
+  fill: #c3c3c307;
   stroke: currentColor;
   stroke-opacity: 0.3;
 }
@@ -515,12 +515,12 @@
 }
 .axis {
   fill: none;
-  stroke: #89ad9a40;
+  stroke: #a5a5a540;
   stroke-width: 1;
 }
 .sequenceCell {
-  fill: #a9cbba0a;
-  stroke: #89ad9a40;
+  fill: #c3c3c30a;
+  stroke: #a5a5a540;
 }
 .groupBox {
   fill: currentColor;
@@ -600,7 +600,7 @@
   }
   .visual {
     border-left: 0;
-    border-top: 1px solid #91b6a329;
+    border-top: 1px solid #aeaeae29;
     border-radius: 0;
     padding: 1rem 1.5rem;
   }
@@ -617,7 +617,7 @@
     border-left: 0;
   }
   .steps li:nth-child(n + 3) {
-    border-top: 1px solid #91b6a329;
+    border-top: 1px solid #aeaeae29;
   }
   .steps button {
     padding: 0.8rem 1rem;

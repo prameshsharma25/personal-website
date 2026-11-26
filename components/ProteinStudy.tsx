@@ -35,7 +35,7 @@ export default function ProteinStudy() {
       void loadMolecularViewer().then(library => {
         if (cancelled || !viewport.current) return;
         try {
-          viewer.current = library.createViewer(viewport.current, { backgroundColor: '#061012', backgroundAlpha: 0, antialias: true, cartoonQuality: 8, disableFog: true });
+          viewer.current = library.createViewer(viewport.current, { backgroundColor: '#0a0a0a', backgroundAlpha: 0, antialias: true, cartoonQuality: 8, disableFog: true });
           viewer.current.setProjection('orthographic'); setReady(true);
         } catch { setFailed(true); }
       }).catch(() => { if (!cancelled) setFailed(true); });

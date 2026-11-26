@@ -34,19 +34,19 @@
 }
 .links .resumeLink {
   padding: 0.8rem 1rem;
-  border: 1px solid #a4e8c8;
+  border: 1px solid #dadada;
   border-radius: 8px;
   text-decoration: none;
-  color: #10271b;
-  background: linear-gradient(115deg, #a8f5c9, #88dbeb);
-  box-shadow: 0 7px 25px #75f3b818;
+  color: #232323;
+  background: linear-gradient(115deg, #e4e4e4, #cecece);
+  box-shadow: 0 7px 25px #dcdcdc18;
 }
 .resumeLink span {
-  color: #244a36;
+  color: #434343;
   font-size: 0.7rem;
 }
 .links .resumeLink:hover {
-  box-shadow: 0 8px 30px #75f3b830;
+  box-shadow: 0 8px 30px #dcdcdc30;
 }
 .researchSignals {
   display: flex;
@@ -55,31 +55,31 @@
   gap: 0.5rem;
   padding: 1.4rem 0 0.4rem;
   margin-top: 1rem;
-  border-top: 1px solid #93c7a62e;
+  border-top: 1px solid #bbbbbb2e;
 }
 .researchSignals span {
   padding: 0.4rem 0.55rem;
   font-size: 0.65rem;
-  color: #c2f2d3;
-  border: 1px solid #9be7b839;
+  color: #e7e7e7;
+  border: 1px solid #d6d6d639;
   border-radius: 5px;
-  background: #9bf0bc0b;
+  background: #dedede0b;
 }
 .researchSignals i {
   font-style: normal;
-  color: #8aceaf;
+  color: #c0c0c0;
 }
 .sectionNav {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.7rem;
-  border: 1px solid #93bda334;
+  border: 1px solid #b3b3b334;
   border-radius: 12px;
   font-size: 0.78rem;
-  background: #0c1711d9;
+  background: #151515d9;
   backdrop-filter: blur(14px);
-  color: #b3c5b9;
+  color: #c0c0c0;
 }
 .sectionNav a {
   display: inline-flex;
@@ -96,8 +96,8 @@
 .sectionNav a:hover,
 .sectionNav a:focus-visible {
   color: var(--accent);
-  background: #93f6bd0b;
-  border-color: #97e8ba4a;
+  background: #e2e2e20b;
+  border-color: #d7d7d74a;
 }
 .section {
   display: grid;
@@ -122,11 +122,11 @@
   line-height: 1.85;
 }
 .sectionBody p {
-  color: #adbbb2;
+  color: #b7b7b7;
   margin-bottom: 1rem;
 }
 .sectionBody .lead {
-  color: #e6f8ec;
+  color: #f3f3f3;
   font-size: 1.4rem;
   line-height: 1.5;
   letter-spacing: -0.02em;
@@ -144,12 +144,12 @@
   margin-top: 1.5rem;
 }
 .topics li {
-  border: 1px solid #93bda334;
+  border: 1px solid #b3b3b334;
   border-radius: 6px;
   padding: 0.4rem 0.7rem;
-  background: #0d1912;
+  background: #161616;
   font-size: 0.75rem;
-  color: #b8d7c4;
+  color: #d0d0d0;
 }
 .publicationList,
 .experienceList {
@@ -158,15 +158,15 @@
 .publicationList li {
   padding: 1.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #81a18c3a;
+  border: 1px solid #9999993a;
   border-radius: 12px;
-  background: linear-gradient(140deg, #0d1a13, #090f0c);
+  background: linear-gradient(140deg, #171717, #0e0e0e);
   transition:
     border-color 0.3s,
     box-shadow 0.3s;
 }
 .publicationList li:hover {
-  border-color: #99d8b060;
+  border-color: #cacaca60;
   box-shadow: 0 12px 30px #0003;
 }
 .publicationList a:hover {
@@ -180,7 +180,7 @@
 .sectionBody .publicationSource,
 .sectionBody .dates {
   font-size: 0.72rem;
-  color: #a2e4bd;
+  color: #d5d5d5;
   margin-bottom: 0.65rem;
 }
 .sectionBody .authors {
@@ -190,11 +190,11 @@
 }
 .authors strong {
   font-weight: 500;
-  color: #f1fff5;
+  color: #fbfbfb;
 }
 .experienceList li {
   position: relative;
-  border-left: 1px solid #a8d9b939;
+  border-left: 1px solid #cecece39;
   padding: 0 0 2rem 1.5rem;
 }
 .experienceList li::before {
@@ -204,9 +204,9 @@
   top: 0.5rem;
   width: 7px;
   height: 7px;
-  background: #9af1bd;
+  background: #dfdfdf;
   border-radius: 50%;
-  box-shadow: 0 0 12px #90efb94d;
+  box-shadow: 0 0 12px #dbdbdb4d;
 }
 .experienceList li:last-child {
   padding-bottom: 0;
@@ -215,7 +215,7 @@
   margin-bottom: 0;
 }
 .sectionBody .organization {
-  color: #e6f4eb;
+  color: #f0f0f0;
   margin-bottom: 0.2rem;
 }
 .sectionBody .detail {
@@ -223,11 +223,11 @@
   margin-bottom: 0.8rem;
 }
 .education {
-  border: 1px solid #9ac7ab39;
+  border: 1px solid #bdbdbd39;
   border-left: 2px solid var(--accent);
   border-radius: 0 10px 10px 0;
   padding: 1.3rem;
-  background: #0d1811;
+  background: #161616;
   margin-bottom: 1.8rem;
 }
 .education p {
