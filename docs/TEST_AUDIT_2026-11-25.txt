@@ -1,0 +1,76 @@
+Website Test Audit, November 25, 2026
+
+The audit began at c80b9b8 on amyloid-warning-inspector. Tests ran against
+isolated production builds and temporary browser profiles. The personal
+website's .env.local and the owner's saved browser analyses were not accessed.
+
+A reproducible viewer race was fixed in both analysis modes. An earlier upload
+could finish its integrity check after a new example was selected or the viewer
+was cleared, replacing the current view or bringing the cleared structure back.
+Uploads, examples, and report inspection now share a selection ID. Only the
+current selection can update the viewer. Hidden server activity cannot reset it.
+Four regression tests failed before the fix and passed afterward. They delay
+real integrity checks rather than substituting unverified structure data.
+
+Three stale assertions were corrected:
+  * The UC essay digest still expected punctuation that the owner had explicitly
+    requested be changed. The essay itself was not modified in this audit.
+  * The 125-file cancellation test used the default checkpoint setting, which
+    correctly exposes Pause Analysis. It now explicitly disables checkpointing
+    to exercise cancellation; separate tests continue to verify pause/recovery.
+  * The batch test expected Analysis Complete rather than Analysis Completed.
+    Its status selector is scoped to the analysis panel so the molecular viewer's
+    separate loading status cannot cause an ambiguous match.
+
+Final validation:
+  * 69 JavaScript unit tests passed.
+  * 28 Python report/research-opportunity tests passed.
+  * 11 Python service API/scientific-selection tests passed.
+  * 97 unique browser tests were verified. The final full suite passed 95 tests,
+    skipped the separately configured server test, and exposed the ambiguous
+    status selector above. That selector was corrected and its full six-model,
+    1/2/4-worker test passed on rerun. The real server integration test also
+    passed separately against the fixed production build and a temporary worker.
+  * Production build, TypeScript checks, and application lint passed.
+  * npm audit --omit=dev reported zero known production vulnerabilities.
+
+Browser coverage includes PDB/mmCIF descriptors, native comparison parity,
+HDBSCAN and diversity selection, reports and archive checksums, a 21-structure
+441-comparison batch, 125-file acceptance/cancellation, parallel workers,
+interruptions and checkpoints, quota failures, saved-run history/migration,
+pause/resume timing, mobile layouts, reduced motion, hydration, viewer fallbacks,
+downloads, Gumroad links/paywall boundaries, contact failures, YouTube displays,
+navigation, SEO metadata, and public pages without JavaScript.
+
+The full server test used two public fixture structures. It exercised upload,
+calculation, verification, download, reopening, and deletion of its own test job.
+No production service was provisioned. Scientific packages and scoring,
+clustering, and diversity-selection code were unchanged.
+
+Limits: this was a local Chrome-based production-build audit. Live payment
+fulfillment, Gmail delivery, and the owner's private YouTube OAuth credentials
+were not exercised. Those external paths use mocked services in the automated
+tests. A full 125-assembly completion/performance benchmark and other browser
+engines were not covered. npm's result applies to known production advisories
+at audit time, not a claim that the application has no possible vulnerabilities.
+
+Reproduction commands from the repository root:
+  npm test
+  python3 -m unittest discover -s tests -p 'test_*.py'
+  AMYLOID_DATA_DIR=/tmp/amyloid-audit PYTHONPATH=services/amyloid \
+    <amyloid-python-environment>/bin/python -m pytest services/amyloid/tests -q
+  npm run typecheck
+  npm run lint
+  npm run build
+  npm run start -- --hostname 127.0.0.1 --port 3857
+  TEST_BASE_URL=http://127.0.0.1:3857 npm run test:browser -- --workers=2
+
+For the optional server integration test, use a separate preview with
+AMYLOID_API_URL pointing to a temporary local worker, configure its allowed
+origin and writable data directory, then run:
+  AMYLOID_INTEGRATION=1 TEST_BASE_URL=<server-test-preview> \
+    npm run test:browser -- tests/browser/amyloid-analysis.spec.ts \
+    --grep 'real worker runs a batch'
+
+Use an installed Playwright browser, or set PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+to Chrome. Service environment setup is documented in services/amyloid/README.txt.

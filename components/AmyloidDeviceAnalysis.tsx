@@ -56,9 +56,12 @@ import styles from '../styles/Tools.module.css';
 
 type Props = {
   active: boolean;
-  onReset: () => void;
-  onPreview: (structure: NonNullable<Inspection['structure']>) => void;
-  onInspect: (result: Inspection) => void;
+  onReset: () => number;
+  onPreview: (
+    structure: NonNullable<Inspection['structure']>,
+    selection: number
+  ) => void;
+  onInspect: (result: Inspection, selection: number) => void;
 };
 
 function formatFailure(error: unknown) {
@@ -641,11 +644,12 @@ export default function AmyloidDeviceAnalysis(props: Props) {
 
   async function inspect(id: string) {
     const generation = epoch.current;
+    const selection = callbacks.current.onReset();
     setOpening(true);
     try {
       const inspection = await inspectFiles(artifacts.current[id]);
       if (generation === epoch.current && callbacks.current.active)
-        callbacks.current.onInspect(inspection);
+        callbacks.current.onInspect(inspection, selection);
     } catch (problem) {
       if (generation === epoch.current)
         setError(
@@ -684,7 +688,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setOpening(false);
     setFiles([]);
     activeCheckpoint.current = null;
-    callbacks.current.onReset();
+    const selection = callbacks.current.onReset();
     if (!selected.length) return;
     try {
       validateDeviceFiles(selected);
@@ -695,7 +699,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           bytes: new Uint8Array(await selected[0].arrayBuffer()),
         });
         if (generation === epoch.current && callbacks.current.active)
-          callbacks.current.onPreview(preview);
+          callbacks.current.onPreview(preview, selection);
       }
     } catch (problem) {
       if (generation === epoch.current) {

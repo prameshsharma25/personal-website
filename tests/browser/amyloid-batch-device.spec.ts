@@ -18,6 +18,10 @@ test('125 structures are accepted by the page and real worker, show workload, an
     if (request.method() !== 'GET') writes.push(request.url());
   });
   await page.goto('/tools/amyloid-inspector');
+  // This exercises cancellation, not pausing a checkpointed run.
+  await page
+    .getByLabel('Save Progress On This Device', { exact: true })
+    .uncheck();
   const input = page.getByLabel('Choose Structures', { exact: true });
   await expect(input).toBeEnabled();
   await input.setInputFiles(inputs);
@@ -314,8 +318,10 @@ test('browser MM-align, HDBSCAN, and ranking complete a synthetic six-structure 
       page.getByRole('button', { name: 'Download Local Reports', exact: true })
     ).toBeVisible({ timeout: 150000 });
     await expect(
-      page.getByText('Analysis Complete', { exact: true })
-    ).toBeVisible();
+      page
+        .getByRole('region', { name: 'On-Device Analysis', exact: true })
+        .getByRole('status')
+    ).toHaveText('Analysis Completed');
     await expect(page.getByRole('progressbar')).toHaveAttribute(
       'aria-valuenow',
       '100'

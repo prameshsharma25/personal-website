@@ -27,9 +27,12 @@ export default function AmyloidBatchAnalysis({
   onPreview,
   onReset,
 }: {
-  onInspect: (result: Inspection) => void;
-  onPreview: (structure: NonNullable<Inspection['structure']>) => void;
-  onReset: () => void;
+  onInspect: (result: Inspection, selection: number) => void;
+  onPreview: (
+    structure: NonNullable<Inspection['structure']>,
+    selection: number
+  ) => void;
+  onReset: () => number;
 }) {
   const [api, setApi] = useState('');
   const [connection, setConnection] = useState('loading');
@@ -95,6 +98,7 @@ export default function AmyloidBatchAnalysis({
   async function inspectModel(model: AnalysisModel, current = access) {
     if (!model.files || !current) return;
     const identity = ++generation.current;
+    const selection = callbacks.current.onReset();
     setInspecting(model.id);
     setError('');
     try {
@@ -111,7 +115,8 @@ export default function AmyloidBatchAnalysis({
         })
       );
       const result = await inspectFiles(inputs);
-      if (identity === generation.current) callbacks.current.onInspect(result);
+      if (identity === generation.current)
+        callbacks.current.onInspect(result, selection);
     } catch (problem) {
       if (identity === generation.current)
         setError(
@@ -174,7 +179,7 @@ export default function AmyloidBatchAnalysis({
   async function choose(selected: File[]) {
     ++generation.current;
     setError('');
-    callbacks.current.onReset();
+    const selection = callbacks.current.onReset();
     setFiles(selected);
     if (selected.length === 1) {
       try {
@@ -187,7 +192,7 @@ export default function AmyloidBatchAnalysis({
           bytes: new Uint8Array(await file.arrayBuffer()),
         });
         if (identity === generation.current)
-          callbacks.current.onPreview(structure);
+          callbacks.current.onPreview(structure, selection);
       } catch (problem) {
         setError(
           problem instanceof Error

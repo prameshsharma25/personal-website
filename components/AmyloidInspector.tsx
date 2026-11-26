@@ -63,12 +63,13 @@ export default function AmyloidInspector() {
     }
   }
   function clear() {
-    ++operation.current;
+    const selection = ++operation.current;
     setInspection(null);
     setStructurePreview(null);
     setExample('');
     setBusy(false);
     setError('');
+    return selection;
   }
   function download() {
     if (!inspection) return;
@@ -126,12 +127,14 @@ export default function AmyloidInspector() {
         <AmyloidDeviceAnalysis
           active={mode === 'device'}
           onReset={clear}
-          onPreview={(structure) => {
+          onPreview={(structure, selection) => {
+            if (selection !== operation.current) return;
             setInspection(null);
             setStructurePreview(structure);
             setExample('');
           }}
-          onInspect={(result) => {
+          onInspect={(result, selection) => {
+            if (selection !== operation.current) return;
             setStructurePreview(null);
             setInspection(result);
             setExample('');
@@ -141,14 +144,16 @@ export default function AmyloidInspector() {
       <div hidden={mode !== 'analysis'}>
         {serverOpened && (
           <AmyloidBatchAnalysis
-            onReset={clear}
-            onPreview={(structure) => {
+            onReset={() => (mode === 'analysis' ? clear() : -1)}
+            onPreview={(structure, selection) => {
+              if (mode !== 'analysis' || selection !== operation.current)
+                return;
               setInspection(null);
               setStructurePreview(structure);
               setExample('');
             }}
-            onInspect={(result) => {
-              if (mode === 'analysis') {
+            onInspect={(result, selection) => {
+              if (mode === 'analysis' && selection === operation.current) {
                 setStructurePreview(null);
                 setInspection(result);
                 setExample('');
