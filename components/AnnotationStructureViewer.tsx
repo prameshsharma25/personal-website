@@ -18,6 +18,7 @@ import type {
   Residue,
 } from '../lib/protein-annotations';
 import { AMINO_NAMES, residuePreview } from '../lib/protein-hover';
+import AnnotationTypeIcon from './AnnotationTypeIcon';
 import styles from '../styles/ProteinAnnotations.module.css';
 type Atom = { chain: string; resi: number };
 type SelectableViewer = MolecularViewer & {
@@ -311,9 +312,22 @@ export default function AnnotationStructureViewer({
             role="tooltip"
             className={styles.residueTooltip}
           >
-            <strong className={styles.tooltipTitle}>
-              {hovered.name} {hovered.number} <span>· {hovered.letter}</span>
-            </strong>
+            <div className={styles.tooltipHeading}>
+              <strong className={styles.tooltipTitle}>
+                {hovered.name} {hovered.number} <span>· {hovered.letter}</span>
+              </strong>
+              {preview.annotations.length > 0 && (
+                <span className={styles.tooltipSymbols}>
+                  {[
+                    ...new Set(
+                      preview.annotations.slice(0, 2).map((a) => a.category)
+                    ),
+                  ].map((category) => (
+                    <AnnotationTypeIcon key={category} category={category} />
+                  ))}
+                </span>
+              )}
+            </div>
             <p>
               {AMINO_NAMES[hovered.letter] || 'Amino Acid'} · Chain{' '}
               {hovered.chain || 'Unnamed'}
@@ -341,12 +355,16 @@ export default function AnnotationStructureViewer({
                       )}{' '}
                       <span>· {annotation.source}</span>
                     </strong>
-                    <p>
-                      {annotation.description || 'Annotated reference region.'}
-                      {annotation.uncertainty
-                        ? ' Boundaries are approximate.'
-                        : ''}
-                    </p>
+                    {annotation.description &&
+                      annotation.description.trim().toLowerCase() !==
+                        annotation.category.trim().toLowerCase() && (
+                        <p>{annotation.description}</p>
+                      )}
+                    {annotation.uncertainty && (
+                      <p className={styles.tooltipCaution}>
+                        Boundaries are approximate.
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -282,6 +282,32 @@
   font-size: 0.95rem;
   color: #c3e8ff;
 }
+.tooltipHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+.tooltipSymbols {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.typeIcon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.annotationType {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: #b4c7df;
+}
 .residueTooltip p {
   line-height: 1.4;
   margin: 0.3rem 0;

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AnnotationStructureViewer from './AnnotationStructureViewer';
+import AnnotationTypeIcon from './AnnotationTypeIcon';
 import {
   ANNOTATION_LIMITS,
   ACCESSION,
@@ -924,8 +925,11 @@ export default function ProteinAnnotationExplorer() {
                                 <span className={styles.badge}>
                                   {annotation.source}
                                 </span>
-                                <span className={styles.small}>
+                                <span className={styles.annotationType}>
                                   {title(annotation.category)}
+                                  <AnnotationTypeIcon
+                                    category={annotation.category}
+                                  />
                                 </span>
                               </div>
                               <h3>{annotation.description}</h3>
