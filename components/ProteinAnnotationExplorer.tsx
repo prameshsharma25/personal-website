@@ -597,6 +597,7 @@ export default function ProteinAnnotationExplorer() {
                 <p className={styles.legend}>
                   <span>● Reference Annotations</span>
                   <span>● Your Selection</span>
+                  <span>● Hovered Residue</span>
                 </p>
                 <p className={styles.small}>
                   Drag the structure to rotate. Hover over a residue for its

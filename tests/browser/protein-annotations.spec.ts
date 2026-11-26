@@ -19,14 +19,112 @@ async function hoverStructure(page: Page) {
   const box = await canvas.boundingBox();
   for (const x of [0.5, 0.4, 0.6, 0.3, 0.7]) {
     for (const y of [0.5, 0.4, 0.6, 0.3, 0.7]) {
-      await page.mouse.move(box.x + box.width * x, box.y + box.height * y);
-      // The real renderer waits for the pointer to dwell before picking an atom.
-      await page.waitForTimeout(230);
-      if (await page.getByRole('tooltip').isVisible()) return;
+      const point = {
+        x: box.x + box.width * x,
+        y: box.y + box.height * y,
+        relativeX: x,
+        relativeY: y,
+      };
+      await page.mouse.move(point.x, point.y);
+      // Allow browser picking and React painting, with no hover dwell delay.
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+          )
+      );
+      if (await page.getByRole('tooltip').isVisible()) return point;
     }
   }
   throw new Error('No real atom was picked by the renderer hover callback');
 }
+
+async function structureColors(page: Page) {
+  // Inspect the rendered molecule itself, excluding the HTML tooltip and legend.
+  const png = await page
+    .locator('[data-annotation-viewer] canvas')
+    .first()
+    .screenshot({
+      style: '[role="tooltip"] { visibility: hidden !important; }',
+    });
+  return page.evaluate(async (base64) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${base64}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d')!;
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let pink = 0,
+      amber = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i],
+        g = pixels[i + 1],
+        b = pixels[i + 2];
+      if (r > 100 && b > 100 && r > g * 1.25 && b > g * 1.25) pink++;
+      if (r > 120 && g > 80 && r > g * 1.1 && g > b * 1.25) amber++;
+    }
+    return { pink, amber };
+  }, png.toString('base64'));
+}
+
+test('hover immediately colors the actual residue and restores selection colors in both representations', async ({
+  page,
+}) => {
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
+  for (const representation of ['Cartoon', 'Sticks']) {
+    await page
+      .getByRole('combobox', { name: 'Representation', exact: true })
+      .selectOption(representation);
+    await page.mouse.move(1, 1);
+    expect((await structureColors(page)).pink).toBe(0);
+    const point = await hoverStructure(page);
+    await expect(page.getByRole('tooltip')).toBeVisible();
+    const tooltipBox = await page.getByRole('tooltip').boundingBox();
+    expect(
+      point.x < tooltipBox.x || point.x > tooltipBox.x + tooltipBox.width
+    ).toBe(true);
+    expect((await structureColors(page)).pink).toBeGreaterThan(10);
+    // Clicking selects the same residue, and moving away reveals its amber selection color.
+    await page.mouse.click(point.x, point.y);
+    await page.mouse.move(1, 1);
+    await expect(page.getByText('1 Selected', { exact: true })).toBeVisible();
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    const selectedColors = await structureColors(page);
+    expect(selectedColors.pink).toBe(0);
+    expect(selectedColors.amber).toBeGreaterThan(10);
+    await hoverStructure(page);
+    expect((await structureColors(page)).pink).toBeGreaterThan(10);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    expect((await structureColors(page)).pink).toBe(0);
+    expect((await structureColors(page)).amber).toBeGreaterThan(10);
+    await expect(page.getByText('1 Selected', { exact: true })).toBeVisible();
+    // Reenter the exact same location, rather than moving to another residue.
+    // Both leaving the canvas and Escape must clear the renderer's cached hover.
+    await page.mouse.move(1, 1);
+    // Screenshots can scroll the sticky viewer after selecting a residue.
+    const bounds = await page
+      .locator('[data-annotation-viewer] canvas')
+      .first()
+      .boundingBox();
+    const returnPoint = {
+      x: bounds.x + bounds.width * point.relativeX,
+      y: bounds.y + bounds.height * point.relativeY,
+    };
+    await page.mouse.move(returnPoint.x, returnPoint.y);
+    await expect(page.getByRole('tooltip')).toBeVisible();
+    await page.mouse.move(1, 1);
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    await page.mouse.move(returnPoint.x, returnPoint.y);
+    await expect(page.getByRole('tooltip')).toBeVisible();
+    expect((await structureColors(page)).pink).toBeGreaterThan(10);
+  }
+});
 
 test('real structure hover shows residue identity and sourced annotation previews without selecting', async ({
   page,

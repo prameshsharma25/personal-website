@@ -22,6 +22,7 @@ import styles from '../styles/ProteinAnnotations.module.css';
 type Atom = { chain: string; resi: number };
 type SelectableViewer = MolecularViewer & {
   addStyle: (selection: object, style: object) => void;
+  setHover: (atom: Atom | null) => void;
   setClickable: (
     selection: object,
     enabled: boolean,
@@ -75,33 +76,44 @@ export default function AnnotationStructureViewer({
     setHovered(null);
     callbacks.current.onHover(null);
   }, []);
+  const dismissHover = useCallback(() => {
+    // Reset the renderer's hover identity too, so reentering the same atom
+    // triggers its enter callback. Its leave callback only clears React state.
+    viewer.current?.setHover(null);
+    clearHover();
+  }, [clearHover]);
   const placeTooltip = useCallback(() => {
     const box = viewport.current,
       tip = tooltip.current;
     if (!box || !tip) return;
     const { x, y } = pointer.current;
+    const padding = 10,
+      gap = 16;
+    const leftSpace = Math.max(0, x - gap - padding);
+    const rightSpace = Math.max(0, box.clientWidth - x - gap - padding);
+    // Keep the tooltip beside the pointer, so it cannot conceal the highlighted
+    // residue when a full-width card would otherwise overlap the molecule.
+    tip.style.width = `${Math.min(290, Math.max(leftSpace, rightSpace))}px`;
     const width = tip.offsetWidth,
-      height = tip.offsetHeight,
-      padding = 10;
-    const left =
-      x + width + 16 > box.clientWidth - padding ? x - width - 16 : x + 16;
+      height = tip.offsetHeight;
+    const left = rightSpace >= width ? x + gap : x - width - gap;
     const top =
       y + height + 16 > box.clientHeight - padding ? y - height - 16 : y + 16;
     tip.style.left = `${Math.max(padding, Math.min(left, box.clientWidth - width - padding))}px`;
     tip.style.top = `${Math.max(padding, Math.min(top, box.clientHeight - height - padding))}px`;
   }, []);
   useLayoutEffect(placeTooltip, [hovered, preview, placeTooltip]);
-  useEffect(clearHover, [input, chain, style, focus, clearHover]);
+  useEffect(dismissHover, [input, chain, style, focus, dismissHover]);
   useEffect(() => {
     const dismiss = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         allowHover.current = false;
-        clearHover();
+        dismissHover();
       }
     };
     window.addEventListener('keydown', dismiss);
     return () => window.removeEventListener('keydown', dismiss);
-  }, [clearHover]);
+  }, [dismissHover]);
   useEffect(() => {
     if (!host.current || !input.pdb) return;
     const element = host.current;
@@ -121,7 +133,7 @@ export default function AnnotationStructureViewer({
         scene = library.createViewer(element, {
           backgroundColor: '#06101e',
           antialias: true,
-          hoverDuration: 180,
+          hoverDuration: 0,
         }) as SelectableViewer;
         viewer.current = scene;
         scene.addModel(input.pdb, 'pdb', { keepH: false, doAssembly: false });
@@ -186,7 +198,7 @@ export default function AnnotationStructureViewer({
       element.replaceChildren();
     };
   }, [input, clearHover, placeTooltip]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const scene = viewer.current;
     if (state !== 'ready' || !scene) return;
     scene.setStyle({}, {});
@@ -225,8 +237,19 @@ export default function AnnotationStructureViewer({
           }
         );
     });
+    // Hover overrides annotation/selection colors temporarily. Reapplying the
+    // base styles above restores them when the pointer leaves the residue.
+    if (hovered && input.chains.some((c) => c.residues.includes(hovered))) {
+      scene.addStyle(
+        { chain: hovered.viewerChain, resi: hovered.viewerPosition },
+        {
+          cartoon: { color: '#f38bff', opacity: 1 },
+          stick: { color: '#f38bff', radius: 0.23, opacity: 1 },
+        }
+      );
+    }
     scene.render();
-  }, [input, chain, selected, annotated, style, state]);
+  }, [input, chain, selected, annotated, style, state, hovered]);
   useEffect(() => {
     if (!focus || !viewer.current) return;
     const keys = new Set(
@@ -261,15 +284,15 @@ export default function AnnotationStructureViewer({
         }}
         onPointerDown={() => {
           allowHover.current = false;
-          clearHover();
+          dismissHover();
         }}
         onPointerLeave={() => {
           allowHover.current = false;
-          clearHover();
+          dismissHover();
         }}
         onWheel={() => {
           allowHover.current = false;
-          clearHover();
+          dismissHover();
         }}
       >
         <div

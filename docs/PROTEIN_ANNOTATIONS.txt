@@ -60,6 +60,8 @@ Sequence mouse drag, click, Shift range, Ctrl/Command toggle, keyboard Tab/Enter
 3D click selects; Shift/Ctrl/Command adds/removes. A chain change clears the old selection.
 Hovering over the 3D structure shows an in-view amino acid preview with original chain/number,
 mapped UniProt position, and up to two annotations with sources. Local features precede broad domains.
+There is no intentional hover delay. The hovered residue is pink in both Cartoon and Sticks views.
+Leaving the residue restores its annotation or selection color without changing the selection.
 The preview uses all annotation types, independently of the side panel filter. Click for full details.
 Mapping failures, unmapped residues, and chains other than the mapped chain never show transferred features.
 Substitutions and uncertain boundaries are labeled. Escape, leaving the viewer, or rotating dismisses it.

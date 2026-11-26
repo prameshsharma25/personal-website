@@ -363,8 +363,11 @@
 .legend span:first-child {
   color: #60dfd3;
 }
-.legend span:last-child {
+.legend span:nth-child(2) {
   color: #ffc473;
+}
+.legend span:nth-child(3) {
+  color: #f38bff;
 }
 .panel > .heading {
   margin-top: 0;
