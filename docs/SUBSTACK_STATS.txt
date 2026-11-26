@@ -16,8 +16,9 @@ are published. The response must match both the configured post slug and
 canonical URL. We do not add child_comment_count to comment_count, infer views
 from reactions, or include website visits in these Substack counts.
 
-Views, open rates, subscriber growth, and traffic sources are not included.
-Those are publisher dashboard metrics. Substack supports exporting the Posts
+Substack total views, email open rates, subscriber growth, and traffic sources
+are not included in these public engagement counts. Those are publisher
+dashboard metrics. Substack supports exporting the Posts
 statistics table as CSV, which can support a separately approved snapshot import:
 https://support.substack.com/hc/en-us/articles/5320347155860-A-guide-to-Substack-metrics
 
@@ -43,3 +44,7 @@ the browser. There is no Substack iframe, SDK, or tracking pixel.
 Run relevant checks:
 node --import tsx --test tests/substack-stats.test.ts
 npm run test:browser -- tests/browser/substack-stats.spec.ts
+
+OPTIONAL RECENT WEB VIEWS
+The separate GA4 counter is documented in docs/SUBSTACK_VIEWS_SETUP.txt.
+It does not change the source or meaning of likes, comments, or restacks.

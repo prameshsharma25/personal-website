@@ -62,6 +62,8 @@ export default function PrivacyPolicy() {
           <h2>Substack Reader Activity</h2>
           <p>Essays linked to Substack display aggregate public likes, comments, and restacks. This website’s server retrieves these counts without account credentials and caches them for about an hour. The activity panel does not load a Substack embed or send your browser directly to Substack. Choosing the discussion link opens Substack under its own privacy policy.</p>
 
+          <p>When connected, the activity panel also displays aggregate web page views for the linked Substack post during the past 30 minutes. This website’s server reads those counts from Google Analytics using the publication owner’s authorization and refreshes them about every minute. The counter does not install a Google Analytics tracker on this website or expose individual visitor records. It excludes reading inside email and the Substack app. Visits to Substack are subject to Substack’s tracking settings and privacy policy.</p>
+
           <h2>How We Use Your Information</h2>
           <p>We use collected information to:</p>
           <ul>
