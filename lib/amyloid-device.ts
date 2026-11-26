@@ -47,7 +47,7 @@ export type DeviceResult = {
   };
 };
 export type DeviceMessage =
-  | { type: 'checkpoint'; summary: CheckpointSummary }
+  | { type: 'checkpoint'; summary: CheckpointSummary; readOnly?: boolean }
   | { type: 'checkpoint-warning'; message: string; failure?: CheckpointFailure }
   | {
       type: 'descriptor-init';

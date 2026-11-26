@@ -210,7 +210,11 @@ self.onmessage = async ({ data }) => {
     let lastCheckpointFailure;
     function checkpointNotice(summary, force = false) {
       if (force || performance.now() - lastCheckpointMessage > 1000) {
-        postMessage({ type: 'checkpoint', summary });
+        postMessage({
+          type: 'checkpoint',
+          summary,
+          readOnly: !!checkpoint?.readOnly,
+        });
         lastCheckpointMessage = performance.now();
       }
     }
@@ -258,6 +262,10 @@ self.onmessage = async ({ data }) => {
           data.checkpointId
         );
         checkpointNotice(checkpoint.meta, true);
+        if (checkpoint.readOnly) {
+          checkpointWarning(checkpoint.writeFailure, 'resume metadata');
+          progress('Recovering Without New Browser Writes', 0, 0);
+        }
       } catch (error) {
         if (data.resumeId) throw error;
         checkpointWarning(error);
@@ -767,9 +775,10 @@ self.onmessage = async ({ data }) => {
     postMessage(completed, transfers);
   } catch (error) {
     diagnostics.emit(true);
+    const failure = checkpointFailure(error, 'analysis');
     postMessage({
       type: 'error',
-      message: error instanceof Error ? error.message : String(error),
+      message: `${failure.name}: ${failure.message}`,
     });
   } finally {
     diagnostics.stop();

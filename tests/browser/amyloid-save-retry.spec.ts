@@ -2,6 +2,118 @@ import { test, expect } from '@playwright/test';
 
 const url = '/tools/amyloid-device/v1/checkpoints.mjs';
 
+test('quota recovery is read only and never bypasses engine, input, or record verification', async ({
+  page,
+}) => {
+  await page.goto('/tools/amyloid-inspector');
+  const outcome = await page.evaluate(async (url) => {
+    const store = await import(url);
+    const input = {
+      files: [{ name: 'saved.pdb', bytes: new Uint8Array([1, 2]).buffer }],
+    };
+    const run = await store.openCheckpoint(
+      input,
+      { package_commit: 'original' },
+      undefined,
+      'readonly-recovery'
+    );
+    await run.put('descriptors', 'a', {
+      model: { id: 'a', state: 'complete' },
+    });
+    await run.put('alignments', 'a:a', { distance: 0 });
+    await run.put('completion', 'part:earlier', new Uint8Array([3]).buffer);
+    const original = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function () {
+      throw new DOMException('', 'QuotaExceededError');
+    };
+    let resumed,
+      writeError = '',
+      engineError = '',
+      inputError = '';
+    try {
+      resumed = await store.openCheckpoint(
+        input,
+        { package_commit: 'original' },
+        run.meta.id
+      );
+      try {
+        await resumed.put('alignments', 'b:b', { distance: 1 });
+      } catch (e) {
+        writeError = (e as Error).message;
+      }
+      try {
+        await store.openCheckpoint(
+          input,
+          { package_commit: 'changed' },
+          run.meta.id
+        );
+      } catch (e) {
+        engineError = (e as Error).message;
+      }
+      try {
+        await store.openCheckpoint(
+          { files: [] },
+          { package_commit: 'original' },
+          run.meta.id
+        );
+      } catch (e) {
+        inputError = (e as Error).message;
+      }
+    } finally {
+      IDBObjectStore.prototype.put = original;
+    }
+    const descriptor = await resumed.get('descriptors', 'a');
+    const keys = await resumed.keys('completion');
+    const meta = await store.readCheckpointSummary(run.meta.id);
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open(store.CHECKPOINT_DB, 2);
+      request.onsuccess = () => {
+        const db = request.result,
+          tx = db.transaction('descriptors', 'readwrite');
+        tx.objectStore('descriptors').put(
+          {
+            runId: run.meta.id,
+            payload: { model: { id: 'wrong' } },
+            digest: 'tampered',
+          },
+          [run.meta.id, 'a']
+        );
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        tx.onabort = () => reject(tx.error);
+      };
+    });
+    let integrity = '';
+    try {
+      await resumed.get('descriptors', 'a');
+    } catch (e) {
+      integrity = (e as Error).message;
+    }
+    return {
+      readOnly: resumed.readOnly,
+      failure: resumed.writeFailure,
+      writeError,
+      engineError,
+      inputError,
+      integrity,
+      descriptor,
+      keys,
+      sameAttempt: meta.attempt === run.meta.attempt,
+    };
+  }, url);
+  expect(outcome.readOnly).toBe(true);
+  expect(outcome.failure.name).toBe('QuotaExceededError');
+  expect(outcome.writeError).toContain('reads existing checkpoints only');
+  expect(outcome.engineError).toContain('different analysis engine');
+  expect(outcome.inputError).toContain('do not match');
+  expect(outcome.integrity).toContain('integrity check');
+  expect(outcome.descriptor.model.id).toBe('a');
+  expect(outcome.keys).toEqual(['part:earlier']);
+  expect(outcome.sameAttempt).toBe(true);
+});
+
 test('completed analysis without a saved ZIP stays completed after reload and can rebuild', async ({
   page,
 }) => {

@@ -397,3 +397,17 @@ its recorded scientific configuration hash still matches this release. This
 excludes the coordinator and storage modules, whose compatibility was tested.
 Other engine changes remain incompatible. Existing completed results need no
 engine runtime. Browser eviction or clearing site storage still removes history.
+
+RECOVERY WHEN BROWSER WRITES ARE BLOCKED
+If a verified resumed run cannot write its new attempt metadata because of a
+QuotaExceededError, recovery opens a read-only checkpoint session. It preserves
+all input, assessment, alignment, and partial-completion records and reuses their
+integrity-checked contents. It does not bypass engine or input verification. The
+page continues holding the run lock, skips heartbeat and final-status writes,
+and keeps elapsed time in memory. New work is exportable but cannot be recovered
+again unless it is saved later. Retry Saving Results can persist the finished
+output when browser storage becomes writable.
+An explicit Rebuild Download From Checkpoints action remains available while
+unsaved results are open. Their prior ZIP stays downloadable during rebuilding
+and after a stopped rebuild. Empty error messages retain an error name and a
+fallback explanation instead of leaving a blank failure state.

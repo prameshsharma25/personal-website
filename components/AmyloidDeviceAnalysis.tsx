@@ -61,6 +61,11 @@ type Props = {
   onInspect: (result: Inspection) => void;
 };
 
+function formatFailure(error: unknown) {
+  const failure = checkpointFailure(error, 'recovery');
+  return `${failure.name}: ${failure.message}`;
+}
+
 function completionLabel(result: DeviceResult) {
   return result.structures.every(
     (model) => model.state === 'complete' && !model.comparison_error
@@ -79,6 +84,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const savedRun = savedRuns.find((run) => run.id === selectedRunId) ?? null;
   const historyInitialized = useRef(false);
   const lockRun = useRef<string | null>(null);
+  const readOnlyCheckpoint = useRef(false);
   const finishing = useRef<Promise<void>>(Promise.resolve());
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [checkpointMessage, setCheckpointMessage] = useState('');
@@ -116,6 +122,10 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     [result]
   );
   const [archive, setArchive] = useState<Blob | null>(null);
+  const [previousDownload, setPreviousDownload] = useState<{
+    id: string;
+    blob: Blob;
+  } | null>(null);
   const [opening, setOpening] = useState(false);
   const [filterKey, setFilterKey] = useState('all');
   const resultsScroll = useRef<HTMLDivElement | null>(null);
@@ -276,7 +286,9 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                   hasErrors: current.hasErrors,
                   resultStorage: current.resultsSaved ? 'saved' : 'not_saved',
                 }
-              : run
+              : readOnlyCheckpoint.current && lockRun.current === run.id
+                ? { ...run, displayStatus: 'running', busy: true }
+                : run
           )
         );
         setHistoryMessage('');
@@ -362,6 +374,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       setModels(models);
       setResult(null);
       setArchive(null);
+      setPreviousDownload(null);
       setCompletionSaveFailed(false);
       setSaveFailure(null);
       completedRun.current = null;
@@ -381,12 +394,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       artifacts.current = {};
       callbacks.current.onReset();
     } catch (problem) {
-      if (generation === epoch.current)
-        setError(
-          problem instanceof Error
-            ? problem.message
-            : 'The saved run could not be opened.'
-        );
+      if (generation === epoch.current) setError(formatFailure(problem));
     } finally {
       await release?.();
       if (generation === epoch.current) setStorageBusy(false);
@@ -419,13 +427,20 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     const release = releaseCheckpoint.current;
     const id = lockRun.current;
     const attempt = checkpointAttempt.current;
+    const readOnly = readOnlyCheckpoint.current;
+    readOnlyCheckpoint.current = false;
     releaseCheckpoint.current = null;
     lockRun.current = null;
     checkpointAttempt.current = null;
     if (release) {
       finishing.current = (async () => {
         try {
-          if (id && completion && attempt)
+          if (readOnly) {
+            if (mounted.current)
+              setCheckpointMessage(
+                'Recovery used saved checkpoints without writing new progress. Download the results before leaving this page.'
+              );
+          } else if (id && completion && attempt)
             await markCheckpointFinished(id, attempt, completion, elapsed);
           else if (id && activity)
             await setCheckpointActivity(id, activity, message, elapsed);
@@ -608,7 +623,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
       const id = lockRun.current;
       const attempt = checkpointAttempt.current;
       const generation = epoch.current;
-      if (id && attempt)
+      if (id && attempt && !readOnlyCheckpoint.current)
         void saveCheckpointElapsed(id, attempt, elapsed).catch(() => {
           if (mounted.current && generation === epoch.current)
             setCheckpointMessage(
@@ -664,6 +679,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setSaveFailure(null);
     completedRun.current = null;
     setArchive(null);
+    setPreviousDownload(null);
     setModels([]);
     setOpening(false);
     setFiles([]);
@@ -714,6 +730,15 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     );
   }
   async function start(resumeId?: string) {
+    setPreviousDownload((previous) =>
+      resumeId
+        ? archive && completedRun.current?.id === resumeId
+          ? { id: resumeId, blob: archive }
+          : previous?.id === resumeId
+            ? previous
+            : null
+        : null
+    );
     const generation = ++epoch.current;
     setRunning(true);
     await terminate();
@@ -846,6 +871,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         ) {
           void handleAlignmentRequest(data, engine, generation);
         } else if (data.type === 'checkpoint') {
+          readOnlyCheckpoint.current = !!data.readOnly;
           checkpointAttempt.current = data.summary.attempt ?? null;
           setSavedRuns((runs) =>
             [
@@ -928,6 +954,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           });
           setProgress(completionLabel(data.result));
           setArchive(new Blob([data.archive], { type: 'application/zip' }));
+          setPreviousDownload(null);
           artifacts.current = Object.fromEntries(
             Object.entries(data.artifacts).map(([id, inputs]) => [
               id,
@@ -965,12 +992,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         ]
       );
     } catch (problem) {
-      if (generation === epoch.current)
-        fail(
-          problem instanceof Error
-            ? problem.message
-            : 'The analysis could not start.'
-        );
+      if (generation === epoch.current) fail(formatFailure(problem));
     }
   }
   function cancel() {
@@ -993,8 +1015,10 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     callbacks.current.onReset();
   }
   function download() {
-    if (!archive) return;
-    const url = URL.createObjectURL(archive);
+    if (archive) downloadBlob(archive);
+  }
+  function downloadBlob(blob: Blob) {
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = 'amyloid-device-results.zip';
@@ -1065,6 +1089,16 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                     ? 'Rebuild Download From Checkpoints'
                     : 'Resume Saved Run'}
             </button>
+            {archive &&
+              completedRun.current?.id === savedRun.id &&
+              savedRun.status !== 'complete' && (
+                <button
+                  disabled={running || storageBusy || !!savedRun.busy}
+                  onClick={() => void start(savedRun.id)}
+                >
+                  Rebuild Download From Checkpoints
+                </button>
+              )}
             <button
               disabled={running || storageBusy || !!savedRun.busy}
               onClick={() => void removeCheckpoint()}
@@ -1342,6 +1376,23 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           </button>
         )}
       </div>
+      {previousDownload && (
+        <div
+          className={styles.notice}
+          role="region"
+          aria-label="Previous Download"
+        >
+          <p>
+            Your earlier ZIP remains available while this download is rebuilt,
+            including if recovery stops.
+          </p>
+          <div className={styles.controls}>
+            <button onClick={() => downloadBlob(previousDownload.blob)}>
+              Download Previous Results
+            </button>
+          </div>
+        </div>
+      )}
       <p className={styles.caption}>
         The first run downloads the analysis engine from jsDelivr. Calculations
         use your device’s CPU and memory in a background worker. Keep this page

@@ -483,7 +483,7 @@ export async function openCheckpoint(
   const engineDigest = await digest(engine);
   const inputDigest = await digest(input);
   const attempt = crypto.randomUUID();
-  let meta;
+  let meta, previous;
   if (resumeId) {
     meta = await readCheckpointSummary(resumeId);
     checkRun(meta, resumeId);
@@ -497,6 +497,7 @@ export async function openCheckpoint(
       );
     if (meta.status === 'complete')
       throw new Error('This run is already complete. Open its saved results.');
+    previous = meta;
     meta = {
       ...meta,
       attempt,
@@ -525,31 +526,40 @@ export async function openCheckpoint(
       updatedAt: Date.now(),
     };
   }
-  await transaction(
-    ['run', 'inputs', 'completion'],
-    'readwrite',
-    (tx, done, fail, guard) => {
-      const runs = tx.objectStore('run');
-      const request = runs.get(meta.id);
-      request.onsuccess = guard(() => {
-        if (resumeId) checkRun(request.result, resumeId);
-        else if (request.result)
-          throw new Error(
-            'A saved run already has this ID. Start a new analysis.'
-          );
-        runs.put(meta, meta.id);
-        // Only unfinished runs reach here. Remove abandoned completion chunks;
-        // descriptor and alignment checkpoints are retained for recovery.
-        if (resumeId) tx.objectStore('completion').delete(runRange(meta.id));
-        if (!resumeId)
-          tx.objectStore('inputs').put(
-            { runId: meta.id, payload: input, digest: inputDigest },
-            [meta.id, 'current']
-          );
-        done(meta);
-      });
-    }
-  );
+  try {
+    await transaction(
+      ['run', 'inputs', 'completion'],
+      'readwrite',
+      (tx, done, fail, guard) => {
+        const runs = tx.objectStore('run');
+        const request = runs.get(meta.id);
+        request.onsuccess = guard(() => {
+          if (resumeId) checkRun(request.result, resumeId);
+          else if (request.result)
+            throw new Error(
+              'A saved run already has this ID. Start a new analysis.'
+            );
+          runs.put(meta, meta.id);
+          // Only unfinished runs reach here. Remove abandoned completion chunks;
+          // descriptor and alignment checkpoints are retained for recovery.
+          if (resumeId) tx.objectStore('completion').delete(runRange(meta.id));
+          if (!resumeId)
+            tx.objectStore('inputs').put(
+              { runId: meta.id, payload: input, digest: inputDigest },
+              [meta.id, 'current']
+            );
+          done(meta);
+        });
+      }
+    );
+  } catch (error) {
+    // Validation above must succeed first. A quota failure must not prevent
+    // reading verified work, or mutate the original run to start recovery.
+    if (!previous || error?.name !== 'QuotaExceededError') throw error;
+    const session = checkpointWriter(previous, true);
+    session.writeFailure = checkpointFailure(error, 'resume metadata');
+    return session;
+  }
   return checkpointWriter(meta);
 }
 
@@ -599,10 +609,11 @@ export async function retryCheckpointCompletion(
   }
 }
 
-function checkpointWriter(meta) {
+function checkpointWriter(meta, readOnly = false) {
   const { id, attempt } = meta;
   const session = {
     meta,
+    readOnly,
     async keys(store) {
       return transaction([store], 'readonly', (tx, done) => {
         const request = tx.objectStore(store).getAllKeys(runRange(id));
@@ -613,6 +624,10 @@ function checkpointWriter(meta) {
       return verified(await read(store, [id, key]), id);
     },
     async put(store, key, payload, onProgress) {
+      if (readOnly)
+        throw new Error(
+          'This recovery session reads existing checkpoints only. Download the finished results.'
+        );
       if (
         store === 'completion' &&
         key === 'current' &&

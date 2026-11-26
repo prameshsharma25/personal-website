@@ -36,8 +36,8 @@
     "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9",
     "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
     "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
-    "worker.mjs": "324a514c1b58590db324e535ca5de447241724913d4cab400a6c07f65a00a73e",
-    "checkpoints.mjs": "13d7e30f2c5a4afd96f06abd8ea8fa54df1abc4ff2e186cce183a40c5d68bb51",
+    "worker.mjs": "6d562ebf7b81b8cc2eda9fe1b555e381ac68b2bf35dff3e1092cb2be0874e509",
+    "checkpoints.mjs": "c55cd9d255e4c4a2fed35f07fc2ac4ce4daffe765b134ab01415f91ae9c61398",
     "run-report.py": "226b8f822e230926bc16192794cd813e4b2875770ba5423f5043662786a32893"
   },
   "pipeline_files": {
@@ -111,6 +111,10 @@
     },
     {
       "engine": "0427832ac7516fb2f03fd4cd8d6caaa5a92e401f8e0f68b93517446bba5fdff3",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "c79b7bb0e356ceaed13c6ab248b7781bab62d03126d4373274964e618b5ebd1f",
       "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
     }
   ]

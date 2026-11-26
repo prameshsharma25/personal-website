@@ -7,6 +7,7 @@ for (const fixture of [
   'amyloid-pre-chunk-engine.json',
   'amyloid-chunked-engine.json',
   'amyloid-save-retry-engine.json',
+  'amyloid-run-report-engine.json',
 ])
   test(`preceding release ${fixture} can resume its saved assessments and comparisons`, async ({
     page,
@@ -282,6 +283,7 @@ for (const mode of [
   'no shortlist',
   'save failed',
   'metadata failed',
+  'rebuild error',
 ]) {
   test(`completed UI shows the correct initial structure and persistence status: ${mode}`, async ({
     page,
@@ -327,7 +329,7 @@ for (const mode of [
         }
         const selected=${JSON.stringify(mode !== 'no shortlist')};
         const completed={type:'complete',result:{structures:models,groups:[{id:'group-001',ids:['first','chosen'],clustering_status:'complete',shortlist:selected?['chosen']:[],members:models.map(m=>({id:m.id,cluster:0,selected_rank:selected&&m.id==='chosen'?1:null,rank_score:1,eligibility_reasons:[]})),representatives:[{id:'first',cluster:0,size:2}]}],warnings:[],elapsed_seconds:1,clustering_status:'requested'},artifacts,archive:new Uint8Array([1,2,3]).buffer,checkpointSaved:true};
-        if(${JSON.stringify(mode.endsWith('failed'))}){
+        if(${JSON.stringify(mode.endsWith('failed') || mode === 'rebuild error')}){
           completed.checkpointSaved=false;
           completed.checkpointFailure=checkpointFailure(new DOMException('', 'QuotaExceededError'));
           postMessage({type:'checkpoint-warning',failure:completed.checkpointFailure,message:'Saving progress stopped: QuotaExceededError'});
@@ -392,6 +394,33 @@ for (const mode of [
         exact: true,
       })
     ).toBeVisible();
+    if (mode === 'rebuild error') {
+      await page.route('**/amyloid-device/v1/worker.mjs', (route) =>
+        route.fulfill({
+          contentType: 'text/javascript',
+          body: `onmessage=()=>postMessage({type:'error',message:'Simulated rebuild failure'});`,
+        })
+      );
+      await page
+        .getByRole('button', {
+          name: 'Rebuild Download From Checkpoints',
+          exact: true,
+        })
+        .click();
+      await expect(page.locator('main [role=alert]')).toContainText(
+        'Simulated rebuild failure'
+      );
+      const download = page.waitForEvent('download');
+      await page
+        .getByRole('button', { name: 'Download Previous Results', exact: true })
+        .click();
+      const stream = await (await download).createReadStream();
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream!) chunks.push(chunk);
+      expect(Buffer.concat(chunks)).toEqual(Buffer.from([1, 2, 3]));
+      expect(errors).toEqual([]);
+      return;
+    }
     if (mode.endsWith('failed')) {
       await expect(
         page.getByRole('region', { name: 'Browser Storage', exact: true })

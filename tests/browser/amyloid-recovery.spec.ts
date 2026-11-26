@@ -650,3 +650,99 @@ test('a blank checkpoint quota failure permits saving real finished results with
   await expect(page.getByRole('timer')).toHaveText(time!);
   await expect(page.locator('main [role=alert]')).toHaveCount(0);
 });
+
+test('real completed checkpoints rebuild a report when quota blocks every new write', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(120000);
+  await instrument(page);
+  const module = await readFile(
+    'public/tools/amyloid-device/v1/checkpoints.mjs',
+    'utf8'
+  );
+  let quotaOnResume = false;
+  await page.route('**/checkpoints.mjs', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: quotaOnResume
+        ? "IDBObjectStore.prototype.put=function(){throw new DOMException('', 'QuotaExceededError');};\n" +
+          module
+        : module.replace(
+            'async put(store, key, payload, onProgress) {',
+            "async put(store, key, payload, onProgress) { if (store === 'completion') throw new DOMException('', 'QuotaExceededError');"
+          ),
+    })
+  );
+  await page.goto('/tools/amyloid-inspector');
+  await page
+    .getByLabel('Choose Structures', { exact: true })
+    .setInputFiles('public/tools/amyloid-example/2beg.pdb');
+  await page
+    .getByRole('button', { name: 'Analyze On My Device', exact: true })
+    .click();
+  await waitComplete(page);
+  await expect
+    .poll(async () => (await saved(page)).analysisStatus)
+    .toBe('completed');
+  const before = await saved(page);
+  expect(before.descriptors).toBe(1);
+  expect(before.status).toBe('incomplete');
+  await expect(
+    page.getByRole('button', {
+      name: 'Rebuild Download From Checkpoints',
+      exact: true,
+    })
+  ).toBeVisible();
+  quotaOnResume = true;
+  await page.addInitScript(() => {
+    (window as any).__writeAttempts = 0;
+    IDBObjectStore.prototype.put = function () {
+      (window as any).__writeAttempts++;
+      throw new DOMException('', 'QuotaExceededError');
+    };
+  });
+  await page.reload();
+  await page
+    .getByRole('button', {
+      name: 'Rebuild Download From Checkpoints',
+      exact: true,
+    })
+    .click();
+  await waitComplete(page);
+  await expect(page.getByRole('status')).toContainText('Analysis Completed');
+  const recovered = await page.evaluate(() => (window as any).__recovery);
+  expect(recovered.result.recovery).toEqual({
+    resumed: true,
+    reused_descriptors: 1,
+    reused_alignments: 0,
+  });
+  expect(recovered.reads).toEqual([]);
+  expect(recovered.comparisons).toBe(0);
+  expect(await page.evaluate(() => (window as any).__writeAttempts)).toBe(0);
+  expect(await saved(page)).toEqual(before);
+  await expect(
+    page
+      .getByRole('region', { name: 'Run History', exact: true })
+      .getByRole('button', { name: 'Completed 1', exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Browser Storage', exact: true })
+  ).toContainText('QuotaExceededError while saving resume metadata');
+  const report = testInfo.outputPath('readonly-recovered.zip');
+  await download(page, report);
+  const verification = execFileSync(
+    'python3',
+    [
+      '-c',
+      `import sys,zipfile,json,hashlib
+with zipfile.ZipFile(sys.argv[1]) as z:
+    assert 'Run Summary.html' in z.namelist()
+    assert json.loads(z.read('results.json'))['recovery']['reused_descriptors']==1
+    for name,digest in json.loads(z.read('SHA256.json')).items(): assert hashlib.sha256(z.read(name)).hexdigest()==digest
+    print('Recovered export verified')`,
+      report,
+    ],
+    { encoding: 'utf8' }
+  );
+  expect(verification).toContain('Recovered export verified');
+});
