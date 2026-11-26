@@ -70,6 +70,102 @@ async function structureColors(page: Page) {
   }, png.toString('base64'));
 }
 
+test('one sequence row scrolls horizontally and annotation cards select the correct 3D regions', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
+  const sequence = page.getByLabel('Protein Sequence', { exact: true });
+  const row = await sequence.evaluate((element) => ({
+    rows: new Set(
+      Array.from(element.querySelectorAll('button')).map(
+        (button) => button.offsetTop
+      )
+    ).size,
+    scrollWidth: element.scrollWidth,
+    width: element.clientWidth,
+  }));
+  expect(row.rows).toBe(1);
+  expect(row.scrollWidth).toBeGreaterThan(row.width);
+  await sequence.getByRole('button').last().focus();
+  expect(
+    await sequence.evaluate((element) => element.scrollLeft)
+  ).toBeGreaterThan(0);
+  const panel = page.getByRole('complementary', { name: 'Region Annotations' });
+  await panel.getByLabel('Annotation Type').selectOption('Disulfide bond');
+  const bond = panel.getByRole('button', {
+    name: 'Highlight Disulfide Bond At Reference 24, 145',
+    exact: true,
+  });
+  await bond.click();
+  await expect(sequence.locator('[aria-pressed="true"]')).toHaveCount(2);
+  await expect(
+    sequence.getByRole('button', {
+      name: 'CYS 6, A, Reference 24',
+      exact: true,
+    })
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    sequence.getByRole('button', {
+      name: 'CYS 127, A, Reference 145',
+      exact: true,
+    })
+  ).toHaveAttribute('aria-pressed', 'true');
+  await page.mouse.move(1, 1);
+  expect((await structureColors(page)).amber).toBeGreaterThan(10);
+  // Evidence controls do not trigger selection or camera movement.
+  await panel
+    .getByText('Evidence And Residue Mapping', { exact: true })
+    .first()
+    .click();
+  await expect(sequence.locator('[aria-pressed="true"]')).toHaveCount(2);
+  await page
+    .getByRole('button', { name: 'Clear Selection', exact: true })
+    .click();
+  await panel.getByLabel('Annotation Type').selectOption('Active site');
+  // Native button keyboard activation also highlights a region on a narrow screen.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const activeSite = panel.getByRole('button', {
+    name: 'Highlight Active Site At Reference 70',
+    exact: true,
+  });
+  await activeSite.focus();
+  await page.keyboard.press('Enter');
+  await expect(
+    sequence.getByRole('button', {
+      name: 'ASP 52, A, Reference 70',
+      exact: true,
+    })
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(sequence.locator('[aria-pressed="true"]')).toHaveCount(1);
+  expect(
+    await sequence.evaluate((element) => element.scrollLeft)
+  ).toBeGreaterThan(0);
+  const canvasBox = await page
+    .locator('[data-annotation-viewer] canvas')
+    .first()
+    .boundingBox();
+  expect(canvasBox.y).toBeGreaterThanOrEqual(0);
+  expect(canvasBox.y + canvasBox.height).toBeLessThanOrEqual(844);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1
+    )
+  ).toBe(true);
+  expect(
+    await sequence.evaluate(
+      (element) =>
+        new Set(
+          Array.from(element.querySelectorAll('button')).map(
+            (button) => button.offsetTop
+          )
+        ).size
+    )
+  ).toBe(1);
+});
+
 test('hover immediately colors the actual residue and restores selection colors in both representations', async ({
   page,
 }) => {

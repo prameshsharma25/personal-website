@@ -57,6 +57,10 @@ Example is a dated snapshot. Load Annotations fetches the provider response (up 
 
 Selections and export
 Sequence mouse drag, click, Shift range, Ctrl/Command toggle, keyboard Tab/Enter.
+The sequence is one horizontally scrollable row; selections reveal the corresponding residue in the row.
+Clicking an annotation card's summary or Highlight Region selects only its mapped residues and focuses
+the 3D camera on them. On smaller screens, the viewer scrolls into view. Source links and evidence
+controls remain independent. Discontinuous features and bond endpoints retain their mapped gaps.
 3D click selects; Shift/Ctrl/Command adds/removes. A chain change clears the old selection.
 Hovering over the 3D structure shows an in-view amino acid preview with original chain/number,
 mapped UniProt position, and up to two annotations with sources. Local features precede broad domains.

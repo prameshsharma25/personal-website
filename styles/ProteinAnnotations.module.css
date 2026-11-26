@@ -406,12 +406,12 @@
   font-size: 0.7rem;
 }
 .sequence {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  flex-wrap: nowrap;
   gap: 4px;
-  max-height: 220px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior: contain;
   margin: 1rem 0;
   padding: 5px;
@@ -419,6 +419,10 @@
   border-radius: 9px;
   scrollbar-color: #3e7bae #091525;
   user-select: none;
+  scroll-margin-top: 7rem;
+}
+.structurePanel {
+  scroll-margin-top: 7rem;
 }
 .sequence button {
   width: 42px;
@@ -518,6 +522,32 @@
   background: #06111f;
   border: 1px solid #325674;
   border-radius: 10px;
+}
+.annotationCard[data-selected='true'] {
+  border-color: #e3ba78;
+}
+.explorer .annotationSummary {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+.explorer .annotationSummary:hover:not(:disabled) {
+  background: transparent;
+}
+.annotationSummary:hover .annotationTitle {
+  color: #9ddcff;
+}
+.annotationTitle {
+  display: block;
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0.75rem 0;
 }
 .annotationCard .heading {
   margin: 0 0 0.75rem;

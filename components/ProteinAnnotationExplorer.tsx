@@ -41,6 +41,8 @@ export default function ProteinAnnotationExplorer() {
     anchor = useRef<number | null>(null),
     dragging = useRef(false);
   const residueRefs = useRef(new Map<string, HTMLButtonElement>());
+  const sequenceStrip = useRef<HTMLDivElement>(null);
+  const structurePanel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     setReady(true);
     const stop = () => {
@@ -271,6 +273,36 @@ export default function ProteinAnnotationExplorer() {
     setCategory('All');
     anchor.current = null;
   };
+  const revealResidue = (key: string) => {
+    const strip = sequenceStrip.current,
+      residue = residueRefs.current.get(key);
+    if (!strip || !residue) return;
+    strip.scrollTo({
+      left: residue.offsetLeft - (strip.clientWidth - residue.offsetWidth) / 2,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth',
+    });
+  };
+  const highlightAnnotation = (hits: Residue[]) => {
+    if (!hits.length) return;
+    setSelectedKeys(hits.map((r) => r.key));
+    setHover(null);
+    anchor.current = null;
+    revealResidue(hits[0].key);
+    if (input?.pdb) setFocus((v) => v + 1);
+    if (window.matchMedia('(max-width: 1000px)').matches) {
+      (input?.pdb
+        ? structurePanel.current
+        : sequenceStrip.current
+      )?.scrollIntoView({
+        block: 'start',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+      });
+    }
+  };
   const pick = (key: string, add: boolean) => {
     const target = input?.chains.find((c) =>
       c.residues.some((r) => r.key === key)
@@ -288,9 +320,7 @@ export default function ProteinAnnotationExplorer() {
           : [key]
       );
     anchor.current = target.residues.findIndex((r) => r.key === key);
-    residueRefs.current
-      .get(key)
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (target.id === chain) revealResidue(key);
   };
   const pickSequence = (index: number, range: boolean, add: boolean) => {
     if (range && anchor.current != null)
@@ -538,7 +568,10 @@ export default function ProteinAnnotationExplorer() {
           </div>
           <div className={styles.workspace}>
             <div className={styles.visualColumn}>
-              <div className={styles.panel}>
+              <div
+                ref={structurePanel}
+                className={`${styles.panel} ${styles.structurePanel}`}
+              >
                 <div className={styles.toolbar}>
                   <label>
                     Chain
@@ -615,11 +648,13 @@ export default function ProteinAnnotationExplorer() {
                   </span>
                 </div>
                 <p className={styles.small}>
-                  Drag across sequence letters or use Shift + click to select a
-                  range. Use Tab and Enter for keyboard selection. Labels below
-                  letters preserve your file’s residue numbers.
+                  Scroll horizontally to explore the sequence. Drag across
+                  letters or use Shift + click to select a range. Use Tab and
+                  Enter for keyboard selection. Labels preserve your file’s
+                  residue numbers.
                 </p>
                 <div
+                  ref={sequenceStrip}
                   className={styles.sequence}
                   aria-label="Protein Sequence"
                   onPointerLeave={() => {
@@ -890,6 +925,10 @@ export default function ProteinAnnotationExplorer() {
                         </select>
                       </label>
                       <p className={styles.small}>
+                        Click an annotation to highlight and center its mapped
+                        region.
+                      </p>
+                      <p className={styles.small}>
                         {displayed.length} Annotations
                         {selected.size
                           ? ' Overlap Your Selection'
@@ -920,27 +959,40 @@ export default function ProteinAnnotationExplorer() {
                             <article
                               key={annotation.id}
                               className={styles.annotationCard}
+                              data-selected={
+                                selected.size === hits.length &&
+                                hits.every((r) => selected.has(r.key))
+                              }
                             >
-                              <div className={styles.heading}>
-                                <span className={styles.badge}>
-                                  {annotation.source}
+                              <button
+                                type="button"
+                                className={styles.annotationSummary}
+                                onClick={() => highlightAnnotation(hits)}
+                                aria-label={`Highlight ${title(annotation.category)} At Reference ${annotation.spans.map(([a, b]) => (a === b ? a : `${a} to ${b}`)).join(', ')}`}
+                              >
+                                <span className={styles.heading}>
+                                  <span className={styles.badge}>
+                                    {annotation.source}
+                                  </span>
+                                  <span className={styles.annotationType}>
+                                    {title(annotation.category)}
+                                    <AnnotationTypeIcon
+                                      category={annotation.category}
+                                    />
+                                  </span>
                                 </span>
-                                <span className={styles.annotationType}>
-                                  {title(annotation.category)}
-                                  <AnnotationTypeIcon
-                                    category={annotation.category}
-                                  />
+                                <span className={styles.annotationTitle}>
+                                  {annotation.description}
                                 </span>
-                              </div>
-                              <h3>{annotation.description}</h3>
-                              <p className={styles.small}>
-                                Reference Residues:{' '}
-                                {annotation.spans
-                                  .map(([a, b]) =>
-                                    a === b ? a : `${a} to ${b}`
-                                  )
-                                  .join(', ')}
-                              </p>
+                                <span className={styles.small}>
+                                  Reference Residues:{' '}
+                                  {annotation.spans
+                                    .map(([a, b]) =>
+                                      a === b ? a : `${a} to ${b}`
+                                    )
+                                    .join(', ')}
+                                </span>
+                              </button>
                               {mismatches.length > 0 && (
                                 <p className={styles.caution}>
                                   The uploaded chain has a sequence difference
@@ -997,10 +1049,7 @@ export default function ProteinAnnotationExplorer() {
                               </details>
                               <div className={styles.actions}>
                                 <button
-                                  onClick={() => {
-                                    setSelectedKeys(hits.map((r) => r.key));
-                                    anchor.current = null;
-                                  }}
+                                  onClick={() => highlightAnnotation(hits)}
                                 >
                                   Highlight Region
                                 </button>
