@@ -565,6 +565,8 @@ export default function ProteinAnnotationExplorer() {
                     chain={chain}
                     selected={selected}
                     annotated={annotated}
+                    reference={reference}
+                    mapping={mapping}
                     onPick={pick}
                     onHover={setHover}
                     focus={focus}
@@ -597,8 +599,9 @@ export default function ProteinAnnotationExplorer() {
                   <span>● Your Selection</span>
                 </p>
                 <p className={styles.small}>
-                  Drag the structure to rotate. Click a residue to select it.
-                  Hold Shift to add residues. Colors identify annotations and
+                  Drag the structure to rotate. Hover over a residue for its
+                  amino acid and annotation preview. Click to select it. Hold
+                  Shift to add residues. Colors identify annotations and
                   selections, not confidence.
                 </p>
               </div>

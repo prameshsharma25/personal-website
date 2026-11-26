@@ -13,6 +13,7 @@ import {
 } from '../lib/protein-annotations';
 import { parseProteinStructure, cifTokens } from '../lib/protein-input';
 import { createAnnotationService } from '../lib/protein-annotations-server';
+import { residuePreview } from '../lib/protein-hover';
 const reference: ReferenceProtein = JSON.parse(
   fs.readFileSync('public/tools/protein-annotations/P00698.json', 'utf8')
 );
@@ -20,6 +21,72 @@ const example = parseProteinStructure(
   fs.readFileSync('public/tools/protein-annotations/1LYZ.pdb', 'utf8'),
   '1LYZ.pdb'
 );
+
+test('hover previews use mapped sequence positions and prioritize local features with their sources', () => {
+  const residues = example.chains[0].residues;
+  const mapping = mapSequence(
+    residues.map((r) => r.letter).join(''),
+    reference.sequence
+  );
+  const originalOrder = reference.annotations.map((a) => a.id);
+  const preview = residuePreview(residues[34], 'A', reference, mapping);
+  assert.equal(residues[34].number, '35');
+  assert.equal(preview.position, 53);
+  assert.equal(preview.referenceLetter, 'E');
+  assert.equal(preview.annotations[0].category, 'Active site');
+  assert.equal(preview.annotations[0].source, 'UniProt');
+  assert.equal(preview.message, null);
+  assert.deepEqual(
+    reference.annotations.map((a) => a.id),
+    originalOrder
+  );
+  // Author insertion codes never become array indices.
+  assert.equal(
+    residuePreview({ ...residues[34], number: '35A' }, 'A', reference, mapping)
+      .position,
+    53
+  );
+  const substitution = residuePreview(
+    { ...residues[34], letter: 'A' },
+    'A',
+    reference,
+    mapping
+  );
+  assert.equal(substitution.referenceLetter, 'E');
+});
+
+test('hover previews never transfer features across an unselected chain or an unusable mapping', () => {
+  const residues = example.chains[0].residues;
+  const mapping = mapSequence(
+    residues.map((r) => r.letter).join(''),
+    reference.sequence
+  );
+  for (const result of [
+    residuePreview(residues[34], 'A', null, null),
+    residuePreview({ ...residues[34], chain: 'B' }, 'A', reference, mapping),
+    residuePreview(residues[34], 'A', reference, {
+      ...mapping,
+      usable: false,
+      ambiguous: true,
+    }),
+    residuePreview(residues[34], 'A', reference, {
+      ...mapping,
+      positions: mapping.positions.map(() => null),
+    }),
+  ]) {
+    assert.equal(result.position, null);
+    assert.deepEqual(result.annotations, []);
+    assert.ok(result.message);
+  }
+  const noFeatures = residuePreview(
+    residues[34],
+    'A',
+    { ...reference, annotations: [] },
+    mapping
+  );
+  assert.equal(noFeatures.position, 53);
+  assert.match(noFeatures.message, /No annotation found/);
+});
 
 test('real lysozyme maps mature protein numbering to the reference catalytic sites', () => {
   const residues = example.chains[0].residues;

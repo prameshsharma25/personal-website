@@ -258,6 +258,66 @@
 .structure {
   position: relative;
 }
+.viewport {
+  position: relative;
+}
+.residueTooltip {
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  top: 10px;
+  width: min(290px, calc(100% - 20px));
+  max-height: calc(100% - 20px);
+  overflow: hidden;
+  pointer-events: none;
+  padding: 0.85rem;
+  border: 1px solid #70bdec;
+  border-radius: 10px;
+  background: #071525f5;
+  box-shadow: 0 8px 28px #0009;
+  color: #e4effe;
+  font-size: 0.73rem;
+}
+.residueTooltip .tooltipTitle {
+  font-size: 0.95rem;
+  color: #c3e8ff;
+}
+.residueTooltip p {
+  line-height: 1.4;
+  margin: 0.3rem 0;
+}
+.residueTooltip span,
+.tooltipReference {
+  color: #9bbbd7;
+  font-weight: 400;
+}
+.residueTooltip ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0;
+  border-top: 1px solid #31577c;
+}
+.residueTooltip li {
+  margin-top: 0.5rem;
+}
+.residueTooltip li > strong {
+  color: #8fe3d7;
+  font-weight: 500;
+}
+.residueTooltip li p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tooltipCaution {
+  color: #ffd28a;
+}
+.residueTooltip .tooltipHint {
+  font-size: 0.66rem;
+  color: #9bc8ed;
+  margin-top: 0.6rem;
+}
 .canvas {
   height: clamp(280px, 37vw, 440px);
   position: relative;

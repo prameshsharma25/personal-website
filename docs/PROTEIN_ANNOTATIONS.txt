@@ -58,6 +58,11 @@ Example is a dated snapshot. Load Annotations fetches the provider response (up 
 Selections and export
 Sequence mouse drag, click, Shift range, Ctrl/Command toggle, keyboard Tab/Enter.
 3D click selects; Shift/Ctrl/Command adds/removes. A chain change clears the old selection.
+Hovering over the 3D structure shows an in-view amino acid preview with original chain/number,
+mapped UniProt position, and up to two annotations with sources. Local features precede broad domains.
+The preview uses all annotation types, independently of the side panel filter. Click for full details.
+Mapping failures, unmapped residues, and chains other than the mapped chain never show transferred features.
+Substitutions and uncertain boundaries are labeled. Escape, leaving the viewer, or rotating dismisses it.
 Neighborhoods use CA-to-CA distances in the current chain; they are not atomic contacts.
 Notes and up to 30 saved regions remain in memory until the tab closes.
 Export JSON includes the selected chain residues, mapping, reference/evidence, selected residues,

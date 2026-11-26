@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
+import { type Page } from '@playwright/test';
 const reference = JSON.parse(
   fs.readFileSync('public/tools/protein-annotations/P00698.json', 'utf8')
 );
@@ -11,6 +12,108 @@ const pdb = fs.readFileSync(
 const fubp1 = JSON.parse(
   fs.readFileSync('tests/fixtures/protein-annotations/Q96AE4.json', 'utf8')
 );
+
+async function hoverStructure(page: Page) {
+  const canvas = page.locator('[data-annotation-viewer] canvas').first();
+  await canvas.scrollIntoViewIfNeeded();
+  const box = await canvas.boundingBox();
+  for (const x of [0.5, 0.4, 0.6, 0.3, 0.7]) {
+    for (const y of [0.5, 0.4, 0.6, 0.3, 0.7]) {
+      await page.mouse.move(box.x + box.width * x, box.y + box.height * y);
+      // The real renderer waits for the pointer to dwell before picking an atom.
+      await page.waitForTimeout(230);
+      if (await page.getByRole('tooltip').isVisible()) return;
+    }
+  }
+  throw new Error('No real atom was picked by the renderer hover callback');
+}
+
+test('real structure hover shows residue identity and sourced annotation previews without selecting', async ({
+  page,
+}) => {
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
+  await page
+    .getByRole('combobox', { name: 'Representation', exact: true })
+    .selectOption('Sticks');
+  await hoverStructure(page);
+  const tip = page.getByRole('tooltip');
+  await expect(tip).toContainText('Chain A');
+  await expect(tip).toContainText('UniProt P00698');
+  await expect(tip).toContainText('Click The Residue For Details');
+  await expect(tip.locator('li')).not.toHaveCount(0);
+  const title = await tip.locator('strong').first().innerText();
+  const position = Number((await tip.innerText()).match(/Position (\d+)/)[1]);
+  const number = Number(title.match(/\w{3} (\d+)/)[1]);
+  expect(position).toBe(number + 18);
+  const residueName = title.split(' ')[0];
+  expect(
+    await page
+      .getByLabel('Protein Sequence', { exact: true })
+      .getByRole('button', {
+        name: `${residueName} ${number}, A, Reference ${position}`,
+        exact: true,
+      })
+      .count()
+  ).toBe(1);
+  const card = await tip.boundingBox(),
+    canvas = await page
+      .locator('[data-annotation-viewer] canvas')
+      .first()
+      .boundingBox();
+  expect(card.x).toBeGreaterThanOrEqual(canvas.x);
+  expect(card.y).toBeGreaterThanOrEqual(canvas.y);
+  expect(card.x + card.width).toBeLessThanOrEqual(canvas.x + canvas.width);
+  expect(card.y + card.height).toBeLessThanOrEqual(canvas.y + canvas.height);
+  await expect(page.getByText('0 Selected', { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(tip).toHaveCount(0);
+  await page.mouse.move(1, 1);
+  await hoverStructure(page);
+  await expect(tip).toBeVisible();
+  await page.mouse.move(1, 1);
+  await expect(tip).toHaveCount(0);
+});
+
+test('hover previews withhold mismatched reference annotations and stay within a mobile viewer', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route('**/api/protein-annotations?**', (route) =>
+    route.fulfill({ json: fubp1 })
+  );
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await page.getByLabel('UniProt Accession', { exact: true }).fill('Q96AE4');
+  await page
+    .getByRole('button', { name: 'Load Annotations', exact: true })
+    .click();
+  await expect(
+    page.getByText('Reference Mapping Needs Review', { exact: true })
+  ).toBeVisible();
+  await page
+    .getByRole('combobox', { name: 'Representation', exact: true })
+    .selectOption('Sticks');
+  await hoverStructure(page);
+  const tip = page.getByRole('tooltip');
+  await expect(tip).toContainText(
+    'Reference mapping needs review. Annotations are withheld.'
+  );
+  await expect(tip.locator('li')).toHaveCount(0);
+  await expect(tip).not.toContainText('Position');
+  const card = await tip.boundingBox(),
+    canvas = await page
+      .locator('[data-annotation-viewer] canvas')
+      .first()
+      .boundingBox();
+  expect(card.x).toBeGreaterThanOrEqual(canvas.x);
+  expect(card.x + card.width).toBeLessThanOrEqual(canvas.x + canvas.width);
+  await page
+    .getByRole('button', { name: 'Clear Protein', exact: true })
+    .click();
+  await expect(tip).toHaveCount(0);
+});
 test('lysozyme and FUBP1 are clearly distinguished until the user opens the new protein', async ({
   page,
 }) => {

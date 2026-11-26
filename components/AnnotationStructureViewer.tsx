@@ -1,9 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   loadMolecularViewer,
   type MolecularViewer,
 } from '../lib/molecular-viewer';
-import type { ProteinInput, Residue } from '../lib/protein-annotations';
+import type {
+  Mapping,
+  ProteinInput,
+  ReferenceProtein,
+  Residue,
+} from '../lib/protein-annotations';
+import { AMINO_NAMES, residuePreview } from '../lib/protein-hover';
 import styles from '../styles/ProteinAnnotations.module.css';
 type Atom = { chain: string; resi: number };
 type SelectableViewer = MolecularViewer & {
@@ -25,6 +39,8 @@ export default function AnnotationStructureViewer({
   chain,
   selected,
   annotated,
+  reference,
+  mapping,
   onPick,
   onHover,
   focus,
@@ -33,16 +49,59 @@ export default function AnnotationStructureViewer({
   chain: string;
   selected: Set<string>;
   annotated: Set<string>;
+  reference: ReferenceProtein | null;
+  mapping: Mapping | null;
   onPick: (key: string, add: boolean) => void;
   onHover: (residue: Residue | null) => void;
   focus: number;
 }) {
   const host = useRef<HTMLDivElement>(null),
     viewer = useRef<SelectableViewer>(null);
+  const viewport = useRef<HTMLDivElement>(null),
+    tooltip = useRef<HTMLDivElement>(null),
+    pointer = useRef({ x: 0, y: 0 }),
+    allowHover = useRef(false);
+  const tooltipId = useId();
+  const [hovered, setHovered] = useState<Residue | null>(null);
   const callbacks = useRef({ onPick, onHover });
   callbacks.current = { onPick, onHover };
   const [state, setState] = useState('loading'),
     [style, setStyle] = useState('Cartoon');
+  const preview = useMemo(
+    () => (hovered ? residuePreview(hovered, chain, reference, mapping) : null),
+    [hovered, chain, reference, mapping]
+  );
+  const clearHover = useCallback(() => {
+    setHovered(null);
+    callbacks.current.onHover(null);
+  }, []);
+  const placeTooltip = useCallback(() => {
+    const box = viewport.current,
+      tip = tooltip.current;
+    if (!box || !tip) return;
+    const { x, y } = pointer.current;
+    const width = tip.offsetWidth,
+      height = tip.offsetHeight,
+      padding = 10;
+    const left =
+      x + width + 16 > box.clientWidth - padding ? x - width - 16 : x + 16;
+    const top =
+      y + height + 16 > box.clientHeight - padding ? y - height - 16 : y + 16;
+    tip.style.left = `${Math.max(padding, Math.min(left, box.clientWidth - width - padding))}px`;
+    tip.style.top = `${Math.max(padding, Math.min(top, box.clientHeight - height - padding))}px`;
+  }, []);
+  useLayoutEffect(placeTooltip, [hovered, preview, placeTooltip]);
+  useEffect(clearHover, [input, chain, style, focus, clearHover]);
+  useEffect(() => {
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        allowHover.current = false;
+        clearHover();
+      }
+    };
+    window.addEventListener('keydown', dismiss);
+    return () => window.removeEventListener('keydown', dismiss);
+  }, [clearHover]);
   useEffect(() => {
     if (!host.current || !input.pdb) return;
     const element = host.current;
@@ -53,6 +112,7 @@ export default function AnnotationStructureViewer({
     const lost = (event: Event) => {
       event.preventDefault();
       setState('unavailable');
+      clearHover();
     };
     element.addEventListener('webglcontextlost', lost, true);
     void loadMolecularViewer()
@@ -61,6 +121,7 @@ export default function AnnotationStructureViewer({
         scene = library.createViewer(element, {
           backgroundColor: '#06101e',
           antialias: true,
+          hoverDuration: 180,
         }) as SelectableViewer;
         viewer.current = scene;
         scene.addModel(input.pdb, 'pdb', { keepH: false, doAssembly: false });
@@ -82,11 +143,13 @@ export default function AnnotationStructureViewer({
         scene.setHoverable(
           {},
           true,
-          (atom) =>
-            callbacks.current.onHover(
-              lookup.get(`${atom.chain}:${atom.resi}`) || null
-            ),
-          () => callbacks.current.onHover(null)
+          (atom) => {
+            if (disposed || !allowHover.current) return;
+            const residue = lookup.get(`${atom.chain}:${atom.resi}`) || null;
+            setHovered(residue);
+            callbacks.current.onHover(residue);
+          },
+          clearHover
         );
         scene.setStyle(
           {},
@@ -99,7 +162,10 @@ export default function AnnotationStructureViewer({
         scene.zoom(1.65);
         scene.setProjection('orthographic');
         scene.render();
-        resize = new ResizeObserver(() => scene.resize());
+        resize = new ResizeObserver(() => {
+          scene.resize();
+          placeTooltip();
+        });
         resize.observe(element);
         setState('ready');
       })
@@ -119,7 +185,7 @@ export default function AnnotationStructureViewer({
       element.removeEventListener('webglcontextlost', lost, true);
       element.replaceChildren();
     };
-  }, [input]);
+  }, [input, clearHover, placeTooltip]);
   useEffect(() => {
     const scene = viewer.current;
     if (state !== 'ready' || !scene) return;
@@ -182,11 +248,95 @@ export default function AnnotationStructureViewer({
   return (
     <div className={styles.structure} data-annotation-viewer={state}>
       <div
-        ref={host}
-        className={styles.canvas}
-        role="img"
-        aria-label={`Interactive protein structure: ${input.name}`}
-      />
+        ref={viewport}
+        className={styles.viewport}
+        onPointerMove={(event) => {
+          const box = event.currentTarget.getBoundingClientRect();
+          pointer.current = {
+            x: event.clientX - box.left,
+            y: event.clientY - box.top,
+          };
+          allowHover.current = event.buttons === 0;
+          placeTooltip();
+        }}
+        onPointerDown={() => {
+          allowHover.current = false;
+          clearHover();
+        }}
+        onPointerLeave={() => {
+          allowHover.current = false;
+          clearHover();
+        }}
+        onWheel={() => {
+          allowHover.current = false;
+          clearHover();
+        }}
+      >
+        <div
+          ref={host}
+          className={styles.canvas}
+          role="img"
+          aria-label={`Interactive protein structure: ${input.name}`}
+          aria-describedby={
+            state === 'ready' && hovered ? tooltipId : undefined
+          }
+        />
+        {state === 'ready' && hovered && preview && (
+          <div
+            ref={tooltip}
+            id={tooltipId}
+            role="tooltip"
+            className={styles.residueTooltip}
+          >
+            <strong className={styles.tooltipTitle}>
+              {hovered.name} {hovered.number} <span>· {hovered.letter}</span>
+            </strong>
+            <p>
+              {AMINO_NAMES[hovered.letter] || 'Amino Acid'} · Chain{' '}
+              {hovered.chain || 'Unnamed'}
+            </p>
+            {preview.position != null && reference && (
+              <p className={styles.tooltipReference}>
+                UniProt {reference.accession} · Position {preview.position}
+              </p>
+            )}
+            {preview.referenceLetter &&
+              preview.referenceLetter !== hovered.letter && (
+                <p className={styles.tooltipCaution}>
+                  Reference residue: {preview.referenceLetter}. This position
+                  differs in your structure.
+                </p>
+              )}
+            {preview.message && <p>{preview.message}</p>}
+            {preview.annotations.length > 0 && (
+              <ul>
+                {preview.annotations.slice(0, 2).map((annotation) => (
+                  <li key={annotation.id}>
+                    <strong>
+                      {annotation.category.replace(/\b\w/g, (c) =>
+                        c.toUpperCase()
+                      )}{' '}
+                      <span>· {annotation.source}</span>
+                    </strong>
+                    <p>
+                      {annotation.description || 'Annotated reference region.'}
+                      {annotation.uncertainty
+                        ? ' Boundaries are approximate.'
+                        : ''}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className={styles.tooltipHint}>
+              {preview.annotations.length > 2
+                ? `${preview.annotations.length - 2} More Annotations · `
+                : ''}
+              Click The Residue For Details
+            </p>
+          </div>
+        )}
+      </div>
       {state !== 'ready' && (
         <p role="status" className={styles.viewerMessage}>
           {state === 'loading'
