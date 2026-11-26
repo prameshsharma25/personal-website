@@ -1,0 +1,111 @@
+WEBSITE ARTICLE VIEWS
+
+WHAT COUNTS
+Website Views counts opens of published articles on prameshsharma.com, including
+visits from search, direct links, and navigation within the site. The component
+records only after an article mounts in a visible tab. Link prefetches, ordinary
+GET requests, and recognized crawler or preview user agents do not increment it.
+Every published post is eligible, even without a Substack counterpart.
+
+Reloading or returning to the same article in the same tab session counts once.
+This uses sessionStorage, so a new tab or a new session can count again; a browser
+may copy session storage when duplicating a tab, in which case it shares the
+session. Counts are not unique people or a fraud-proof audience measurement.
+Clearing storage or deliberately creating new session IDs can increase totals.
+If browser session storage is unavailable, totals can be read but no visit is
+recorded. Counts start after enabling the feature; old traffic is not backfilled.
+
+Substack Likes, Comments, and Restacks remain a separate panel. You do not need
+Google Analytics, an OAuth connection, or any Substack credentials for site views.
+The earlier SUBSTACK_GA4_* settings are unused and can be removed. The site does
+not modify Google Analytics tracking configured separately inside Substack.
+
+CONNECT AN UPSTASH FREE DATABASE
+1. Create a Redis database in https://console.upstash.com/ and select the Free
+   plan. Alternatively, use the Upstash Redis integration in Vercel Marketplace
+   and connect it to your personal-website project, checking the selected plan.
+   No paid add-ons are needed. Keep the Free plan selected.
+2. On the database details page, copy the REST URL (https://...) and REST Token.
+   Use the read/write token, not the read-only token or redis:// connection URL.
+3. Add these to Vercel > Project > Settings > Environment Variables:
+
+   WEBSITE_VIEWS_ENABLED=true
+   UPSTASH_REDIS_REST_URL=<REST URL>
+   UPSTASH_REDIS_REST_TOKEN=<REST read/write token>
+
+   If the integration injected variables with a different prefix, copy their
+   values into the exact names above. They must not use NEXT_PUBLIC prefixes.
+   Choose Production scope to enable the live site. Redeploy after adding them.
+4. For local testing, put the same variables in .env.local and restart npm run dev.
+   .env.local is ignored by Git. Never paste the token into chat or commit it.
+
+COUNTER ISOLATION
+The namespace defaults to VERCEL_ENV on Vercel (production or preview), and
+otherwise development. Testing locally or on a preview does not alter production
+counts. WEBSITE_VIEWS_NAMESPACE is an optional override. Do not set it to
+production locally or in Preview environment variables. Leave it empty unless
+you need a separate test namespace. Enabling credentials in both Production and
+Preview is supported because their counter keys are separate by default.
+The database should retain keys without eviction; avoid reusing an expendable
+cache that you routinely flush. Database deletion or key eviction loses totals.
+
+COST
+As checked November 26, 2026, Upstash lists a Free plan with 250 MB of data,
+500,000 commands per month, and 10 GB monthly bandwidth. This is intended to
+fit a small site's traffic. Each recorded view uses an atomic script with
+several Redis commands; display refreshes also read Redis. Monitor your database
+usage and hosting usage. Do not upgrade or enable paid options to use this code.
+If limits are reached, the panel reports unavailable instead of inventing counts.
+Pricing and limits can change: https://upstash.com/pricing/redis
+
+VERIFY
+Open a published article. Website Views should appear beneath the article.
+Refresh: the number should not rise for your existing tab session. Open another
+article and return: it should still count once. A genuinely separate session
+can add a view. The database updates atomically even if a request is retried or
+several readers arrive together. The display refreshes about every minute while
+visible and when returning to a visible tab.
+
+Read the total without incrementing it:
+/api/website-views?slug=a-vision-of-the-future
+
+status disabled: WEBSITE_VIEWS_ENABLED is not true; the panel stays hidden.
+status unavailable: check the REST URL/token, token write access, database limits,
+and environment scope. The counter does not expose credentials or raw errors.
+status available: the database returned a valid total. Zero means no views have
+been recorded in that environment yet. It is never a substitute for an outage.
+
+PRIVACY AND STORAGE
+A random UUID and counted-article markers live in sessionStorage for the tab
+session. Redis stores aggregate totals indefinitely and SHA-256 session markers
+per article for 30 days. These short-lived markers let a lost-response retry
+reuse the same operation without double counting. No names, email addresses,
+IP addresses, or external browsing history are stored by this counter. Requests
+are subject to the site's normal hosting logs separately. The database token
+stays on the server. Only total counts and recording status reach the browser.
+
+API BEHAVIOR
+GET reads; POST records only a published local article with a valid session UUID,
+JSON content type, and a matching Origin/Host. Cross-origin browser writes and
+recognized prefetch or bot requests are ignored or rejected. There is no public
+reset, set-total, or arbitrary Redis command endpoint. Every database request
+has a timeout and a bounded response. A failed write keeps the session eligible
+for a safe retry. Redis EVAL combines duplicate checking and incrementing into a
+single atomic operation. Two keys share a Redis hash slot. Warm server memory
+is not the source of truth. No paid SDK or new runtime dependency was added.
+
+TESTS
+node --import tsx --test tests/website-views.test.ts tests/substack-stats.test.ts
+npm run test:browser -- tests/browser/website-views.spec.ts tests/browser/substack-stats.spec.ts
+
+An optional Redis integration test executes the real Lua script against a
+compatible Redis REST endpoint. It uses a unique test namespace and deletes
+only the keys it created. Use a dedicated test database or a local emulator:
+WEBSITE_VIEWS_TEST_REST_URL=<test REST URL> WEBSITE_VIEWS_TEST_REST_TOKEN=<test token> node --import tsx --test tests/website-views-redis.test.ts
+Without these two test settings, that optional integration test is skipped.
+
+REFERENCES
+https://vercel.com/docs/redis
+https://upstash.com/docs/redis/features/restapi
+https://upstash.com/docs/redis/sdks/ts/commands/scripts/eval
+https://upstash.com/pricing/redis

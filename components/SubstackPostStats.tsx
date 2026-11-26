@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { emptySubstackStats, type SubstackStats } from '../lib/substack-stats';
 import styles from '../styles/SubstackStats.module.css';
-import SubstackRecentViews from './SubstackRecentViews';
 
 const metrics = [
   ['likes', 'Likes'],
@@ -114,7 +113,6 @@ export default function SubstackPostStats({
           </p>
         </>
       )}
-      <SubstackRecentViews key={slug} slug={slug} />
     </section>
   );
 }

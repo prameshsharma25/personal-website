@@ -45,6 +45,6 @@ Run relevant checks:
 node --import tsx --test tests/substack-stats.test.ts
 npm run test:browser -- tests/browser/substack-stats.spec.ts
 
-OPTIONAL RECENT WEB VIEWS
-The separate GA4 counter is documented in docs/SUBSTACK_VIEWS_SETUP.txt.
-It does not change the source or meaning of likes, comments, or restacks.
+WEBSITE VIEWS
+The separate Website Views counter is documented in docs/WEBSITE_VIEWS_SETUP.txt.
+It counts article opens on this website, independently of Substack engagement.

@@ -73,38 +73,3 @@
   line-height: 1.8;
   margin-top: 1rem;
 }
-
-.recentViews {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  align-items: center;
-  gap: 1rem 2rem;
-  padding-top: 1.25rem;
-  margin-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
-.viewCount {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-.viewLabel {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-.viewCount strong {
-  font:
-    500 clamp(1.8rem, 4vw, 2.4rem)/1.3 var(--font-display),
-    sans-serif;
-  color: var(--electric);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-.recentViews .note {
-  margin-top: 0;
-}
-@media (max-width: 540px) {
-  .recentViews {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
