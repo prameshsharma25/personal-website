@@ -1,0 +1,46 @@
+BOOK COVER SOURCES
+Retrieved November 25, 2026.
+
+Original publisher cover artwork replaces the earlier 182 to 200 pixel thumbnails.
+Next.js generates responsive compressed images from these local originals.
+The existing 1575 x 2400 All the Light We Cannot See cover is retained.
+
+a-city-on-mars.jpg
+1875 x 2850
+https://images.penguinrandomhouse.com/cover/d/9781984881724
+
+cloud-cuckoo-land.jpg
+1399 x 2114
+https://d28hgpri8am2if.cloudfront.net/book_images/onix/cvr9781982168438/cloud-cuckoo-land-9781982168438_hr.jpg
+
+dune.jpg
+2513 x 4500
+https://images.penguinrandomhouse.com/cover/d/9780441172719
+
+enders-game.jpg
+1000 x 1510
+https://mpd-biblio-covers.imgix.net/9781250773029.jpg?w=1000
+
+endymion.jpg
+1463 x 2401
+https://images.penguinrandomhouse.com/cover/d/9780553572940
+
+fall-of-hyperion.jpg
+2470 x 4093
+https://images.penguinrandomhouse.com/cover/d/9780553288209
+
+hyperion.jpg
+1256 x 2063
+https://images.penguinrandomhouse.com/cover/d/9780553283686
+
+rise-of-endymion.jpg
+1256 x 2063
+https://images.penguinrandomhouse.com/cover/d/9780553572988
+
+skywatchers.jpg
+1688 x 2550
+https://images.penguinrandomhouse.com/cover/d/9781984812292
+
+snow-crash.jpg
+1653 x 2476
+https://images.penguinrandomhouse.com/cover/d/9780553380958

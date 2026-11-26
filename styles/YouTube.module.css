@@ -1,0 +1,325 @@
+.section {
+  scroll-margin-top: 6rem;
+  border-top: 1px solid #84ae923d;
+  padding-top: 3rem;
+}
+.heading,
+.analyticsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.6rem;
+  flex-wrap: wrap;
+}
+.heading > div {
+  max-width: 42rem;
+}
+.heading h2 {
+  font:
+    500 clamp(2rem, 4vw, 3rem)/1.12 var(--font-display),
+    sans-serif;
+  letter-spacing: -0.045em;
+  color: #ecfff3;
+  margin: 0.7rem 0 1rem;
+}
+.heading p,
+.contextGrid p {
+  color: #afc4b8;
+  line-height: 1.8;
+}
+.videoLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+.feature {
+  min-width: 0;
+}
+.player {
+  aspect-ratio: 16/9;
+  position: relative;
+  background: #060e0a;
+  border: 1px solid #84ae923d;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.player iframe,
+.play {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  position: absolute;
+  inset: 0;
+}
+.play {
+  background: #08130e;
+  color: #f4fff8;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+}
+.poster {
+  object-fit: cover;
+  transition:
+    transform 0.6s,
+    filter 0.6s;
+  filter: brightness(0.72);
+}
+.play:hover .poster {
+  transform: scale(1.04);
+  filter: brightness(0.9);
+}
+.playIcon {
+  position: relative;
+  z-index: 1;
+  width: 4rem;
+  height: 4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #a9f4d1;
+  color: #0b2519;
+  box-shadow: 0 0 50px #85ffd252;
+  font-size: 1.2rem;
+  margin: auto;
+}
+.playLabel {
+  position: relative;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  text-shadow: 0 2px 8px #000;
+}
+.videoTitle {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.2rem 0;
+}
+.videoTitle h3 {
+  font:
+    500 1.2rem/1.45 var(--font-display),
+    sans-serif;
+  color: #edfff4;
+}
+.videoTitle time {
+  font-size: 0.7rem;
+  color: #a7beb0;
+}
+.snapshot,
+.reportPanel {
+  padding: 1.7rem;
+  border: 1px solid #84ae923d;
+  border-radius: 16px;
+  background: linear-gradient(140deg, #11261b, #09140f);
+  min-width: 0;
+}
+.snapshot > span {
+  display: block;
+  color: #b4cdbf;
+  margin: 0.3rem 0 1.1rem;
+  font-size: 0.8rem;
+}
+.viewCount {
+  display: block;
+  font:
+    500 clamp(2.4rem, 4vw, 4.5rem)/1.15 var(--font-display),
+    sans-serif;
+  color: #b6f8da;
+  margin: 0.9rem 0 0.3rem;
+  overflow-wrap: anywhere;
+}
+.caption {
+  color: #9fb8aa;
+  font-size: 0.72rem;
+  line-height: 1.8;
+  margin: 0.7rem 0;
+}
+.selectLabel {
+  display: grid;
+  gap: 0.65rem;
+  font-size: 0.75rem;
+  color: #c9e4d5;
+  margin: 1.3rem 0 0.7rem;
+}
+.selectLabel :is(select, input) {
+  width: 100%;
+  min-width: 0;
+  background: #07140d;
+  color: #e2f6e9;
+  border: 1px solid #7fb79755;
+  border-radius: 8px;
+  padding: 0.8rem;
+  font: inherit;
+  min-height: 44px;
+}
+.analyticsHeader {
+  margin-top: 3rem;
+}
+.analyticsHeader h3 {
+  font:
+    500 1.65rem/1.3 var(--font-display),
+    sans-serif;
+  color: #eafff2;
+  margin: 0.5rem 0;
+}
+.availability {
+  padding: 1.4rem 1.6rem;
+  border: 1px solid #87b49b40;
+  border-radius: 12px;
+  background: #0b1b12;
+  color: #b5cbbd;
+  line-height: 1.8;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.metrics > div {
+  padding: 1.4rem;
+  border: 1px solid #87b49b40;
+  border-radius: 12px;
+  background: #0b1b12;
+}
+.metrics dt {
+  font-size: 0.75rem;
+  color: #a4bfae;
+}
+.metrics dd {
+  margin-top: 0.8rem;
+  font:
+    500 2rem/1.1 var(--font-display),
+    sans-serif;
+  color: #c0ffe0;
+}
+.metrics small,
+.searchTerms small {
+  font-size: 0.7rem;
+}
+.reportGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+.reportPanel h4,
+.contextGrid h4 {
+  font-size: 1rem;
+  color: #daf5e4;
+  margin-bottom: 1rem;
+}
+.reportPanel p {
+  line-height: 1.8;
+  color: #a8bdaf;
+}
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem 0;
+}
+.chart rect {
+  fill: #a6f4d1;
+}
+.chart text {
+  fill: #9db7a8;
+  font-size: 11px;
+}
+.gridLine {
+  stroke: #9fdcbd22;
+}
+.scroll {
+  max-height: 16rem;
+  overflow: auto;
+  margin-top: 1rem;
+}
+.dataTable summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #baecd0;
+  padding: 0.5rem 0;
+}
+.dataTable table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.dataTable caption {
+  text-align: left;
+  margin-bottom: 0.8rem;
+  color: #a2bcad;
+}
+.dataTable :is(th, td) {
+  padding: 0.65rem;
+  border-bottom: 1px solid #9fdcbd22;
+}
+.searchTerms {
+  list-style: none;
+  padding: 0;
+  max-height: 18rem;
+  overflow: auto;
+}
+.searchTerms li {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #9fdcbd22;
+  font-size: 0.8rem;
+}
+.searchTerms span {
+  overflow-wrap: anywhere;
+  color: #c7e5d4;
+}
+.searchTerms strong {
+  white-space: nowrap;
+  color: #afe9c8;
+}
+.contextGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem 0 0;
+  margin-top: 1.5rem;
+  border-top: 1px solid #87b49b30;
+}
+.contextGrid p {
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+.contextGrid a {
+  margin-top: 1rem;
+}
+@media (max-width: 760px) {
+  .videoLayout,
+  .reportGrid,
+  .contextGrid {
+    grid-template-columns: 1fr;
+  }
+  .snapshot {
+    padding: 1.4rem;
+  }
+  .viewCount {
+    font-size: 3rem;
+  }
+}
+@media (max-width: 540px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+  .reportPanel {
+    padding: 1rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .poster {
+    transition: none;
+  }
+  .play:hover .poster {
+    transform: none;
+  }
+}

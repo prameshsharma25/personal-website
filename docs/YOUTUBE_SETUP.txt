@@ -1,0 +1,85 @@
+YOUTUBE VIDEOS AND PUBLIC ANALYTICS
+
+The Posts page includes the channel UC8ULgisbWvZlqcn6ZnI0bPA:
+https://www.youtube.com/@prameshsharma2343
+The first verified video is https://www.youtube.com/watch?v=oDGqUMBvrpY.
+
+WORKS WITHOUT CREDENTIALS
+The public YouTube Atom feed supplies recent uploads, titles, publication dates,
+and current total view counts. The website refreshes this feed about every 15
+minutes, with a shared server cache and CDN cache. YouTube controls how quickly
+its own counters update. These are refreshed totals, not realtime viewer counts.
+The feed is a recent-upload list, not a complete historical archive; the channel
+link opens the full archive. Up to 15 feed entries appear in the video selector.
+If the feed fails, the previously fetched sample can remain visible for at most
+24 hours, labeled with its last successful check. Without a recent sample the
+verified initial video remains watchable, with its count explicitly unavailable.
+The public feed is fetched on the server. Thumbnails use Next.js image caching.
+The youtube-nocookie.com player only loads after the visitor presses Play.
+
+ONE-TIME SETUP FOR DETAILED REPORTS
+Daily views, watch time, average view duration, and video search terms require
+authorization from the channel owner. The implementation is ready but those
+reports remain unavailable until the following setup is completed.
+
+1. In a Google Cloud project, enable YouTube Data API v3 and YouTube Analytics
+   API. Configure the OAuth consent screen for your own account.
+2. Create an OAuth client of type Web Application. For the setup flow below,
+   add https://developers.google.com/oauthplayground as an authorized redirect.
+3. Open https://developers.google.com/oauthplayground. In its settings, enable
+   Use your own OAuth credentials and enter that client ID and client secret.
+   Use offline access. Authorize these read-only scopes:
+   https://www.googleapis.com/auth/youtube.readonly
+   https://www.googleapis.com/auth/yt-analytics.readonly
+4. Sign in as the owner of the channel above, choosing its Brand Account if
+   applicable. Exchange the authorization code for tokens. Copy the refresh
+   token directly into your local .env.local and your Vercel environment:
+
+   YOUTUBE_CLIENT_ID=<your client ID>
+   YOUTUBE_CLIENT_SECRET=<your client secret>
+   YOUTUBE_REFRESH_TOKEN=<your refresh token>
+   YOUTUBE_PUBLIC_ANALYTICS_ENABLED=true
+
+   Do not put these in NEXT_PUBLIC variables, GitHub commits, screenshots, or
+   chat. The existing .gitignore excludes .env.local. Your Gmail app password
+   is unrelated and must not be used for YouTube authorization.
+5. Restart the local website and redeploy when ready for production. Enabling
+   this flag publishes aggregate reports for the recent videos on the Posts
+   page. No revenue, demographic, or individual-viewer data is requested.
+
+Refresh tokens can expire or be revoked. Google OAuth applications left in
+Testing can receive short-lived refresh tokens. Follow Google's consent-screen
+requirements for your app before relying on unattended production refreshes.
+The server checks the authorized channel ID before fetching or publishing any
+owner reports. A token for another channel is rejected. Disable the flag or
+revoke the token to stop publishing owner reports; cached public reports can
+remain visible for up to 15 minutes.
+
+REPORT BEHAVIOR
+Only configured-channel feed videos and 28- or 90-day windows are accepted.
+Windows end yesterday in YouTube's Pacific reporting timezone. Reports may end
+earlier because YouTube's data is delayed. The chart shows reported days only;
+missing or suppressed rows are never invented or filled with zero. The summary
+comes from YouTube's aggregate query, not an average of daily averages.
+Search terms are the top 25 terms that brought views to the selected video.
+Empty search reports can reflect low volume or withheld data. Partial report
+failures do not hide other available report components. Shared requests, bounded
+windows, server caches, timeouts, and CDN caching limit upstream traffic.
+No API credentials or upstream error bodies are returned to visitors.
+
+LIMITS
+Returning viewers are not a documented metric in the YouTube Analytics API.
+Studio's 48-hour/hourly realtime estimates are not provided by these APIs.
+Neither is approximated using view counts, visitors, likes, or watch time.
+For global search interest, the section links to Google Trends with YouTube
+Search selected. Google Trends' API remains an access-limited alpha; this site
+does not scrape it or present synthetic trend data as measured search traffic.
+
+REFERENCES
+https://developers.google.com/youtube/analytics/metrics
+https://developers.google.com/youtube/analytics/channel_reports
+https://developers.google.com/youtube/analytics/dimensions
+https://developers.google.com/youtube/analytics/reference/reports/query
+https://developers.google.com/identity/protocols/oauth2/web-server
+https://developers.google.com/identity/protocols/oauth2#expiration
+https://developers.google.com/search/apis/trends
