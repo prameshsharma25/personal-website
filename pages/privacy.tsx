@@ -56,7 +56,7 @@ export default function PrivacyPolicy() {
           </ul>
 
           <h2>YouTube Videos And Public Analytics</h2>
-          <p>The Posts page displays public videos and view counts from Pramesh Sharma’s YouTube channel. The video player loads from YouTube’s privacy enhanced domain only when you choose to play a video. Playback may share connection and viewing information with YouTube under Google’s privacy policy. Thumbnails are served through this website’s image service.</p>
+          <p>The Posts page displays public videos and view counts from Pramesh Sharma’s YouTube channel. The video player loads from YouTube’s privacy enhanced domain only when you choose to play a video or select a chapter. Playback may share connection and viewing information with YouTube under Google’s privacy policy. Thumbnails are served through this website’s image service. Chapter sharing copies a public YouTube link with a timestamp when you request it. The website does not track your playback position.</p>
           <p>When channel analytics are connected, this page also publishes aggregate video views, watch time, average viewing duration, and search terms reported by YouTube. These reports concern the channel’s videos and do not identify individual viewers. Channel authorization credentials stay on the server. The website does not track repeat video viewers or infer returning viewer counts.</p>
 
           <h2>How We Use Your Information</h2>

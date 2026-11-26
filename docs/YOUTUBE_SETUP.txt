@@ -17,6 +17,23 @@ verified initial video remains watchable, with its count explicitly unavailable.
 The public feed is fetched on the server. Thumbnails use Next.js image caching.
 The youtube-nocookie.com player only loads after the visitor presses Play.
 
+CHAPTERS AND RELATED RESEARCH
+lib/youtube-companions.ts contains approved chapters, duration, and related
+resources keyed by video ID. The current video's six chapters were reviewed
+against the clip and approved by Pramesh on November 26, 2026. Add a separate
+entry for a future upload after its chapter timings and resource links are
+reviewed. Videos without an entry remain watchable and do not inherit another
+video's chapters or recommendations.
+
+Clicking Play or a chapter is required to load the privacy enhanced player.
+Chapter buttons reload the embed with YouTube's documented start parameter;
+clicking the same chapter again restarts that segment. The selected chapter
+marks the last requested start, not continuous playback position. YouTube may
+seek to a nearby keyframe. Copy Link creates a YouTube URL with the selected
+timestamp; if clipboard access is unavailable, a selectable link is shown.
+No player API script, automatic playback tracking, or extra Data API requests
+are required. Related cards link to existing research, tools, and guides.
+
 ONE-TIME SETUP FOR DETAILED REPORTS
 Daily views, watch time, average view duration, and video search terms require
 authorization from the channel owner. The implementation is ready but those
