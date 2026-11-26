@@ -55,9 +55,11 @@ settings. The free tracker remains a direct download. Contact and purchase email
 continue through the existing Gmail transport. No external Google account data
 was changed by this local update.
 
-## Future advertisement placement
+## AdSense verification and advertisement placement
 
-`public/ads.txt` serves the existing publisher identifier at `/ads.txt`. A labeled ad position is available after article content. It stays off unless both `NEXT_PUBLIC_ADSENSE_ENABLED=true` and a real `NEXT_PUBLIC_ADSENSE_ARTICLE_SLOT` are configured. Rebuild after changing these public settings. The former unconditional global ad script has been removed, so ads do not run on checkout, downloads, or the homepage by default.
+`public/ads.txt` serves the existing publisher identifier at `/ads.txt`. The shared document head includes the asynchronous AdSense script for `ca-pub-2651199811728382`, so it is present in the initial HTML for site review. Direct visits to the private purchase download page omit the script. Client navigation does not unload scripts already loaded on a public page. Auto ads are controlled in AdSense.
+
+A labeled ad position is available after article content. It stays off unless both `NEXT_PUBLIC_ADSENSE_ENABLED=true` and a real `NEXT_PUBLIC_ADSENSE_ARTICLE_SLOT` are configured. These settings control the article placement, not the shared script. Rebuild after changing them. Article placements queue their requests through the shared script without adding a second loader.
 
 Before enabling ads, verify site approval and the ad unit in AdSense, configure the account's required privacy/consent messaging, and test placement on mobile. The integration does not claim approval or install a consent-management platform. Reserved space reduces layout movement when a configured ad loads.
 

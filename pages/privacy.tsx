@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
       <main className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Privacy Policy</h1>
-          <p className={styles.subtitle}>Last updated: November 25, 2026</p>
+          <p className={styles.subtitle}>Last updated: November 26, 2026</p>
         </div>
 
         <article className={styles.content}>
@@ -70,7 +70,7 @@ export default function PrivacyPolicy() {
 
           <h2>Google AdSense and Personalized Ads</h2>
           <p>
-            Google AdSense is configured for optional advertising placements. Ad scripts load only when those placements are enabled. Google uses cookies and web beacons to:
+            Public pages load the Google AdSense script for site verification and advertising. Ad placement depends on site approval and advertising settings. Google may use cookies and web beacons to:
           </p>
           <ul>
             <li>Serve ads based on your previous visits to this Site and other websites</li>
