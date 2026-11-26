@@ -2,6 +2,9 @@
 export const CHECKPOINT_DB = 'amyloid-analysis-checkpoints-v1';
 export const CHECKPOINT_LOCK = 'amyloid-analysis-checkpoint-writer-v1';
 const STORES = ['run', 'inputs', 'descriptors', 'alignments', 'completion'];
+// Keep each IndexedDB value well below browser serialization limits. A batch's
+// ZIP and viewer files can together exceed that limit even with valid inputs.
+const COMPLETION_CHUNK_BYTES = 8 * 1024 * 1024;
 let connection;
 const releasingLocks = new Map();
 export async function digest(value) {
@@ -253,8 +256,47 @@ export async function readCheckpointModels(id) {
   return models.sort((a, b) => a.id.localeCompare(b.id));
 }
 export async function readCheckpointCompletion(id) {
-  checkRun(await readCheckpointSummary(id), id);
-  return verified(await read('completion', [id, 'current']), id);
+  const meta = await readCheckpointSummary(id);
+  checkRun(meta, id);
+  if (meta.status !== 'complete') return null;
+  const saved = await verified(await read('completion', [id, 'current']), id);
+  if (saved?.storageFormat !== 'chunked-completion-v1') return saved;
+  async function restore(reference) {
+    if (
+      !Number.isSafeInteger(reference?.size) ||
+      reference.size < 0 ||
+      !Array.isArray(reference.parts)
+    )
+      throw new Error('The saved results have invalid file metadata.');
+    const bytes = new Uint8Array(reference.size);
+    let offset = 0;
+    for (const key of reference.parts) {
+      const part = await verified(await read('completion', [id, key]), id);
+      if (
+        !(part instanceof ArrayBuffer) ||
+        !part.byteLength ||
+        part.byteLength > COMPLETION_CHUNK_BYTES ||
+        offset + part.byteLength > bytes.length
+      )
+        throw new Error('A saved results file is missing or inconsistent.');
+      bytes.set(new Uint8Array(part), offset);
+      offset += part.byteLength;
+    }
+    if (offset !== bytes.length)
+      throw new Error('A saved results file is incomplete.');
+    return bytes.buffer;
+  }
+  const { storageFormat, ...completed } = saved;
+  const artifacts = {};
+  for (const [model, files] of Object.entries(saved.artifacts)) {
+    artifacts[model] = [];
+    for (const file of files)
+      artifacts[model].push({
+        name: file.name,
+        bytes: await restore(file.bytes),
+      });
+  }
+  return { ...completed, artifacts, archive: await restore(saved.archive) };
 }
 export async function acquireCheckpointLock(id) {
   if (!id) throw new Error('A run ID is required to access saved progress.');
@@ -430,26 +472,33 @@ export async function openCheckpoint(
       updatedAt: Date.now(),
     };
   }
-  await transaction(['run', 'inputs'], 'readwrite', (tx, done, fail, guard) => {
-    const runs = tx.objectStore('run');
-    const request = runs.get(meta.id);
-    request.onsuccess = guard(() => {
-      if (resumeId) checkRun(request.result, resumeId);
-      else if (request.result)
-        throw new Error(
-          'A saved run already has this ID. Start a new analysis.'
-        );
-      runs.put(meta, meta.id);
-      if (!resumeId)
-        tx.objectStore('inputs').put(
-          { runId: meta.id, payload: input, digest: inputDigest },
-          [meta.id, 'current']
-        );
-      done(meta);
-    });
-  });
+  await transaction(
+    ['run', 'inputs', 'completion'],
+    'readwrite',
+    (tx, done, fail, guard) => {
+      const runs = tx.objectStore('run');
+      const request = runs.get(meta.id);
+      request.onsuccess = guard(() => {
+        if (resumeId) checkRun(request.result, resumeId);
+        else if (request.result)
+          throw new Error(
+            'A saved run already has this ID. Start a new analysis.'
+          );
+        runs.put(meta, meta.id);
+        // Only unfinished runs reach here. Remove abandoned completion chunks;
+        // descriptor and alignment checkpoints are retained for recovery.
+        if (resumeId) tx.objectStore('completion').delete(runRange(meta.id));
+        if (!resumeId)
+          tx.objectStore('inputs').put(
+            { runId: meta.id, payload: input, digest: inputDigest },
+            [meta.id, 'current']
+          );
+        done(meta);
+      });
+    }
+  );
   const id = meta.id;
-  return {
+  const session = {
     meta,
     async keys(store) {
       return transaction([store], 'readonly', (tx, done) => {
@@ -460,7 +509,65 @@ export async function openCheckpoint(
     async get(store, key) {
       return verified(await read(store, [id, key]), id);
     },
-    async put(store, key, payload) {
+    async put(store, key, payload, onProgress) {
+      if (
+        store === 'completion' &&
+        key === 'current' &&
+        payload.archive instanceof ArrayBuffer
+      ) {
+        let index = 0;
+        const buffers = [
+          payload.archive,
+          ...Object.values(payload.artifacts ?? {}).flatMap((files) =>
+            files.map((file) => file.bytes)
+          ),
+        ];
+        const total =
+          buffers.reduce(
+            (sum, bytes) =>
+              sum + Math.ceil(bytes.byteLength / COMPLETION_CHUNK_BYTES),
+            0
+          ) + 1;
+        onProgress?.(0, total);
+        async function save(bytes) {
+          const parts = [];
+          for (
+            let offset = 0;
+            offset < bytes.byteLength;
+            offset += COMPLETION_CHUNK_BYTES
+          ) {
+            const part = `part:${attempt}:${index++}`;
+            await session.put(
+              'completion',
+              part,
+              bytes.slice(offset, offset + COMPLETION_CHUNK_BYTES)
+            );
+            parts.push(part);
+            onProgress?.(index, total);
+          }
+          return { size: bytes.byteLength, parts };
+        }
+        const archive = await save(payload.archive);
+        const artifacts = {};
+        for (const [model, files] of Object.entries(payload.artifacts ?? {})) {
+          artifacts[model] = [];
+          for (const file of files)
+            artifacts[model].push({
+              name: file.name,
+              bytes: await save(file.bytes),
+            });
+        }
+        // Every chunk is committed first. Publish the manifest and completed
+        // status atomically, so an interrupted save can never look complete.
+        const summary = await session.put('completion', 'current', {
+          ...payload,
+          archive,
+          artifacts,
+          storageFormat: 'chunked-completion-v1',
+        });
+        onProgress?.(total, total);
+        return summary;
+      }
       const sealed = { runId: id, payload, digest: await digest(payload) };
       return transaction(
         ['run', store],
@@ -484,7 +591,7 @@ export async function openCheckpoint(
                 (store === 'descriptors' || store === 'alignments')
               )
                 updated[store]++;
-              if (store === 'completion') {
+              if (store === 'completion' && key === 'current') {
                 updated.status = 'complete';
                 updated.hasErrors =
                   payload.result?.structures?.some(
@@ -505,4 +612,5 @@ export async function openCheckpoint(
       );
     },
   };
+  return session;
 }

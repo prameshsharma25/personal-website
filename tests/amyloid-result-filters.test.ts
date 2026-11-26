@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resultFilters } from '../lib/amyloid-result-filters';
+import {
+  initialInspection,
+  resultFilters,
+} from '../lib/amyloid-result-filters';
 import type { AnalysisGroup, AnalysisModel } from '../lib/amyloid-jobs';
 const models: AnalysisModel[] = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => ({
   id,
@@ -83,4 +86,66 @@ test('small or unrequested batches keep every structure visible', () => {
   assert.deepEqual(resultFilters([], []), [
     { key: 'all', label: 'All Structures', ids: new Set() },
   ]);
+});
+
+test('initial inspection follows the diversity shortlist rather than upload order or cluster medoid', () => {
+  const items = models.map((model) => ({
+    ...model,
+    files: { report: 'report', manifest: 'manifest', structure: 'structure' },
+  }));
+  const groups: AnalysisGroup[] = [
+    {
+      id: 'g1',
+      ids: ['a', 'b', 'c'],
+      clustering_status: 'complete',
+      shortlist: ['c', 'b'],
+      representatives: [{ id: 'a', cluster: 0, size: 3 }],
+    },
+    { id: 'g2', ids: ['d'], clustering_status: 'complete', shortlist: ['d'] },
+  ];
+  const before = JSON.stringify({ items, groups });
+  assert.deepEqual(initialInspection(items, groups), {
+    model: items[2],
+    shortlisted: true,
+    groupIndex: 0,
+    rank: 1,
+  });
+  assert.equal(JSON.stringify({ items, groups }), before);
+});
+
+test('initial inspection never invents eligibility or compare ranks across groups', () => {
+  const items = models.map((model) => ({
+    ...model,
+    files: { report: 'report', manifest: 'manifest', structure: 'structure' },
+  }));
+  const groups: AnalysisGroup[] = [
+    { id: 'g1', ids: ['a'], clustering_status: 'failed', shortlist: ['a'] },
+    {
+      id: 'g2',
+      ids: ['b', 'c'],
+      clustering_status: 'complete',
+      shortlist: ['unknown', 'c'],
+    },
+  ];
+  assert.deepEqual(initialInspection(items, groups), {
+    model: items[2],
+    shortlisted: true,
+    groupIndex: 1,
+    rank: 2,
+  });
+  assert.equal(initialInspection(items, [])?.shortlisted, false);
+  assert.equal(
+    initialInspection(items, [
+      {
+        id: 'g',
+        ids: ['b'],
+        clustering_status: 'complete',
+        shortlist: [],
+        members: [{ ...member('b', 0), rank_score: 99 }],
+      },
+    ])?.model.id,
+    'a'
+  );
+  assert.equal(initialInspection(models, groups), null);
+  assert.equal(initialInspection([], []), null);
 });

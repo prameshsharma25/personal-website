@@ -269,6 +269,12 @@ not recalculate or change the downloaded archive.
 Shortlisting uses the existing QC, four evidence components, pool-relative score
 floor, finite ipTM/pLDDT confidence, non-noise membership, and greedy diversity
 threshold of 0.20. Missing confidence does not prevent descriptors or clustering.
+The initial viewer now opens the first viewable candidate in the pipeline's
+diversity shortlist, in recorded shortlist order. For multiple construct groups,
+it uses the first group with a shortlist; ranks are not compared across groups.
+The selection card identifies the group and shortlist position. With no eligible
+shortlist, the viewer opens the first calculated structure and explicitly labels
+that fallback. A calculated structure is not automatically a shortlisted candidate.
 
 Save Progress On This Device is enabled by default when IndexedDB and Web Locks
 are available. Each run is stored separately, including exact input bytes,
@@ -282,6 +288,20 @@ assessment rows without automatically resuming calculations. Pause Analysis
 retains committed work. New Analysis clears the workspace without deleting
 earlier runs. Delete Saved Run affects only the selected run.
 Turning saving off leaves an earlier saved run intact and calculates in memory.
+
+Calculation completion and durable result saving are separate. The coordinator
+shows Saving Your Results while persisting the final ZIP and viewer artifacts.
+Large binary outputs are sealed and written in parts of at most 8 MiB, avoiding
+Chrome's roughly 127 MiB serialized-value limit. Only after all parts commit are
+the completion manifest and run's complete status committed atomically. Reopening
+verifies each part and reconstructs the identical bytes. Earlier whole-record
+completed runs remain readable. An interrupted final save cannot appear complete;
+its abandoned parts are removed on resume, preserving assessments and alignments.
+Storage quota errors are still possible. If final saving fails, downloads remain
+available in the open page, the UI says Results Not Saved, and history records a
+failed save with a resume action instead of silently showing Paused. Existing
+unfinished runs from the previous release can resume with their saved work to
+rebuild clustering, selection, and final downloads using the smaller-record format.
 
 Each operation and its saved counter commit in one IndexedDB transaction with
 strict durability where supported. Completed descriptor records include failures;

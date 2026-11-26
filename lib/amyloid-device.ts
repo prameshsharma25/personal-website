@@ -85,6 +85,7 @@ export type DeviceMessage =
       result: DeviceResult;
       artifacts: Record<string, { name: string; bytes: ArrayBuffer }[]>;
       archive: ArrayBuffer;
+      checkpointSaved?: boolean;
     };
 export type DeviceArtifacts = Record<string, InputFile[]>;
 

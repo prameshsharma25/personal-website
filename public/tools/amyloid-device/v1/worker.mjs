@@ -220,12 +220,22 @@ self.onmessage = async ({ data }) => {
       });
     }
     async function persist(store, key, output) {
-      if (!checkpoint || !checkpointWrites) return;
+      if (!checkpoint || !checkpointWrites) return false;
       try {
-        const summary = await checkpoint.put(store, key, output);
+        const summary = await checkpoint.put(
+          store,
+          key,
+          output,
+          store === 'completion'
+            ? (done, total) =>
+                progress('Saving Your Results', done, total, '', 'saving')
+            : undefined
+        );
         checkpointNotice(summary, store === 'completion');
+        return true;
       } catch (error) {
         checkpointWarning(error);
+        return false;
       }
     }
     if (data.checkpoint || data.resumeId) {
@@ -733,8 +743,10 @@ self.onmessage = async ({ data }) => {
       artifacts,
       archive,
       diagnostics: diagnostics.snapshot(),
+      checkpointSaved: data.checkpoint || data.resumeId ? true : undefined,
     };
-    await persist('completion', 'current', completed);
+    const saved = await persist('completion', 'current', completed);
+    if (data.checkpoint || data.resumeId) completed.checkpointSaved = saved;
     postMessage(completed, transfers);
   } catch (error) {
     diagnostics.emit(true);

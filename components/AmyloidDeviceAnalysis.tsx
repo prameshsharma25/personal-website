@@ -13,7 +13,10 @@ import {
   type DeviceResult,
 } from '../lib/amyloid-device';
 import type { AnalysisModel } from '../lib/amyloid-jobs';
-import { resultFilters } from '../lib/amyloid-result-filters';
+import {
+  initialInspection,
+  resultFilters,
+} from '../lib/amyloid-result-filters';
 import AnalysisProgress from './AnalysisProgress';
 import { AnalysisClock } from '../lib/analysis-clock';
 import SavedAnalysisRuns from './SavedAnalysisRuns';
@@ -76,6 +79,12 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [error, setError] = useState('');
   const [models, setModels] = useState<AnalysisModel[]>([]);
   const [result, setResult] = useState<DeviceResult | null>(null);
+  const [completionSaveFailed, setCompletionSaveFailed] = useState(false);
+  const firstInspection = useMemo(
+    () =>
+      result ? initialInspection(result.structures, result.groups ?? []) : null,
+    [result]
+  );
   const [archive, setArchive] = useState<Blob | null>(null);
   const [opening, setOpening] = useState(false);
   const [filterKey, setFilterKey] = useState('all');
@@ -485,6 +494,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setConfidence(null);
     setResult(null);
     setFilterKey('all');
+    setCompletionSaveFailed(false);
     setArchive(null);
     setModels([]);
     setOpening(false);
@@ -544,6 +554,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setError('');
     setResult(null);
     setFilterKey('all');
+    setCompletionSaveFailed(false);
     setArchive(null);
     setModels([]);
     setOpening(false);
@@ -709,7 +720,14 @@ export default function AmyloidDeviceAnalysis(props: Props) {
             clock.current.restore(data.result.elapsed_seconds * 1000);
             setElapsedMs(clock.current.elapsedMs);
           }
-          const stopped = terminate('paused');
+          const saveFailed = data.checkpointSaved === false;
+          setCompletionSaveFailed(saveFailed);
+          const stopped = terminate(
+            saveFailed ? 'failed' : 'paused',
+            saveFailed
+              ? 'Final results could not be saved. Resume to rebuild them from saved calculations.'
+              : ''
+          );
           if (checkpointAvailable) void stopped.then(refreshCheckpoint);
           setRunning(false);
           setResult(data.result);
@@ -723,14 +741,17 @@ export default function AmyloidDeviceAnalysis(props: Props) {
             filename: '',
           });
           setProgress(
-            data.result.structures.every(
-              (model) => model.state === 'complete' && !model.comparison_error
-            ) &&
-              !data.result.groups?.some(
-                (group) => group.clustering_status === 'failed'
-              )
-              ? 'Analysis Complete'
-              : 'Finished With Errors'
+            saveFailed
+              ? 'Calculations Complete; Results Not Saved'
+              : data.result.structures.every(
+                    (model) =>
+                      model.state === 'complete' && !model.comparison_error
+                  ) &&
+                  !data.result.groups?.some(
+                    (group) => group.clustering_status === 'failed'
+                  )
+                ? 'Analysis Complete'
+                : 'Finished With Errors'
           );
           setArchive(new Blob([data.archive], { type: 'application/zip' }));
           artifacts.current = Object.fromEntries(
@@ -742,10 +763,11 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               })),
             ])
           );
-          const first = data.result.structures.find(
-            (model) => model.state === 'complete'
+          const first = initialInspection(
+            data.result.structures,
+            data.result.groups ?? []
           );
-          if (first && callbacks.current.active) void inspect(first.id);
+          if (first && callbacks.current.active) void inspect(first.model.id);
         }
       };
       watchdog(180000);
@@ -1158,6 +1180,14 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           phase={progressStep?.phase}
         />
       )}
+      {result && completionSaveFailed && (
+        <p className={styles.error} role="alert">
+          Calculations finished, but the final results could not be saved on
+          this device. Download Local Reports before leaving this page. The
+          saved run is marked Failed because saving failed. Resume Saved Run
+          reuses saved assessments and comparisons to rebuild the final results.
+        </p>
+      )}
       {!!startedAt && (
         <AnalysisDiagnostics
           key={startedAt}
@@ -1187,6 +1217,36 @@ export default function AmyloidDeviceAnalysis(props: Props) {
               </div>
             )}
           </div>
+          {firstInspection && (
+            <section
+              className={styles.clusterRepresentative}
+              aria-label="Initial Structure Selection"
+            >
+              <div>
+                <p className={styles.kicker}>
+                  {firstInspection.shortlisted
+                    ? 'First Shortlisted Candidate'
+                    : 'First Calculated Structure'}
+                </p>
+                <strong>{firstInspection.model.filename}</strong>
+                <p>
+                  {firstInspection.shortlisted
+                    ? `Group ${firstInspection.groupIndex! + 1} · Shortlist #${firstInspection.rank}. Selected by ranking and diversity within this group. Groups are ranked separately.`
+                    : result?.groups?.length
+                      ? 'No shortlisted candidate is available to inspect. The viewer opens the first calculated structure. Check the selection reasons below.'
+                      : 'The viewer opens the first calculated structure. No diversity shortlist was calculated for this run.'}
+                </p>
+              </div>
+              <button
+                disabled={opening}
+                onClick={() => void inspect(firstInspection.model.id)}
+              >
+                {firstInspection.shortlisted
+                  ? 'Inspect Shortlisted Candidate'
+                  : 'Inspect First Structure'}
+              </button>
+            </section>
+          )}
           {!!result?.groups?.length && (
             <section
               className={styles.clusterBrowser}

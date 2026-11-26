@@ -548,8 +548,8 @@ test('a checkpoint quota failure is visible and analysis still finishes', async 
     route.fulfill({
       contentType: 'text/javascript',
       body: module.replace(
-        'async put(store, key, payload) {',
-        "async put(store, key, payload) { if (store === 'descriptors') throw new DOMException('Test checkpoint quota', 'QuotaExceededError');"
+        'async put(store, key, payload, onProgress) {',
+        "async put(store, key, payload, onProgress) { if (store === 'descriptors') throw new DOMException('Test checkpoint quota', 'QuotaExceededError');"
       ),
     })
   );
@@ -567,5 +567,8 @@ test('a checkpoint quota failure is visible and analysis still finishes', async 
   const checkpoint = await saved(page);
   expect(checkpoint.status).toBe('incomplete');
   expect(checkpoint.descriptors).toBe(0);
-  await expect(page.locator('main [role=alert]')).toHaveCount(0);
+  await expect(page.locator('main [role=alert]')).toContainText(
+    'final results could not be saved'
+  );
+  await expect.poll(async () => (await saved(page)).activity).toBe('failed');
 });

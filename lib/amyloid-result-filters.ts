@@ -1,5 +1,27 @@
 import type { AnalysisGroup, AnalysisModel } from './amyloid-jobs';
 
+// Preserve the pipeline's shortlist order. Scores from different construct
+// groups are not comparable, so use the first group with a viewable selection.
+export function initialInspection(
+  models: AnalysisModel[],
+  groups: AnalysisGroup[]
+) {
+  const viewable = (model: AnalysisModel) =>
+    model.state === 'complete' && !!model.files;
+  for (const [groupIndex, group] of groups.entries()) {
+    if (group.clustering_status !== 'complete') continue;
+    for (const [index, id] of (group.shortlist ?? []).entries()) {
+      const model = models.find((item) => item.id === id && viewable(item));
+      if (model && group.ids.includes(id))
+        return { model, shortlisted: true, groupIndex, rank: index + 1 };
+    }
+  }
+  const model = models.find(viewable);
+  return model
+    ? { model, shortlisted: false, groupIndex: null, rank: null }
+    : null;
+}
+
 export type ResultFilter = {
   key: string;
   label: string;

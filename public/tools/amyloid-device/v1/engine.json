@@ -36,8 +36,8 @@
     "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9",
     "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
     "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
-    "worker.mjs": "e4ce2f97d5b5d12c86c006e8ff9f7f5a2327b9d20df1c6e28b0dc48e90480664",
-    "checkpoints.mjs": "fcf1ae7920273f975054654354063f2d5add827440edd46c33eb4b27a0328a30"
+    "worker.mjs": "6f698d76f172255007b8a7444cbbe8c30fb3087ad74bbfad62de669c8880517e",
+    "checkpoints.mjs": "27d892d5e233693ade1c2cbf5ad45edc79572fbb14fea26250c0c430a5a3c829"
   },
   "pipeline_files": {
     "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -98,6 +98,10 @@
     },
     {
       "engine": "bb4f296c5bc18f600aa417aba2a47ad34d7ca070b37932dc87303d88dff813e5",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "7f5fbe2ccfb8663a4e1e2fc4348697aecdb8c3446761e46da103e97fec721e85",
       "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
     }
   ]
