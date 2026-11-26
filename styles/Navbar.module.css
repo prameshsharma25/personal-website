@@ -25,16 +25,16 @@
 }
 
 .logoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
   border-radius: 4px;
   transition: opacity 180ms ease;
 }
 
 .logoLink:hover { opacity: 0.75; }
 
-.logo::before {
-  content: '▊';
-  font-size: 1.2rem;
-}
 
 .navLinks {
   display: flex;
@@ -54,8 +54,8 @@
   padding: 0.65rem 0.8rem;
   border: 1px solid transparent;
   border-radius: 10px;
-  color: #a3a3a3;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)) no-repeat;
+  color: #9fb3cd;
+  background: linear-gradient(135deg, rgba(133, 207, 255, 0.08), rgba(133, 207, 255, 0)) no-repeat;
   background-size: 0% 100%;
   text-decoration: none;
   white-space: nowrap;
@@ -71,7 +71,7 @@
   left: 20%;
   right: 20%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  background: linear-gradient(90deg, transparent, #85cfff, transparent);
   transform: scaleX(0);
   opacity: 0;
   transition: transform 280ms ease, opacity 220ms ease;
@@ -80,7 +80,7 @@
 .active, .navLink:focus-visible {
   color: var(--text);
   background-size: 100% 100%;
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(133, 207, 255, 0.12);
 }
 
 .active::after, .navLink:focus-visible::after {
@@ -89,7 +89,7 @@
 }
 
 .navLink:focus-visible, .logoLink:focus-visible {
-  outline: 2px solid #b7caff;
+  outline: 2px solid #61abee;
   outline-offset: 4px;
 }
 
@@ -97,9 +97,9 @@
   .navLink:hover {
     color: var(--text);
     background-size: 100% 100%;
-    border-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(133, 207, 255, 0.18);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 6px 20px rgba(133, 207, 255, 0.05);
   }
 
   .navLink:hover::after { transform: scaleX(1); opacity: 1; }
@@ -134,6 +134,7 @@
 }
 
 .logoLink { font-family: var(--font-display),sans-serif; font-weight: 600; letter-spacing: -.03em; font-size: 1.1rem; }
-.logo::before { content: ''; width: 11px; height: 17px; background: linear-gradient(155deg,var(--accent),var(--electric)); clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); box-shadow: 0 0 20px #98ffd2; }
-.active { border-color: #82e7bd44; color: #c7ffe4; background: linear-gradient(130deg,#87ffc319,#80cfff07); box-shadow: inset 0 0 16px #95ffcd09; }
+.active { border-color: #67b1f144; color: #e5f0fd; background: linear-gradient(130deg,#6fbdf419,#50a3e307); box-shadow: inset 0 0 16px #76c0f809; }
 .navLink::after { background: linear-gradient(90deg,transparent,var(--accent),transparent); }
+
+.dnaMark { width: 28px; height: 56px; flex: none; filter: drop-shadow(0 0 6px #85cfff12); }

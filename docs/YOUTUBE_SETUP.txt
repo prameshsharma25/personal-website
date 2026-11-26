@@ -17,6 +17,23 @@ verified initial video remains watchable, with its count explicitly unavailable.
 The public feed is fetched on the server. Thumbnails use Next.js image caching.
 The youtube-nocookie.com player only loads after the visitor presses Play.
 
+CHAPTERS AND RELATED RESEARCH
+lib/youtube-companions.ts contains approved chapters, duration, and related
+resources keyed by video ID. The current video's six chapters were reviewed
+against the clip and approved by Pramesh on November 26, 2026. Add a separate
+entry for a future upload after its chapter timings and resource links are
+reviewed. Videos without an entry remain watchable and do not inherit another
+video's chapters or recommendations.
+
+Clicking Play or a chapter is required to load the privacy enhanced player.
+Chapter buttons reload the embed with YouTube's documented start parameter;
+clicking the same chapter again restarts that segment. The selected chapter
+marks the last requested start, not continuous playback position. YouTube may
+seek to a nearby keyframe. Copy Link creates a YouTube URL with the selected
+timestamp; if clipboard access is unavailable, a selectable link is shown.
+No player API script, automatic playback tracking, or extra Data API requests
+are required. Related cards link to existing research, tools, and guides.
+
 ONE-TIME SETUP FOR DETAILED REPORTS
 Daily views, watch time, average view duration, and video search terms require
 authorization from the channel owner. The implementation is ready but those
@@ -66,6 +83,17 @@ Empty search reports can reflect low volume or withheld data. Partial report
 failures do not hide other available report components. Shared requests, bounded
 windows, server caches, timeouts, and CDN caching limit upstream traffic.
 No API credentials or upstream error bodies are returned to visitors.
+
+INTERACTIVE VIEWS CHART
+Hover to inspect a date, or click or tap to pin it. The Explore Days slider
+supports touch and keyboard navigation, including arrow keys, Home, and End.
+Daily and Cumulative modes use the same fetched report without extra API calls.
+Cumulative views sum reported daily rows within the selected period, not lifetime
+views. Missing dates remain unavailable, break the cumulative line, and are never
+filled with zero. Peak Day selects the earliest highest reported daily count.
+Download CSV exports the video ID, reported dates, daily views, and cumulative
+reported views. The table and CSV omit unreported rows while keeping genuine zero
+counts. Switching videos or date ranges resets the chart selection.
 
 LIMITS
 Returning viewers are not a documented metric in the YouTube Analytics API.

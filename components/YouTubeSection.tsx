@@ -1,6 +1,8 @@
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import ChoiceGroup from './ChoiceGroup';
+import YouTubeViewsChart from './YouTubeViewsChart';
+import YouTubeVideoFeature from './YouTubeVideoFeature';
+import YouTubeResearchCards from './YouTubeResearchCards';
 import {
   YOUTUBE_CHANNEL_URL,
   type YouTubeFeed,
@@ -28,8 +30,6 @@ export default function YouTubeSection({
   const video =
     feed.videos.find((item) => item.id === selected) ?? feed.videos[0];
   const videoId = video?.id;
-  const [playingId, setPlayingId] = useState('');
-  const [thumbnailFallback, setThumbnailFallback] = useState('');
   const [days, setDays] = useState('28');
   const [response, setResponse] = useState<{
     key: string;
@@ -95,9 +95,6 @@ export default function YouTubeSection({
   const daily = ready ? report.daily : null;
   const summary = ready ? report.summary : null;
   const search = ready ? report.searchTerms : null;
-  const max = Math.max(1, ...(daily ?? []).map((point) => point.views));
-  const start = report ? Date.parse(report.startDate) : 0;
-  const range = Math.max(1, Number(days) - 1) * 86400000;
   const unavailable = loading
     ? 'Loading Channel Analytics…'
     : report?.status === 'not_connected'
@@ -130,53 +127,7 @@ export default function YouTubeSection({
       {video ? (
         <>
           <div className={styles.videoLayout}>
-            <div className={styles.feature}>
-              <div className={styles.player}>
-                {playingId === video.id ? (
-                  <iframe
-                    key={video.id}
-                    src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1`}
-                    title={video.title}
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
-                  />
-                ) : (
-                  <button
-                    className={styles.play}
-                    onClick={() => setPlayingId(video.id)}
-                    aria-label={`Play ${video.title}`}
-                  >
-                    <Image
-                      src={`https://i.ytimg.com/vi/${video.id}/${thumbnailFallback === video.id ? 'hqdefault' : 'maxresdefault'}.jpg`}
-                      onError={() => setThumbnailFallback(video.id)}
-                      alt=""
-                      fill
-                      sizes="(max-width: 760px) 90vw, (max-width: 1100px) 62vw, 650px"
-                      className={styles.poster}
-                    />
-                    <span className={styles.playIcon} aria-hidden="true">
-                      ▶
-                    </span>
-                    <span className={styles.playLabel}>Watch The Video</span>
-                  </button>
-                )}
-              </div>
-              <div className={styles.videoTitle}>
-                <h3>{video.title}</h3>
-                <time dateTime={video.publishedAt}>
-                  {date(video.publishedAt)}
-                </time>
-              </div>
-              <a
-                className={ui.textLink}
-                href={`https://www.youtube.com/watch?v=${video.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Watch On YouTube <span aria-hidden="true">↗</span>
-              </a>
-            </div>
+            <YouTubeVideoFeature key={video.id} video={video} />
             <aside
               className={styles.snapshot}
               aria-label="Latest YouTube Counts"
@@ -218,7 +169,6 @@ export default function YouTubeSection({
                 <select
                   value={video.id}
                   onChange={(event) => {
-                    setPlayingId('');
                     setSelected(event.target.value);
                   }}
                 >
@@ -297,75 +247,10 @@ export default function YouTubeSection({
                 <div className={styles.reportPanel}>
                   <h4>Views Over Time</h4>
                   {daily?.length ? (
-                    <>
-                      <svg
-                        className={styles.chart}
-                        viewBox="0 0 600 200"
-                        role="img"
-                        aria-label="Reported daily video views"
-                      >
-                        <title>Daily views for the selected video</title>
-                        {[0, 0.5, 1].map((f) => (
-                          <g key={f}>
-                            <line
-                              x1="44"
-                              x2="590"
-                              y1={170 - f * 140}
-                              y2={170 - f * 140}
-                              className={styles.gridLine}
-                            />
-                            <text x="38" y={174 - f * 140} textAnchor="end">
-                              {Math.round(max * f)}
-                            </text>
-                          </g>
-                        ))}
-                        {daily.map((point) => (
-                          <rect
-                            key={point.date}
-                            x={
-                              48 +
-                              ((Date.parse(point.date) - start) / range) * 526
-                            }
-                            y={170 - (point.views / max) * 140}
-                            width={Math.max(2, 520 / Number(days) - 2)}
-                            height={Math.max(1, (point.views / max) * 140)}
-                            rx="2"
-                          >
-                            <title>
-                              {date(point.date)}: {number(point.views)} views
-                            </title>
-                          </rect>
-                        ))}
-                        <text x="44" y="194">
-                          {date(report.startDate)}
-                        </text>
-                        <text x="590" y="194" textAnchor="end">
-                          {date(report.endDate)}
-                        </text>
-                      </svg>
-                      <details className={styles.dataTable}>
-                        <summary>View Daily Data</summary>
-                        <div className={styles.scroll}>
-                          <table>
-                            <caption>Reported Days Only</caption>
-                            <thead>
-                              <tr>
-                                <th scope="col">Date</th>
-                                <th scope="col">Views</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {daily.map((point) => (
-                                <tr key={point.date}>
-                                  <td>{date(point.date)}</td>
-                                  <td>{number(point.views)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </details>
-                    </>
+                    <YouTubeViewsChart
+                      key={`${videoId}:${days}:${report.checkedAt}`}
+                      report={report}
+                    />
                   ) : (
                     <p>
                       {daily === null
@@ -448,6 +333,7 @@ export default function YouTubeSection({
               </a>
             </div>
           </div>
+          <YouTubeResearchCards videoId={video.id} />
         </>
       ) : (
         <p className={styles.availability}>

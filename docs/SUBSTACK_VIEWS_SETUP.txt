@@ -1,0 +1,8 @@
+WEBSITE VIEWS REPLACE THE GA4 CONNECTION
+
+The site now counts article opens on prameshsharma.com directly.
+Follow docs/WEBSITE_VIEWS_SETUP.txt for the Upstash Free database setup.
+The old GA4 API route, counter, and credentials are no longer used by the site.
+You do not need to finish the Google Analytics authorization steps.
+Existing SUBSTACK_GA4_* environment variables can be removed from Vercel and
+.env.local. Nothing here changes any tracking you enabled separately in Substack.

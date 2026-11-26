@@ -7,7 +7,7 @@
   margin-bottom: 2rem;
 }
 .backLink {
-  color: #b5e5c7;
+  color: #d4e3f5;
   font-size: 0.85rem;
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -18,7 +18,7 @@
 .header {
   padding-bottom: 2rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #92ba9e42;
+  border-bottom: 1px solid #5297da42;
 }
 .title {
   font:
@@ -26,29 +26,29 @@
     sans-serif;
   letter-spacing: -0.045em;
   margin: 1rem 0 1.4rem;
-  color: #e4faed;
+  color: #e7f1fd;
   animation: titleArrival 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .description {
   font-size: 1.05rem;
-  color: #b1c0b7;
+  color: #b8cae0;
   line-height: 1.85;
 }
 .subtitle,
 .date {
-  color: #9eafa4;
+  color: #a8bbd4;
   font-size: 0.8rem;
   margin: 1rem 0;
 }
 .content {
   font-size: 1.03rem;
   line-height: 1.95;
-  color: #c9d5cd;
+  color: #ccdcef;
   overflow-wrap: anywhere;
 }
 .content :is(h1, h2, h3, h4) {
   font-weight: 500;
-  color: #effcf3;
+  color: #e9f2fe;
   line-height: 1.4;
   letter-spacing: -0.02em;
   margin: 2rem 0 1rem;
@@ -90,17 +90,17 @@
 .content blockquote,
 .blockquote {
   padding: 1.2rem 1.5rem;
-  border-left: 2px solid #91d9ae;
+  border-left: 2px solid #60aaed;
   border-radius: 0 10px 10px 0;
-  background: #0e1a12;
-  color: #c1d7c9;
+  background: #09182a;
+  color: #ccdcef;
   margin: 2rem 0;
   font-style: italic;
 }
 .content code,
 .code {
-  background: #101f16;
-  color: #bcf1d1;
+  background: #0b1c31;
+  color: #dceafa;
   padding: 0.15rem 0.35rem;
   border-radius: 4px;
   font-family: monospace;
@@ -108,10 +108,10 @@
 }
 .content pre,
 .pre {
-  background: #0a130e;
+  background: #071322;
   padding: 1rem;
   border-radius: 10px;
-  border: 1px solid #809c893b;
+  border: 1px solid #4181c33b;
   overflow-x: auto;
   margin: 1.5rem 0;
 }
@@ -125,10 +125,10 @@
 .content a,
 .a,
 .guideLink {
-  color: #b5edcb;
+  color: #d9e8f9;
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: #a9d9b959;
+  text-decoration-color: #63adef59;
   transition: text-decoration-color 0.2s;
 }
 .content a:hover,
@@ -138,9 +138,9 @@
 }
 .sidebar {
   padding: 1.8rem;
-  border: 1px solid #87b59742;
+  border: 1px solid #4e91d442;
   border-radius: 14px;
-  background: linear-gradient(140deg, #102016, #09120e);
+  background: linear-gradient(140deg, #0b1d32, #071221);
   margin-top: 3rem;
 }
 .sidebarTitle {
@@ -154,7 +154,7 @@
 }
 .guidesList li {
   padding: 0.75rem 0;
-  border-top: 1px solid #96bd9e24;
+  border-top: 1px solid #5398dc24;
 }
 .guideLink {
   font-size: 0.88rem;
@@ -166,7 +166,7 @@
   height: auto;
   margin: 1.5rem auto;
   border-radius: 10px;
-  border: 1px solid #809c893b;
+  border: 1px solid #4181c33b;
 }
 .imageCaption {
   text-align: center;
