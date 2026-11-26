@@ -1,0 +1,61 @@
+Protein Annotation Explorer
+Route: /tools/protein-annotations
+
+No API keys, paid services, new dependencies, or environment variables are required.
+Public provider requests use the Next.js GET endpoint /api/protein-annotations.
+Allowed requests are kind=reference|model and a canonical UniProt accession.
+Uploaded files never go through this endpoint. No arbitrary upstream URL is accepted.
+
+Inputs and mapping
+PDB, CIF/mmCIF, single protein FASTA, or pasted amino acid sequence.
+5 MB per file, 30,000 protein atoms, 16 chains, 2,000 observed residues per chain.
+First coordinate model, no generated assemblies, no waters or ligands.
+Blank and A (or 1 in CIF) alternate conformers are retained; others are omitted.
+Only residues with CA coordinates appear. Hydrogen atoms are excluded.
+Original author chain, residue number, and insertion code remain in the sequence strip and export.
+A private normalized PDB with unique viewer numbering avoids insertion code collisions in 3Dmol.
+MSE/SEP/TPO/PTR normalize to M/S/T/Y for sequence alignment.
+
+Reference mapping uses exact substring matching first, then bounded semiglobal dynamic programming.
+Scores: +3 exact known match, -2 mismatch, -3 linear gap, free reference terminal gaps.
+At most 4 million alignment cells, 90% identity and query coverage required.
+Repeated exact fragments and equally scoring alignment paths are withheld.
+This is local sequence alignment, not SIFTS or a validated orthology assignment.
+The scoring model is not a calibrated homology test; check reference/chain/feature mapping.
+Isoform IDs, de novo protein identification, homology searches, and multi-FASTA are not supported.
+Sequence-only users provide the canonical reference accession themselves.
+AlphaFold loading requires exact full-length sequence identity, matching model sequence and coordinates.
+
+Sources
+UniProt: https://rest.uniprot.org/uniprotkb/ACCESSION.json
+Feature endpoints and location uncertainty preserved. Disulfide bonds/crosslinks map endpoints only.
+Feature evidence codes and PubMed/PDB references are preserved, not inferred from reviewed status.
+UniProt source entry version and retrieval date are included in export.
+InterPro: https://www.ebi.ac.uk/interpro/api/entry/interpro/protein/uniprot/ACCESSION/?page_size=100
+Discontinuous fragments preserved separately. Computational signatures labeled as such.
+First 100 entries only; truncated results labeled Partial, outages labeled Unavailable.
+AlphaFold: https://alphafold.ebi.ac.uk/api/prediction/ACCESSION
+Only a validated AlphaFold files URL is fetched. No prediction compute is offered.
+No M-CSA, allostery inference, pocket finding, or experimental validation is implemented.
+No fake annotation or count is substituted on an upstream failure.
+
+Data provenance and credits
+UniProt Consortium: https://www.uniprot.org/help/license (CC BY 4.0).
+InterPro: https://www.ebi.ac.uk/interpro/ and https://www.ebi.ac.uk/about/terms-of-use/.
+3Dmol.js (BSD): existing local vendor copy and LICENSE.txt in public/vendor/3dmol.
+Example structure: RCSB PDB 1LYZ, https://www.rcsb.org/structure/1LYZ.
+Example annotations: actual P00698 UniProt and InterPro responses retrieved November 26, 2026.
+Example is a dated snapshot. Load Annotations fetches the provider response (up to 24h cache).
+
+Selections and export
+Sequence mouse drag, click, Shift range, Ctrl/Command toggle, keyboard Tab/Enter.
+3D click selects; Shift/Ctrl/Command adds/removes. A chain change clears the old selection.
+Neighborhoods use CA-to-CA distances in the current chain; they are not atomic contacts.
+Notes and up to 30 saved regions remain in memory until the tab closes.
+Export JSON includes the selected chain residues, mapping, reference/evidence, selected residues,
+and saved regions across chains. It is a review document, not a restorable workspace or structure file.
+
+Validation
+Unit tests: tests/protein-annotations.test.ts
+Browser tests: tests/browser/protein-annotations.spec.ts
+Production build, lint, TypeScript, live provider checks, and actual WebGL selection are tested.

@@ -1,0 +1,870 @@
+{
+  "accession": "P00698",
+  "name": "Lysozyme C",
+  "organism": "Gallus gallus",
+  "sequence": "MRSLLILVLCFLPLAALGKVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL",
+  "reviewed": true,
+  "version": "253",
+  "retrievedAt": "2026-11-26T00:00:00.000Z",
+  "annotations": [
+    {
+      "id": "uniprot:0",
+      "source": "UniProt",
+      "category": "Signal",
+      "description": "Signal",
+      "spans": [
+        [
+          1,
+          18
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000269",
+          "source": "PubMed",
+          "id": "14063294"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:1",
+      "source": "UniProt",
+      "category": "Chain",
+      "description": "Lysozyme C",
+      "spans": [
+        [
+          19,
+          147
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:2",
+      "source": "UniProt",
+      "category": "Domain",
+      "description": "C-type lysozyme",
+      "spans": [
+        [
+          19,
+          147
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000255",
+          "source": "PROSITE-ProRule",
+          "id": "PRU00680"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:3",
+      "source": "UniProt",
+      "category": "Active site",
+      "description": "Active site",
+      "spans": [
+        [
+          53,
+          53
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:4",
+      "source": "UniProt",
+      "category": "Active site",
+      "description": "Active site",
+      "spans": [
+        [
+          70,
+          70
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:5",
+      "source": "UniProt",
+      "category": "Binding site",
+      "description": "Ligand: substrate",
+      "spans": [
+        [
+          119,
+          119
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:6",
+      "source": "UniProt",
+      "category": "Disulfide bond",
+      "description": "Disulfide bond",
+      "spans": [
+        [
+          24,
+          24
+        ],
+        [
+          145,
+          145
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:7",
+      "source": "UniProt",
+      "category": "Disulfide bond",
+      "description": "Disulfide bond",
+      "spans": [
+        [
+          48,
+          48
+        ],
+        [
+          133,
+          133
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:8",
+      "source": "UniProt",
+      "category": "Disulfide bond",
+      "description": "Disulfide bond",
+      "spans": [
+        [
+          82,
+          82
+        ],
+        [
+          98,
+          98
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:9",
+      "source": "UniProt",
+      "category": "Disulfide bond",
+      "description": "Disulfide bond",
+      "spans": [
+        [
+          94,
+          94
+        ],
+        [
+          112,
+          112
+        ]
+      ],
+      "evidence": [],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:10",
+      "source": "UniProt",
+      "category": "Natural variant",
+      "description": "A → V",
+      "spans": [
+        [
+          49,
+          49
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000269",
+          "source": "PubMed",
+          "id": "19845599"
+        },
+        {
+          "code": "ECO:0000269",
+          "source": "PubMed",
+          "id": "6934509"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:11",
+      "source": "UniProt",
+      "category": "Natural variant",
+      "description": "Y → F",
+      "spans": [
+        [
+          71,
+          71
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000269",
+          "source": "PubMed",
+          "id": "19845599"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:12",
+      "source": "UniProt",
+      "category": "Natural variant",
+      "description": "Y → S",
+      "spans": [
+        [
+          71,
+          71
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000269",
+          "source": "PubMed",
+          "id": "19845599"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:13",
+      "source": "UniProt",
+      "category": "Sequence conflict",
+      "description": "in Ref. 7; AA sequence. N → D",
+      "spans": [
+        [
+          121,
+          121
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000305"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:14",
+      "source": "UniProt",
+      "category": "Sequence conflict",
+      "description": "in Ref. 1; CAA23711. N → S",
+      "spans": [
+        [
+          124,
+          124
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000305"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:15",
+      "source": "UniProt",
+      "category": "Sequence conflict",
+      "description": "in Ref. 8; AAA48944. R → S",
+      "spans": [
+        [
+          132,
+          132
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0000305"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:16",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          23,
+          32
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:17",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          38,
+          40
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "7AVF"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:18",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          43,
+          54
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:19",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          55,
+          57
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2HS7"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:20",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          61,
+          63
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:21",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          65,
+          67
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "3D9A"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:22",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          69,
+          71
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:23",
+      "source": "UniProt",
+      "category": "Turn",
+      "description": "Turn",
+      "spans": [
+        [
+          72,
+          75
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:24",
+      "source": "UniProt",
+      "category": "Turn",
+      "description": "Turn",
+      "spans": [
+        [
+          78,
+          81
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:25",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          85,
+          87
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "9QUM"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:26",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          95,
+          97
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "6P4A"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:27",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          98,
+          102
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:28",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          103,
+          106
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:29",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          107,
+          118
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:30",
+      "source": "UniProt",
+      "category": "Beta strand",
+      "description": "Beta strand",
+      "spans": [
+        [
+          119,
+          121
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "8ZST"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:31",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          123,
+          125
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:32",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          127,
+          132
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:33",
+      "source": "UniProt",
+      "category": "Turn",
+      "description": "Turn",
+      "spans": [
+        [
+          133,
+          135
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:34",
+      "source": "UniProt",
+      "category": "Helix",
+      "description": "Helix",
+      "spans": [
+        [
+          138,
+          141
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "uniprot:35",
+      "source": "UniProt",
+      "category": "Turn",
+      "description": "Turn",
+      "spans": [
+        [
+          142,
+          144
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "ECO:0007829",
+          "source": "PDB",
+          "id": "2VB1"
+        }
+      ],
+      "url": "https://www.uniprot.org/uniprotkb/P00698/entry"
+    },
+    {
+      "id": "interpro:IPR000974:0",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22, lysozyme (IPR000974)",
+      "spans": [
+        [
+          20,
+          38
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000974/"
+    },
+    {
+      "id": "interpro:IPR000974:1",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22, lysozyme (IPR000974)",
+      "spans": [
+        [
+          51,
+          63
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000974/"
+    },
+    {
+      "id": "interpro:IPR000974:2",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22, lysozyme (IPR000974)",
+      "spans": [
+        [
+          88,
+          98
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000974/"
+    },
+    {
+      "id": "interpro:IPR000974:3",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22, lysozyme (IPR000974)",
+      "spans": [
+        [
+          99,
+          114
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000974/"
+    },
+    {
+      "id": "interpro:IPR000974:4",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22, lysozyme (IPR000974)",
+      "spans": [
+        [
+          121,
+          130
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000974/"
+    },
+    {
+      "id": "interpro:IPR000974:5",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22, lysozyme (IPR000974)",
+      "spans": [
+        [
+          131,
+          144
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000974/"
+    },
+    {
+      "id": "interpro:IPR001916:0",
+      "source": "InterPro",
+      "category": "Family",
+      "description": "Glycoside hydrolase, family 22 (IPR001916)",
+      "spans": [
+        [
+          5,
+          147
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR001916/"
+    },
+    {
+      "id": "interpro:IPR019799:0",
+      "source": "InterPro",
+      "category": "Domain",
+      "description": "Glycoside hydrolase family 22 domain (IPR019799)",
+      "spans": [
+        [
+          94,
+          112
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR019799/"
+    },
+    {
+      "id": "interpro:IPR023346:0",
+      "source": "InterPro",
+      "category": "Homologous superfamily",
+      "description": "Lysozyme-like domain superfamily (IPR023346)",
+      "spans": [
+        [
+          18,
+          146
+        ]
+      ],
+      "evidence": [
+        {
+          "code": "Computational signature match"
+        }
+      ],
+      "url": "https://www.ebi.ac.uk/interpro/entry/InterPro/IPR023346/"
+    }
+  ],
+  "sources": [
+    {
+      "name": "UniProt",
+      "status": "available"
+    },
+    {
+      "name": "InterPro",
+      "status": "available"
+    }
+  ]
+}

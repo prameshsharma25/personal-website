@@ -36,7 +36,12 @@ const rungs = Array.from({ length: bases }, (_, i) => {
 const geometry = [
   ...backbones.map((segment) => ({ ...segment, kind: 'backbone' as const })),
   ...rungs.map((rung) => ({ ...rung, kind: 'rung' as const })),
-].sort((a, b) => a.depth - b.depth);
+  // Repeated turns have effectively equal depths. Quantize before sorting so
+  // tiny differences in server/browser trigonometry cannot reorder SVG children.
+].sort(
+  (a, b) =>
+    round(a.depth) - round(b.depth) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+);
 
 export default function DnaMark({ className }: { className?: string }) {
   return (
@@ -54,7 +59,11 @@ export default function DnaMark({ className }: { className?: string }) {
         if (part.kind === 'backbone')
           return (
             <g key={part.id}>
-              <path d={part.d} stroke={shade(part.light - 52)} strokeWidth="3.5" />
+              <path
+                d={part.d}
+                stroke={shade(part.light - 52)}
+                strokeWidth="3.5"
+              />
               <path d={part.d} stroke={shade(part.light)} strokeWidth="1.8" />
             </g>
           );
@@ -64,10 +73,28 @@ export default function DnaMark({ className }: { className?: string }) {
         const y = round((a.y + b.y) / 2);
         return (
           <g key={part.id}>
-            <path d={`M${a.x} ${a.y} L${x} ${y}`} stroke={shade(light)} strokeWidth="1.3" />
-            <path d={`M${x} ${y} L${b.x} ${b.y}`} stroke={shade(light + 25)} strokeWidth="1.3" />
-            <circle cx={a.x} cy={a.y} r="1.2" fill={shade(Math.round(170 + a.z * 55))} />
-            <circle cx={b.x} cy={b.y} r="1.2" fill={shade(Math.round(170 + b.z * 55))} />
+            <path
+              d={`M${a.x} ${a.y} L${x} ${y}`}
+              stroke={shade(light)}
+              strokeWidth="1.3"
+            />
+            <path
+              d={`M${x} ${y} L${b.x} ${b.y}`}
+              stroke={shade(light + 25)}
+              strokeWidth="1.3"
+            />
+            <circle
+              cx={a.x}
+              cy={a.y}
+              r="1.2"
+              fill={shade(Math.round(170 + a.z * 55))}
+            />
+            <circle
+              cx={b.x}
+              cy={b.y}
+              r="1.2"
+              fill={shade(Math.round(170 + b.z * 55))}
+            />
           </g>
         );
       })}
