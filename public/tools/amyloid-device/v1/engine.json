@@ -1,4 +1,34 @@
 {
+  "checkpoint_compatible_engines": [
+    {
+      "engine": "acca2062d11b6d058bf29861264436255671ab7e369757137b03a5825cb13104",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "d41a5f7743f755ac61cc5c39be21efb72f9aa3d7c3e9d7ee2deb8156fa7e8cec",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "bb4f296c5bc18f600aa417aba2a47ad34d7ca070b37932dc87303d88dff813e5",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "7f5fbe2ccfb8663a4e1e2fc4348697aecdb8c3446761e46da103e97fec721e85",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "38e645a34acd3a6777055c23b7489b72c96f135ba65280d359b45aa8cd8f314b",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "0427832ac7516fb2f03fd4cd8d6caaa5a92e401f8e0f68b93517446bba5fdff3",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    },
+    {
+      "engine": "c79b7bb0e356ceaed13c6ab248b7781bab62d03126d4373274964e618b5ebd1f",
+      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
+    }
+  ],
   "schema_version": "amyloid-device-engine-1.0",
   "package_commit": "1c85221ea38ffbaa1695eeb0a2962997abf94563",
   "package_url": "https://github.com/DevlinaC/Amyloid_Candidates",
@@ -24,21 +54,21 @@
   "files": {
     "package.zip": "50c75cfea6969606660745c423836eb1b85a00573583278774e1c4526559dd08",
     "analysis.py": "a40daef99ead5d5f2cc5b47019920accec9b726e2e55f16c043697b6c7622ed8",
+    "run-report.py": "226b8f822e230926bc16192794cd813e4b2875770ba5423f5043662786a32893",
+    "worker.mjs": "f1c37be1a239a197b7de41f35c5b0647da213f9e0c635a078be01352999a61be",
+    "checkpoints.mjs": "c55cd9d255e4c4a2fed35f07fc2ac4ce4daffe765b134ab01415f91ae9c61398",
     "pipeline.zip": "da55461a9397708ae736bd1596c0c55722481c4799cb2bfe620bdac52b33cef4",
     "batch.py": "919442b38420844a8da98f3345f444549549d5df9cc6ee40534c52f8a948bea0",
     "run-mmalign.mjs": "9c8691dced10f6f9ac348a11614ea5d1f0838a8e1a2b46b27dd09f1822da2eea",
     "diagnostics.mjs": "402c8c4e7fd50c0691025e007aa86d7fc749c15b6f1117fbb0fbf339451f087b",
     "alignment-worker.mjs": "e587f1bd3ae33b343cc50b7111703498186967c618b7fed89a79eba5c71466a8",
+    "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
+    "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
     "alignment-scheduler.mjs": "bef75d2bf367fce1b97b134637dd4f308e8ec9a21d873374301ee2725c25df5b",
     "mmalign/mmalign.mjs": "e6c6b39e5f667234771b148f631c8b753b776ba25804e40a9778e489eb539754",
     "mmalign/mmalign.wasm": "0684c4f614263988fdf3a0656507fe30f9b40a0bb05c2f6954a7035077a72683",
     "mmalign/LICENSE.txt": "5bb88694391d0e0fef49ee8b60cd9208ce755d90213584c117bd8a21837bcdca",
-    "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9",
-    "descriptor-worker.mjs": "61113ddda6645943a4c5bce2461cdb17e184533ee1787e10e2756901d11ee8a9",
-    "descriptor-scheduler.mjs": "81ef2dd5ad7fef01bf529eb46b4ba4fc6c9b6afcc7542bbede98f03db1110b81",
-    "worker.mjs": "6d562ebf7b81b8cc2eda9fe1b555e381ac68b2bf35dff3e1092cb2be0874e509",
-    "checkpoints.mjs": "c55cd9d255e4c4a2fed35f07fc2ac4ce4daffe765b134ab01415f91ae9c61398",
-    "run-report.py": "226b8f822e230926bc16192794cd813e4b2875770ba5423f5043662786a32893"
+    "mmalign/build.json": "2452fcf629a93c1b95ef042a4a1462c1a8d1a67721ece18a15658ef7090f9fd9"
   },
   "pipeline_files": {
     "analysis/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -91,31 +121,5 @@
     "amyloid_cross_check/scoring_calibration/reference_gates.py": "e46771f3b6f4ed24ebabdf5710afb8995bf1a07cb8d168abae29a92e44b609ad",
     "licenses/ATTRIBUTION.md": "2c8d7749e49e109abb43b701617df242be1fd93f13366509df94d22eab9dca8b",
     "licenses/LICENSE": "12eef3f23a3754f277babb57baeeb82ac12f5148ed9a575d33ea029b52860138"
-  },
-  "checkpoint_compatible_engines": [
-    {
-      "engine": "d41a5f7743f755ac61cc5c39be21efb72f9aa3d7c3e9d7ee2deb8156fa7e8cec",
-      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
-    },
-    {
-      "engine": "bb4f296c5bc18f600aa417aba2a47ad34d7ca070b37932dc87303d88dff813e5",
-      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
-    },
-    {
-      "engine": "7f5fbe2ccfb8663a4e1e2fc4348697aecdb8c3446761e46da103e97fec721e85",
-      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
-    },
-    {
-      "engine": "38e645a34acd3a6777055c23b7489b72c96f135ba65280d359b45aa8cd8f314b",
-      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
-    },
-    {
-      "engine": "0427832ac7516fb2f03fd4cd8d6caaa5a92e401f8e0f68b93517446bba5fdff3",
-      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
-    },
-    {
-      "engine": "c79b7bb0e356ceaed13c6ab248b7781bab62d03126d4373274964e618b5ebd1f",
-      "science": "70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c"
-    }
-  ]
+  }
 }

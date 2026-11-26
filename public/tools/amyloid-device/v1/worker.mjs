@@ -153,10 +153,11 @@ self.onmessage = async ({ data }) => {
       settings.min_cluster_size > limits.max_files ||
       !Number.isInteger(settings.min_samples) ||
       settings.min_samples < 1 ||
-      settings.min_samples >= limits.max_files ||
-      settings.max_candidates !== 10
+      settings.min_samples >= limits.max_files
     )
       throw new Error('Invalid clustering settings.');
+    if (![5, 10, 15, 20].includes(settings.max_candidates))
+      throw new Error('Choose a candidate budget of 5, 10, 15, or 20.');
     if (new Set(data.files.map((file) => file.name)).size !== data.files.length)
       throw new Error('Rename duplicate filenames before analysis.');
     if (data.confidence && data.confidence.byteLength > 65536)

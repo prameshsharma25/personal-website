@@ -6,6 +6,7 @@ import {
   type Inspection,
 } from '../lib/amyloid-inspector';
 import {
+  CANDIDATE_BUDGETS,
   DEVICE_LIMITS,
   validateDeviceFiles,
   type DeviceArtifacts,
@@ -160,6 +161,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
   const [confidence, setConfidence] = useState<File | null>(null);
   const [minCluster, setMinCluster] = useState(10);
   const [minSamples, setMinSamples] = useState(3);
+  const [candidateBudget, setCandidateBudget] = useState(10);
   const [alignmentWorkers, setAlignmentWorkers] =
     useState<AlignmentWorkers>('auto');
   const [descriptorWorkers, setDescriptorWorkers] =
@@ -343,6 +345,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
     setCompare(input.compare);
     setMinCluster(input.settings.min_cluster_size);
     setMinSamples(input.settings.min_samples);
+    setCandidateBudget(input.settings.max_candidates);
     setDescriptorWorkers(input.descriptorWorkers);
     setAlignmentWorkers(input.alignmentWorkers);
     setSaveProgress(true);
@@ -805,6 +808,8 @@ export default function AmyloidDeviceAnalysis(props: Props) {
         restoreInputs(input);
       } else {
         validateDeviceFiles(files);
+        if (!CANDIDATE_BUDGETS.includes(candidateBudget))
+          throw new Error('Choose a candidate budget of 5, 10, 15, or 20.');
         if (confidence && confidence.size > 65536)
           throw new Error('Confidence CSV must be at most 64 KB.');
         if (
@@ -837,7 +842,7 @@ export default function AmyloidDeviceAnalysis(props: Props) {
           settings: {
             min_cluster_size: minCluster,
             min_samples: minSamples,
-            max_candidates: 10,
+            max_candidates: candidateBudget,
           },
         };
       }
@@ -1290,6 +1295,31 @@ export default function AmyloidDeviceAnalysis(props: Props) {
                     apart on the structural distance scale. Shortlisting
                     requires prediction confidence, including ipTM and mean
                     pLDDT; clustering does not.
+                  </p>
+                </div>
+                <div className={styles.settingField}>
+                  <label>
+                    Candidate Budget
+                    <select
+                      value={candidateBudget}
+                      aria-describedby="amyloid-candidate-budget-help"
+                      disabled={running || storageBusy}
+                      onChange={(event) =>
+                        setCandidateBudget(Number(event.target.value))
+                      }
+                    >
+                      {CANDIDATE_BUDGETS.map((budget) => (
+                        <option key={budget} value={budget}>
+                          {budget} Candidates
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p id="amyloid-candidate-budget-help">
+                    Maximum shortlisted candidates per comparable group. All
+                    uploaded structures are analyzed. Fewer candidates may
+                    qualify under the same evidence and diversity rules. Saved
+                    runs retain their original budget.
                   </p>
                 </div>
                 <div className={styles.settingField}>

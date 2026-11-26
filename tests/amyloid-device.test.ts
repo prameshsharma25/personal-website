@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { validateDeviceFiles, DEVICE_LIMITS } from '../lib/amyloid-device';
 import { PACKAGE_COMMIT } from '../lib/amyloid-inspector';
+import { scienceDigest } from '../public/tools/amyloid-device/v1/checkpoints.mjs';
 
 test('device input limits reject unsupported, empty, oversized, and excessive batches', () => {
   const file = { name: 'assembly.PDB', size: 1000 };
@@ -60,4 +61,26 @@ test('browser scientific bundle and adapter match their recorded hashes and limi
       digest
     );
   }
+});
+
+test('candidate budget release preserves scientific identity and prior saved runs', async () => {
+  const engine = JSON.parse(
+    readFileSync(
+      new URL('../public/tools/amyloid-device/v1/engine.json', import.meta.url),
+      'utf8'
+    )
+  );
+  const science = await scienceDigest(engine);
+  assert.equal(
+    science,
+    '70a4e9131b557a941ef1b54faae2502be8e43dcdf470b76d13345ce5974dfe5c'
+  );
+  assert.ok(
+    engine.checkpoint_compatible_engines.some(
+      (entry: { engine: string; science: string }) =>
+        entry.engine ===
+          'acca2062d11b6d058bf29861264436255671ab7e369757137b03a5825cb13104' &&
+        entry.science === science
+    )
+  );
 });
