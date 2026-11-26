@@ -3,8 +3,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 14px;
-  border: 1px solid #a4a4a43d;
-  background: linear-gradient(145deg, #1d1d1d, #0e0e0e);
+  border: 1px solid #4a8dcf3d;
+  background: linear-gradient(145deg, #0b1d32, #06101d);
   transition:
     transform 0.3s,
     box-shadow 0.3s,
@@ -13,7 +13,7 @@
 .cover {
   position: relative;
   padding: 1.15rem;
-  background: radial-gradient(ellipse at center, #cccccc15, transparent 75%);
+  background: radial-gradient(ellipse at center, #55a8e715, transparent 75%);
   overflow: hidden;
 }
 .image {
@@ -23,7 +23,7 @@
   object-fit: contain;
   display: block;
   border-radius: 5px 8px 8px 5px;
-  box-shadow: 5px 12px 25px #0009;
+  box-shadow: 5px 12px 25px #00000099;
   transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cover::after {
@@ -31,14 +31,14 @@
   position: absolute;
   inset: 1.15rem auto 1.15rem 1.15rem;
   width: 7px;
-  background: linear-gradient(90deg, #0006, #ffffff15, transparent);
+  background: linear-gradient(90deg, #00000066, #85cfff15, transparent);
   pointer-events: none;
 }
 .fallback {
   aspect-ratio: 2 / 3;
   padding: 1rem;
-  background: linear-gradient(140deg, #484848, #262626);
-  border: 1px solid #c7c7c750;
+  background: linear-gradient(140deg, #193c5f, #0e233c);
+  border: 1px solid #5ea8ec50;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -46,7 +46,7 @@
 }
 .fallback span {
   font-size: 0.7rem;
-  color: #d7d7d7;
+  color: #d1e1f3;
 }
 .fallback strong {
   font:
@@ -58,12 +58,12 @@
   top: 1.6rem;
   left: 1.6rem;
   padding: 0.4rem 0.6rem;
-  background: #ebebeb;
-  color: #252525;
+  background: #72c0f6;
+  color: #101d2d;
   border-radius: 6px;
   font-size: 0.6rem;
   font-weight: 650;
-  box-shadow: 0 4px 15px #0005;
+  box-shadow: 0 4px 15px #00000055;
 }
 .body {
   padding: 0.3rem 1.15rem 1.2rem;
@@ -75,18 +75,18 @@
   margin-bottom: 0.5rem;
 }
 .author {
-  color: #b5b5b5;
+  color: #b2c4db;
   font-size: 0.75rem;
   line-height: 1.7;
 }
 .rating {
-  color: #dddddd;
+  color: #d6e6f7;
   font-size: 0.8rem;
   letter-spacing: 0.12em;
   margin: 0.7rem 0;
 }
 .details {
-  border-top: 1px solid #adadad2a;
+  border-top: 1px solid #4f94d72a;
   margin-top: 1rem;
   padding-top: 0.9rem;
 }
@@ -96,7 +96,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   cursor: pointer;
-  color: #dadada;
+  color: #d4e3f5;
   font-size: 0.7rem;
   list-style: none;
   min-height: 30px;
@@ -114,7 +114,7 @@
   margin-top: 0.8rem;
   font-size: 0.78rem;
   line-height: 1.9;
-  color: #c1c1c1;
+  color: #bdcee4;
   animation: detailArrival 0.35s ease-out;
 }
 @keyframes detailArrival {

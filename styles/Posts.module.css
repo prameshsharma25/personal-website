@@ -3,7 +3,7 @@
   gap: 1.5rem;
   flex-wrap: wrap;
   padding: 1rem 0;
-  border-block: 1px solid #b1b1b142;
+  border-block: 1px solid #5297da42;
 }
 .formatLinks + section {
   scroll-margin-top: 6rem;
@@ -23,7 +23,7 @@
 .postHeader {
   padding-bottom: 2rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #b1b1b142;
+  border-bottom: 1px solid #5297da42;
 }
 .title {
   font:
@@ -31,36 +31,36 @@
     sans-serif;
   letter-spacing: -0.045em;
   margin: 1rem 0 1.4rem;
-  color: #f5f5f5;
+  color: #e7f1fd;
   animation: titleArrival 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .postDescription {
-  color: #bcbcbc;
+  color: #b8cae0;
   font-size: 1.05rem;
   line-height: 1.85;
   margin-bottom: 1.4rem;
 }
 .substackNote {
   font-size: 0.8rem;
-  color: #ababab;
+  color: #a8bbd4;
   margin: 1rem 0;
 }
 .substackNote a {
-  color: #dedede;
+  color: #d7e6f8;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 .postContent {
   font-size: 1.03rem;
   line-height: 1.95;
-  color: #d2d2d2;
+  color: #ccdcef;
   overflow-wrap: anywhere;
 }
 .postContent :is(h1, h2, h3, h4, h5, h6) {
   margin: 2rem 0 1rem;
   font-weight: 500;
   line-height: 1.4;
-  color: #f9f9f9;
+  color: #e9f2fe;
   letter-spacing: -0.02em;
 }
 .postContent h1 {
@@ -98,23 +98,23 @@
 .postContent blockquote {
   margin: 2rem 0;
   padding: 1.2rem 1.5rem;
-  border-left: 2px solid #c9c9c9;
+  border-left: 2px solid #60aaed;
   border-radius: 0 10px 10px 0;
-  background: #171717;
-  color: #d2d2d2;
+  background: #09182a;
+  color: #ccdcef;
   font-style: italic;
 }
 .postContent code {
   padding: 0.15rem 0.35rem;
-  background: #1c1c1c;
+  background: #0b1c31;
   border-radius: 4px;
-  color: #e5e5e5;
+  color: #dceafa;
   font-size: 0.88em;
 }
 .postContent pre {
   padding: 1rem;
-  background: #111111;
-  border: 1px solid #9595953b;
+  background: #071322;
+  border: 1px solid #4181c33b;
   border-radius: 10px;
   overflow-x: auto;
   margin: 1.5rem 0;
@@ -124,10 +124,10 @@
   background: transparent;
 }
 .postContent a {
-  color: #e0e0e0;
+  color: #d9e8f9;
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: #cecece59;
+  text-decoration-color: #63adef59;
 }
 .postContent a:hover {
   text-decoration-color: currentColor;
@@ -152,18 +152,18 @@
 .relatedTopics a {
   display: block;
   padding: 0.7rem 1rem;
-  border: 1px solid #a7a7a740;
+  border: 1px solid #4c8fd240;
   border-radius: 9px;
-  background: #151515;
+  background: #091628;
   font-size: 0.85rem;
-  color: #d0d0d0;
+  color: #cadbee;
   transition:
     border-color 0.25s,
     background 0.25s;
 }
 .relatedTopics a:hover {
-  background: #262626;
-  border-color: #c4c4c466;
+  background: #0e233c;
+  border-color: #5da6ea66;
 }
 .draftNotice {
   padding: 0.75rem 1rem;
@@ -176,7 +176,7 @@
   flex-direction: column;
 }
 .collectionCard > h2 a:hover {
-  color: #e8e8e8;
+  color: #deebfb;
 }
 .collectionFooter {
   display: flex;
@@ -189,7 +189,7 @@
 }
 .collectionFooter time {
   font-size: 0.68rem;
-  color: #b0b0b0;
+  color: #adc0d8;
 }
 @keyframes titleArrival {
   from {

@@ -88,7 +88,7 @@ export default function YouTubeViewsChart({
   }
 
   return (
-    <div className={styles.interactiveChart}>
+    <div className={styles.interactiveChart} data-mode={mode}>
       <div className={styles.chartToolbar}>
         <ChoiceGroup
           label="Views Chart Display"

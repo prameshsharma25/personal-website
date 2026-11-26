@@ -44,7 +44,7 @@ export default function AmyloidStructureViewer({
       .then((library) => {
         if (disposed) return;
         scene = library.createViewer(element, {
-          backgroundColor: '#0c0c0c',
+          backgroundColor: '#071323',
           antialias: true,
           cartoonQuality: 8,
         });

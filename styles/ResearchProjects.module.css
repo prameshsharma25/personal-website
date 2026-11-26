@@ -24,12 +24,12 @@
   font-weight: 500;
 }
 .intro p:not(.eyebrow) {
-  color: #b7b7b7;
+  color: #b3c6dd;
   font-size: 1rem;
   line-height: 1.85;
 }
 .intro .lead {
-  color: #f3f3f3 !important;
+  color: #e5f0fd !important;
   font-size: 1.4rem !important;
   line-height: 1.5 !important;
   margin-bottom: 0.8rem;
@@ -40,27 +40,27 @@
   gap: 2rem;
 }
 .card {
-  --project-accent: #e2e2e2;
-  --project-glow: #d4d4d40f;
+  --project-accent: #9af5c9;
+  --project-glow: #6bebae0f;
   --play-state: paused;
   position: relative;
   min-width: 0;
-  border: 1px solid #96969645;
+  border: 1px solid #4281c345;
   border-radius: 18px;
-  background: linear-gradient(135deg, #1b1b1b, #0e0e0e 75%);
-  box-shadow: 0 18px 55px #0003;
+  background: linear-gradient(135deg, #0a1b2f, #06101d 75%);
+  box-shadow: 0 18px 55px #00000033;
   scroll-margin-top: 2rem;
   transition:
     border-color 0.35s,
     box-shadow 0.35s;
 }
 .card[data-project='caat'] {
-  --project-accent: #cdcdcd;
-  --project-glow: #b2b2b215;
+  --project-accent: #80d8ff;
+  --project-glow: #52bdf515;
 }
 .card[data-project='amyloid'] {
-  --project-accent: #bdbdbd;
-  --project-glow: #adadad13;
+  --project-accent: #c6b2ff;
+  --project-glow: #b3a0ff13;
 }
 .card[data-project='ammper'] {
   --project-accent: #f3ca8e;
@@ -70,8 +70,8 @@
   --play-state: running;
 }
 .card:hover {
-  border-color: #c0c0c078;
-  box-shadow: 0 18px 55px #0005;
+  border-color: #5aa3e678;
+  box-shadow: 0 18px 55px #00000055;
 }
 .cardBody {
   display: grid;
@@ -92,10 +92,10 @@
 }
 .status {
   padding: 0.2rem 0.5rem;
-  border: 1px solid #bdbdbd2b;
+  border: 1px solid #59a0e42b;
   border-radius: 4px;
   font-size: 0.6rem;
-  color: #b7b7b7;
+  color: #b3c6dd;
 }
 .copy h3 {
   font-size: clamp(1.55rem, 2.5vw, 1.95rem);
@@ -103,16 +103,16 @@
   line-height: 1.2;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  color: #f9f9f9;
+  color: #e9f2fe;
 }
 .question {
-  color: #e4e4e4;
+  color: #dceafa;
   font-size: 0.97rem;
   line-height: 1.6;
   margin: 1.15rem 0 0.8rem;
 }
 .description {
-  color: #b8b8b8;
+  color: #b4c7de;
   font-size: 0.86rem;
   line-height: 1.85;
 }
@@ -124,10 +124,10 @@
 }
 .methods li {
   font-size: 0.65rem;
-  border: 1px solid #b5b5b52d;
+  border: 1px solid #549add2d;
   padding: 0.25rem 0.5rem;
   border-radius: 5px;
-  color: #cfcfcf;
+  color: #c9daed;
 }
 .sourceLink {
   display: inline-flex;
@@ -148,7 +148,7 @@
 .visual {
   min-width: 0;
   margin: 0;
-  border-left: 1px solid #aeaeae29;
+  border-left: 1px solid #5094d729;
   border-radius: 0 18px 0 0;
   padding: 1.1rem 1.25rem;
   display: flex;
@@ -156,8 +156,8 @@
   justify-content: space-between;
   background:
     radial-gradient(ellipse at 50% 50%, var(--project-glow), transparent 75%),
-    linear-gradient(#c0c0c006 1px, transparent 1px),
-    linear-gradient(90deg, #c0c0c006 1px, transparent 1px), #0c0c0c;
+    linear-gradient(#4d9edd06 1px, transparent 1px),
+    linear-gradient(90deg, #4d9edd06 1px, transparent 1px), #050e19;
   background-size:
     auto,
     24px 24px,
@@ -172,7 +172,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  color: #b6b6b6;
+  color: #b3c5dc;
   font-size: 0.62rem;
 }
 .visualHeader > span:first-child {
@@ -243,7 +243,7 @@
 }
 .growthCurve {
   fill: none;
-  stroke: #d0d0d0;
+  stroke: #98dfc2;
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 450;
@@ -291,7 +291,7 @@
     sans-serif;
 }
 .diagram .svgMuted {
-  fill: #a9a9a9;
+  fill: #4d90d3;
   font-size: 12px;
 }
 .diagram .sequenceLetter {
@@ -312,9 +312,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: #bfbfbf0a;
-  color: #e3e3e3;
-  border: 1px solid #bebebe38;
+  background: #4d9edc0a;
+  color: #dbe9fa;
+  border: 1px solid #59a1e538;
   border-radius: 6px;
   font-size: 0.68rem;
   min-height: 44px;
@@ -325,24 +325,24 @@
     border-color 0.2s;
 }
 .playButton:hover {
-  background: #bfbfbf1a;
+  background: #4d9edc1a;
   border-color: var(--project-accent);
 }
 .walkthrough {
-  border-top: 1px solid #aeaeae29;
+  border-top: 1px solid #5094d729;
 }
 .steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 0;
   list-style: none;
-  border-bottom: 1px solid #aeaeae29;
+  border-bottom: 1px solid #5094d729;
 }
 .steps li {
   min-width: 0;
 }
 .steps li + li {
-  border-left: 1px solid #aeaeae29;
+  border-left: 1px solid #5094d729;
 }
 .steps button {
   display: flex;
@@ -357,7 +357,7 @@
   background: transparent;
   border: 0;
   box-shadow: inset 0 2px transparent;
-  color: #a4a4a4;
+  color: #a0b4ce;
   cursor: pointer;
   transition:
     color 0.25s,
@@ -365,8 +365,8 @@
     box-shadow 0.25s;
 }
 .steps button:hover {
-  color: #fbfbfb;
-  background: #cdcdcd0a;
+  color: #eaf3fe;
+  background: #56a9e70a;
 }
 .steps button[aria-pressed='true'] {
   background: var(--project-glow);
@@ -408,10 +408,10 @@
 }
 .stepCounter span {
   font-size: 0.7rem;
-  color: #949494;
+  color: #8fa4c0;
 }
 .stepDetail p {
-  color: #c2c2c2;
+  color: #becfe4;
   font-size: 0.85rem;
   line-height: 1.8;
 }
@@ -435,14 +435,14 @@
 }
 .staticSteps {
   padding: 0 2rem 2rem 3rem;
-  color: #c2c2c2;
+  color: #becfe4;
   font-size: 0.85rem;
 }
 .staticSteps li {
   margin-top: 0.75rem;
 }
 .figureNote {
-  color: #a2a2a2;
+  color: #9eb2cc;
   font-size: 0.72rem;
   line-height: 1.8;
   max-width: 760px;
@@ -450,7 +450,7 @@
   text-align: center;
 }
 .figureNote a {
-  color: #cfcfcf;
+  color: #c9daed;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -498,7 +498,7 @@
   animation-play-state: var(--scene-play-state);
 }
 .panel {
-  fill: #c3c3c307;
+  fill: #5ca5e907;
   stroke: currentColor;
   stroke-opacity: 0.3;
 }
@@ -515,12 +515,12 @@
 }
 .axis {
   fill: none;
-  stroke: #a5a5a540;
+  stroke: #4b8dd040;
   stroke-width: 1;
 }
 .sequenceCell {
-  fill: #c3c3c30a;
-  stroke: #a5a5a540;
+  fill: #5ca5e90a;
+  stroke: #4b8dd040;
 }
 .groupBox {
   fill: currentColor;
@@ -600,7 +600,7 @@
   }
   .visual {
     border-left: 0;
-    border-top: 1px solid #aeaeae29;
+    border-top: 1px solid #5094d729;
     border-radius: 0;
     padding: 1rem 1.5rem;
   }
@@ -617,7 +617,7 @@
     border-left: 0;
   }
   .steps li:nth-child(n + 3) {
-    border-top: 1px solid #aeaeae29;
+    border-top: 1px solid #5094d729;
   }
   .steps button {
     padding: 0.8rem 1rem;
