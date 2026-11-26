@@ -15,8 +15,9 @@ Clearing storage or deliberately creating new session IDs can increase totals.
 If browser session storage is unavailable, totals can be read but no visit is
 recorded. Counts start after enabling the feature; old traffic is not backfilled.
 
-Substack Likes, Comments, and Restacks remain a separate panel. You do not need
-Google Analytics, an OAuth connection, or any Substack credentials for site views.
+Substack reader activity is no longer displayed or fetched. Article links to
+Substack remain available. You do not need Google Analytics, an OAuth connection,
+or any Substack credentials for site views.
 The earlier SUBSTACK_GA4_* settings are unused and can be removed. The site does
 not modify Google Analytics tracking configured separately inside Substack.
 
@@ -95,8 +96,8 @@ single atomic operation. Two keys share a Redis hash slot. Warm server memory
 is not the source of truth. No paid SDK or new runtime dependency was added.
 
 TESTS
-node --import tsx --test tests/website-views.test.ts tests/substack-stats.test.ts
-npm run test:browser -- tests/browser/website-views.spec.ts tests/browser/substack-stats.spec.ts
+node --import tsx --test tests/website-views.test.ts
+npm run test:browser -- tests/browser/website-views.spec.ts
 
 An optional Redis integration test executes the real Lua script against a
 compatible Redis REST endpoint. It uses a unique test namespace and deletes

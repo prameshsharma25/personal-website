@@ -8,20 +8,9 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/pagead/js/adsbygoogle.js?*', (r) =>
     r.fulfill({ contentType: 'application/javascript', body: '' })
   );
-  await page.route('**/api/substack-stats?*', (r) =>
-    r.fulfill({
-      json: {
-        status: 'available',
-        likes: 0,
-        comments: 3,
-        restacks: 2,
-        checkedAt: '2026-11-26T12:00:00Z',
-      },
-    })
-  );
 });
 
-test('article opens count once per tab session, survive reloads, and remain separate from Substack counts', async ({
+test('article opens count once per tab session, survive reloads, and do not display Substack reader activity', async ({
   page,
 }, info) => {
   let writes = 0;
@@ -42,8 +31,8 @@ test('article opens count once per tab session, survive reloads, and remain sepa
   await expect(panel.locator('strong')).toHaveText('25');
   await expect(panel).toContainText('prameshsharma.com');
   await expect(
-    page.getByRole('region', { name: 'Substack Reader Activity' }).locator('dd')
-  ).toHaveText(['0', '3', '2']);
+    page.getByRole('region', { name: 'Substack Reader Activity' })
+  ).toHaveCount(0);
   await panel.screenshot({
     path: info.outputPath('website-views-desktop.png'),
   });
@@ -65,9 +54,7 @@ test('disabled creates no session ID and unavailable does not become zero', asyn
     r.fulfill({ json: { status, views: null, recorded: false } })
   );
   await page.goto('/posts/a-vision-of-the-future');
-  await expect(
-    page.getByRole('region', { name: 'Substack Reader Activity' }).locator('dd')
-  ).toHaveCount(3);
+  await expect(page.locator('main h1')).toBeVisible();
   await page.waitForTimeout(450);
   await expect(
     page.getByRole('region', { name: 'Website Views', exact: true })
@@ -231,9 +218,6 @@ test('browser through API and Redis: reloads, new sessions and retry after a com
     const other = await context.newPage();
     await other.route('**/pagead/js/adsbygoogle.js?*', (r) =>
       r.fulfill({ contentType: 'application/javascript', body: '' })
-    );
-    await other.route('**/api/substack-stats?*', (r) =>
-      r.fulfill({ json: { status: 'unavailable' } })
     );
     await other.goto(`/posts/${slug}`);
     await expect(

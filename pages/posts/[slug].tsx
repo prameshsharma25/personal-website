@@ -7,7 +7,6 @@ import ReadingProgress from '../../components/ReadingProgress';
 import ArticleContents from '../../components/ArticleContents';
 import LabTrackerInvitation from '../../components/LabTrackerInvitation';
 import AdSlot from '../../components/AdSlot';
-import SubstackPostStats from '../../components/SubstackPostStats';
 import WebsitePostViews from '../../components/WebsitePostViews';
 import { prepareArticle, type Heading } from '../../lib/article';
 import { getAllPosts, getPostBySlug, type PostMetadata } from '../../lib/posts';
@@ -30,7 +29,6 @@ export default function PostPage({ post, source, headings, readingMinutes }: Pro
         <ReadingProgress /><ArticleContents headings={headings} />
         <div className={styles.postContent}><MDXRemote {...source} /></div>
         {!post.draft && <WebsitePostViews key={post.slug} slug={post.slug} />}
-        {post.substackUrl && !post.draft && <SubstackPostStats key={post.slug} slug={post.slug} url={post.substackUrl} />}
         {post.relatedLinks.length > 0 && <nav className={styles.relatedTopics} aria-label="Related Reading"><h2 className={styles.postTitle}>Continue Exploring</h2><ul>{post.relatedLinks.map(link=><li key={link.href}><Link href={link.href}>{labelCase(link.label)}</Link></li>)}</ul></nav>}
       </article>
       {career && post.slug !== 'how-i-found-an-nih-postbac-lab' && <LabTrackerInvitation source={`post_${post.slug}`} />}
