@@ -26,18 +26,29 @@ CONNECT AN UPSTASH FREE DATABASE
    plan. Alternatively, use the Upstash Redis integration in Vercel Marketplace
    and connect it to your personal-website project, checking the selected plan.
    No paid add-ons are needed. Keep the Free plan selected.
-2. On the database details page, copy the REST URL (https://...) and REST Token.
-   Use the read/write token, not the read-only token or redis:// connection URL.
-3. Add these to Vercel > Project > Settings > Environment Variables:
+2. If Vercel already added KV_REST_API_URL and KV_REST_API_TOKEN, keep them.
+   The counter accepts that pair directly. Add only this flag in Vercel >
+   Project > Settings > Environment Variables:
+
+   WEBSITE_VIEWS_ENABLED=true
+
+   Choose Production scope and optionally Preview. Deploy the updated code
+   after saving. The regular KV_REST_API_TOKEN is required for writes;
+   KV_REST_API_READ_ONLY_TOKEN, KV_URL, and REDIS_URL are not used.
+3. If you created the database directly in Upstash instead, copy its REST URL
+   (https://...) and read/write REST Token into these server variables:
 
    WEBSITE_VIEWS_ENABLED=true
    UPSTASH_REDIS_REST_URL=<REST URL>
    UPSTASH_REDIS_REST_TOKEN=<REST read/write token>
 
-   If the integration injected variables with a different prefix, copy their
-   values into the exact names above. They must not use NEXT_PUBLIC prefixes.
-   Choose Production scope to enable the live site. Redeploy after adding them.
-4. For local testing, put the same variables in .env.local and restart npm run dev.
+   Set either complete credential pair; there is no need to duplicate them.
+   Nonempty UPSTASH_REDIS_REST_* values take precedence. If only one of that
+   pair is supplied, the counter reports unavailable rather than combining
+   an endpoint from one pair with a token from the other. Clear both explicit
+   values to fall back to the KV_REST_API_* pair. Never use NEXT_PUBLIC names.
+4. For local testing, put the flag and either pair in .env.local, then restart
+   npm run dev. Existing working UPSTASH variables do not need to be renamed.
    .env.local is ignored by Git. Never paste the token into chat or commit it.
 
 COUNTER ISOLATION

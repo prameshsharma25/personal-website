@@ -33,8 +33,15 @@ export function createWebsiteViewsService(
 ) {
   function configuration() {
     if (env.WEBSITE_VIEWS_ENABLED !== 'true') return null;
-    const raw = env.UPSTASH_REDIS_REST_URL;
-    const token = env.UPSTASH_REDIS_REST_TOKEN;
+    // Accept either naming convention as a complete pair. Never send one
+    // provider pair's token to an endpoint selected from the other pair.
+    const explicit = Boolean(
+      env.UPSTASH_REDIS_REST_URL || env.UPSTASH_REDIS_REST_TOKEN
+    );
+    const raw = explicit ? env.UPSTASH_REDIS_REST_URL : env.KV_REST_API_URL;
+    const token = explicit
+      ? env.UPSTASH_REDIS_REST_TOKEN
+      : env.KV_REST_API_TOKEN;
     // Local development and preview deployments never share production totals.
     const namespace =
       env.WEBSITE_VIEWS_NAMESPACE || env.VERCEL_ENV || 'development';

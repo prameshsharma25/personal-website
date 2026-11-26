@@ -53,6 +53,59 @@ test('disabled or incomplete configuration never invents counts or makes network
   assert.equal(calls, 0);
 });
 
+test('Vercel KV credentials support reads and writes without mixing credential pairs', async () => {
+  const kv = {
+    WEBSITE_VIEWS_ENABLED: 'true',
+    KV_REST_API_URL: 'https://vercel-example.upstash.io',
+    KV_REST_API_TOKEN: 'kv-write-token',
+    KV_REST_API_READ_ONLY_TOKEN: 'unused-read-only-token',
+  };
+  const calls: { url: unknown; auth: string; command: string }[] = [];
+  const request: typeof fetch = async (url, init) => {
+    calls.push({
+      url,
+      auth: (init?.headers as Record<string, string>).Authorization,
+      command: JSON.parse(String(init?.body))[0],
+    });
+    return json({ result: '1' });
+  };
+  const service = createWebsiteViewsService(kv, request);
+  assert.equal((await service.read(slug)).status, 'available');
+  assert.equal((await service.record(slug, randomUUID())).recorded, true);
+  assert.deepEqual(
+    calls.map((call) => call.command),
+    ['GET', 'EVAL']
+  );
+  assert.ok(
+    calls.every(
+      (call) =>
+        call.url === kv.KV_REST_API_URL && call.auth === 'Bearer kv-write-token'
+    )
+  );
+  await createWebsiteViewsService({ ...kv, ...env }, request).read(slug);
+  assert.equal(calls[2].url, env.UPSTASH_REDIS_REST_URL);
+  assert.equal(calls[2].auth, 'Bearer test-secret');
+  for (const partial of [
+    { ...kv, UPSTASH_REDIS_REST_URL: env.UPSTASH_REDIS_REST_URL },
+    { ...kv, UPSTASH_REDIS_REST_TOKEN: env.UPSTASH_REDIS_REST_TOKEN },
+    { ...kv, KV_REST_API_TOKEN: '' },
+  ])
+    assert.equal(
+      (await createWebsiteViewsService(partial, request).read(slug)).status,
+      'unavailable'
+    );
+  assert.equal(calls.length, 3);
+  assert.equal(
+    (
+      await createWebsiteViewsService(
+        { ...kv, UPSTASH_REDIS_REST_URL: '', UPSTASH_REDIS_REST_TOKEN: '' },
+        request
+      ).read(slug)
+    ).status,
+    'available'
+  );
+});
+
 test('reads use GET commands and preserve a real zero, without recording or leaking credentials', async () => {
   let command: unknown;
   const service = createWebsiteViewsService(env, async (url, init) => {
