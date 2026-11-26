@@ -1,0 +1,33 @@
+# Sawaya energetics code and algorithm attribution
+
+The `amyloid_cross_check.energetics` Python modules in this repository were
+written for this project and adapted from the energetic algorithm and parameter
+tables in:
+
+> Sawaya, Michael R., and David Eisenberg. *Amyloid Illustrator*. Zenodo,
+> version containing `accessiblesurfacearea_v07.2u.f`, 2025.
+> [doi:10.5281/zenodo.15218932](https://doi.org/10.5281/zenodo.15218932).
+
+The upstream record provides the original Fortran source and describes the
+amyloid illustration workflow. The project’s Python implementation keeps the
+SASA/atomic-solvation-parameter energy calculation, but does not include the
+Fortran source, illustration programs, or ImageMagick workflow. It adds an
+isolated-chain interchain reference state, explicit layer/terminal policies,
+machine-readable outputs, and reproducibility metadata. The archived source
+file recorded by the research implementation is
+`accessiblesurfacearea_v07.2u.f (2025-04-11)`, SHA-256
+`a5ab2e87355ee148b08f6e21681becdbb2fb6a50811e06398e3292925959eced`.
+
+The project-authored code is offered under the [MIT license](../LICENSE). The
+Sawaya-derived energetic algorithm and parameter material retains CC BY 4.0
+attribution requirements; this notice identifies the source and the adaptation.
+The research workspace’s `energetics/ATTRIBUTION.md` and source parameters
+identify the upstream record as [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Users should consult the
+[record’s rights and files](https://zenodo.org/records/15218932) before
+redistributing the original Fortran files. The original files are not required
+by this package at runtime.
+
+For the scientific model behind the energy calculation, the Zenodo record
+also links Sawaya et al., “The expanding amyloid family: Structure, stability,
+function, and pathogenesis,” *Cell* 184 (2021),
+[doi:10.1016/j.cell.2021.08.013](https://doi.org/10.1016/j.cell.2021.08.013).

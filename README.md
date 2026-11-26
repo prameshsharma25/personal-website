@@ -34,14 +34,34 @@ on your normal PATH. The `.local` directory is ignored by Git.
 The contact form requires these values in an untracked `.env.local` file:
 
 ```dotenv
-USER_EMAIL=
+USER_EMAIL=prameshsharma25@gmail.com
 GMAIL_APP_PASSWORD=
-RECIPIENT_EMAIL=
+RECIPIENT_EMAIL=prameshsharma25@gmail.com
 ```
 
-Use a Gmail app password for `GMAIL_APP_PASSWORD`. These settings are optional
-for browsing the site, and must be configured to send contact emails. The
-Substack feed requires internet access.
+Enable Google 2-Step Verification, then create a dedicated
+[Gmail app password](https://support.google.com/accounts/answer/185833?hl=en).
+Enter that password as `GMAIL_APP_PASSWORD` in `.env.local`, never in source code
+or chat. Do not use your regular Google password. Restart the local dev server
+after changing credentials. `RECIPIENT_EMAIL` defaults to the public contact
+address if omitted. The authenticated Gmail account sends each message; the
+visitor's address is used only for replies.
+
+For the live site, add the same three server environment variables in
+[Vercel Project Settings](https://vercel.com/docs/environment-variables), select
+the intended environments (Production and Preview if needed), and redeploy.
+Do not prefix mail credentials with `NEXT_PUBLIC_`. Changing local settings does
+not update Vercel. Merge and deploy the contact form changes as well.
+
+Without valid configuration, the form displays a notice and offers a direct
+email link that includes the visitor's draft. Failed submissions preserve the
+draft. `GET /api/sendMessage` reports configuration readiness only, without
+contacting Gmail or revealing secrets. SMTP authentication and delivery can
+still fail after configuration; check the sanitized server error code if that
+happens. Tests use mocked SMTP and never send real email. A real delivery check
+must be performed manually after setup.
+
+The Substack feed requires internet access.
 
 ## Application essay PDFs
 

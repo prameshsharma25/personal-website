@@ -28,11 +28,10 @@ export default function BookCard({
         ) : (
           <Image
             className={styles.image}
-            src={book.coverUrl}
+            src={book.cover}
             alt={`${book.title} cover`}
-            width={300}
-            height={450}
-            sizes="(max-width: 540px) 90vw, (max-width: 900px) 45vw, 25vw"
+            quality={90}
+            sizes="(max-width: 434px) calc(100vw - 88px), (max-width: 540px) 310px, (max-width: 760px) calc(50vw - 73px), (max-width: 1000px) calc(33.33vw - 67px), (max-width: 1100px) calc(25vw - 65px), 210px"
             onError={() => setCoverFailed(true)}
           />
         )}

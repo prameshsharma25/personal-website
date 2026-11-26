@@ -1,0 +1,149 @@
+{
+  "artifacts": {
+    "common": [
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.qc.json",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.chains.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.residue_map.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.chain_edges.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.layers.json"
+    ],
+    "energy": [
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.energy.json",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.atom_energy.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.residue_energy.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.chain_energy.csv"
+    ],
+    "geometry": [
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.geometry.json",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.pairs.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.transforms.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.hydrogen_bonds.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.extensions.csv"
+    ],
+    "packing": [
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.packing.json",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.interface_sasa.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.atom_burial.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.residue_burial.csv",
+      "6qjh-Boltz2-pdb-coord-balanced25-rank-001.polar_satisfaction.csv"
+    ]
+  },
+  "chain_id_source": "pdb_chain_id",
+  "components": {
+    "common": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.qc.json",
+    "energy": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.energy.json",
+    "geometry": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.geometry.json",
+    "packing": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.packing.json"
+  },
+  "model_index": 0,
+  "normalized_assembly_sha256": "bec5601ee52e1a8b0f29be73ddde3a9abb60089daec3dbf56698a39614a9e9d8",
+  "prediction_id": "6qjh-Boltz2-pdb-coord-balanced25-rank-001",
+  "request": {
+    "component_schemas": {
+      "common": "amyloid-common-1.2",
+      "energy": "amyloid-energetics-1.3",
+      "geometry": "amyloid-geometry-1.2",
+      "packing": "amyloid-interface-dryness-1.1"
+    },
+    "input": {
+      "chain_id_source": "auto",
+      "explicit_layer_map_sha256": null,
+      "model_index": 0,
+      "source_file_sha256": "95258f475d3410761f4bca7deff2ee104dfe947bf63aaeaad7fbcd16ad919a58",
+      "structure_format": "pdb"
+    },
+    "prediction_id": "6qjh-Boltz2-pdb-coord-balanced25-rank-001",
+    "schema_version": "amyloid-structural-pipeline-request-1.0",
+    "scientific_parameters": {
+      "common": {
+        "analysis": {
+          "backbone_contact_distance": 5.5,
+          "chain_break_cn_distance": 2.0,
+          "heavy_atom_contact_distance": 4.5,
+          "maximum_pair_rmsd": 3.0,
+          "minimum_mapped_residues": 3,
+          "minimum_sequence_coverage": 0.7,
+          "minimum_sequence_identity": 0.85,
+          "residue_contact_distance": 8.0,
+          "severe_clash_distance": 2.0,
+          "transform_length_relative_tolerance": 0.45,
+          "transform_rotation_tolerance_degrees": 15.0
+        },
+        "normalization": {
+          "remove_hydrogens": true,
+          "remove_waters": true,
+          "residue_name_map": {
+            "MSE": "MET",
+            "PTR": "TYR",
+            "PYL": "LYS",
+            "SEC": "CYS",
+            "TYC": "TYR"
+          },
+          "retain_metals": false,
+          "retain_nonpolymer_names": []
+        }
+      },
+      "energy": {
+        "c_termini": [],
+        "calculate_central_layer_convergence": true,
+        "convergence_relative_tolerance": null,
+        "freesasa_algorithm": "shrake_rupley",
+        "mode": "sawaya_compat",
+        "n_termini": [],
+        "ph": 7.0,
+        "probe_radius": 1.4,
+        "sphere_points": 1000,
+        "terminal_policy": "explicit_only",
+        "unsupported_policy": "error"
+      },
+      "geometry": {
+        "backbone_contact_distance": 5.5,
+        "contact_distance": 8.0,
+        "extension_steps": 1,
+        "hbond_coh_angle": 90.0,
+        "hbond_ho_distance": 2.7,
+        "hbond_nho_angle": 120.0,
+        "hbond_no_distance": 3.5,
+        "heavy_atom_contact_distance": 4.5,
+        "maximum_neighbor_distance": 12.0,
+        "maximum_pair_rmsd": 3.0,
+        "minimum_mapped_residues": 3,
+        "minimum_screw_rotation_degrees": 1.0,
+        "minimum_sequence_coverage": 0.7,
+        "minimum_sequence_identity": 0.85,
+        "model_index": 0,
+        "severe_clash_distance": 2.0,
+        "transform_direction_tolerance_degrees": 25.0,
+        "transform_length_relative_tolerance": 0.45,
+        "transform_rotation_tolerance_degrees": 15.0,
+        "use_pydssp": true
+      },
+      "packing": {
+        "bsa_per_residue_scale": 50.0,
+        "burial_tolerance": 0.1,
+        "clash_overlap": 0.4,
+        "deeply_buried_sasa": 10.0,
+        "freesasa_algorithm": "lee_richards",
+        "generate_virtual_caps": true,
+        "ion_pair_sasa": 50.0,
+        "lateral_candidate_distance": 8.0,
+        "lee_richards_slices": 20,
+        "packing_support_policy": "sasa_only",
+        "probe_radius": 1.4,
+        "sphere_points": 1000
+      }
+    }
+  },
+  "request_fingerprint_sha256": "9c2c5fc81f26bdb9dc2d2a3ce0482b79dde4fbf8200a1385e789ff7e53312da0",
+  "rows": [
+    {
+      "common": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.qc.json",
+      "energy": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.energy.json",
+      "geometry": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.geometry.json",
+      "packing": "6qjh-Boltz2-pdb-coord-balanced25-rank-001.packing.json",
+      "prediction_id": "6qjh-Boltz2-pdb-coord-balanced25-rank-001"
+    }
+  ],
+  "schema_version": "amyloid-structural-pipeline-manifest-1.1",
+  "source_file_sha256": "95258f475d3410761f4bca7deff2ee104dfe947bf63aaeaad7fbcd16ad919a58"
+}

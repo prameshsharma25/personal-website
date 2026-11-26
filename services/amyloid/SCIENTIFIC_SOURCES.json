@@ -1,0 +1,29 @@
+{
+  "amyloid_candidates_commit": "1c85221ea38ffbaa1695eeb0a2962997abf94563",
+  "usalign_commit": "23f14ffcf8647f2dc1c0e01043db3a7f3a661c28",
+  "extracted_functions": {
+    "frozen_features.py": {
+      "sha256": "18d83585106dea22691f8c8133483647e556def00ce9b834cf2f5949925ad886",
+      "source": "all90_collaborator_package_2026-11-17/analysis/final90_20261110/shortlist_v2/frozen_features.py"
+    },
+    "select_all90.py": {
+      "sha256": "8150440c08492f399dba0ba29bd965a99eca8938cc88c51ce9ff79ff65dae626",
+      "source": "all90_collaborator_package_2026-11-17/analysis/final90_20261110/shortlist_v2/select_all90.py"
+    },
+    "mmalign_matrix.py": {
+      "sha256": "7c565d079ca2afd77f2d0b57fab8e939cfb811d14ed0c9e6d5b9cd4094bc4d22",
+      "source": "share_onedrive/extracted/mixed46_predictions/provenance/frozen_code/amyloid_cross_check/scoring_calibration/structural_similarity/scripts/mmalign_matrix.py"
+    }
+  },
+  "clustering": {
+    "method": "HDBSCAN",
+    "metric": "precomputed",
+    "algorithm": "generic",
+    "selection": "eom",
+    "min_cluster_size": 10,
+    "min_samples": 3,
+    "epsilon": 0,
+    "core_dist_n_jobs": 1
+  },
+  "scope": "New uploaded pools are exploratory. Fresh fits do not claim exact reproduction of archived assignments; tied MST edges can affect partitions."
+}

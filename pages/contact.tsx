@@ -1,7 +1,14 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import Seo from '../components/Seo';
 import PageIntro from '../components/PageIntro';
+import { CONTACT_EMAIL } from '../lib/site';
+import {
+  CONTACT_LIMITS,
+  CONTACT_SEND_ERROR,
+  CONTACT_UNAVAILABLE,
+  contactEmailLink,
+} from '../lib/contact';
 import ui from '../styles/Interface.module.css';
 import styles from '../styles/Contact.module.css';
 import resource from '../styles/Resources.module.css';
@@ -16,10 +23,41 @@ export default function Contact() {
     'idle'
   );
   const [status, setStatus] = useState('');
+  const [available, setAvailable] = useState<boolean | null>(null);
   const pending = useRef(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    let mounted = true;
+    const timer = setTimeout(() => controller.abort(), 5000);
+    async function checkAvailability() {
+      try {
+        const response = await fetch('/api/sendMessage', {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (mounted) setAvailable(response.ok && data?.available === true);
+      } catch {
+        if (mounted) setAvailable(false);
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    void checkAvailability();
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, []);
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending.current) return;
+    if (!available) {
+      setPhase('error');
+      setStatus(CONTACT_UNAVAILABLE);
+      return;
+    }
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
@@ -33,30 +71,31 @@ export default function Contact() {
     pending.current = true;
     setPhase('sending');
     setStatus('Sending your message…');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 35000);
     try {
       const response = await fetch('/api/sendMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          typeof data.error === 'string'
-            ? data.error
-            : 'Your message could not be sent. Please try again.'
+      const data = await response.json().catch(() => null);
+      if (!response.ok || typeof data?.success !== 'string') {
+        setPhase('error');
+        setStatus(
+          typeof data?.error === 'string' ? data.error : CONTACT_SEND_ERROR
         );
+        return;
+      }
       setPhase('success');
       setStatus('Message sent successfully!');
       setFormData({ name: '', email: '', message: '' });
-    } catch (error) {
+    } catch {
       setPhase('error');
-      setStatus(
-        error instanceof Error
-          ? error.message
-          : 'Your message could not be sent. Please try again.'
-      );
+      setStatus(CONTACT_SEND_ERROR);
     } finally {
+      clearTimeout(timeout);
       pending.current = false;
     }
   }
@@ -72,7 +111,7 @@ export default function Contact() {
           eyebrow="Get In Touch"
           title="Let’s Start"
           accent="A Conversation."
-          description="A research question, an idea for a project, or something you read here—tell me what’s on your mind."
+          description="Tell me about a research question, a project idea, or something you read here."
         />
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -134,6 +173,11 @@ export default function Contact() {
             <p className={styles.formIntro}>
               Use the email address where you’d like to hear back.
             </p>
+            {available === false && (
+              <p className={styles.availability} role="status">
+                {CONTACT_UNAVAILABLE} You can still write your draft below.
+              </p>
+            )}
             <form
               action="/api/sendMessage"
               method="post"
@@ -152,6 +196,7 @@ export default function Contact() {
                       type="text"
                       name="name"
                       autoComplete="name"
+                      maxLength={CONTACT_LIMITS.name}
                       required
                       placeholder="Your Name"
                       value={formData.name}
@@ -167,6 +212,7 @@ export default function Contact() {
                       type="email"
                       name="email"
                       autoComplete="email"
+                      maxLength={CONTACT_LIMITS.email}
                       required
                       placeholder="Your Email"
                       value={formData.email}
@@ -182,6 +228,7 @@ export default function Contact() {
                     id="contact-message"
                     name="message"
                     rows={8}
+                    maxLength={CONTACT_LIMITS.message}
                     required
                     placeholder="What Would You Like To Discuss?"
                     value={formData.message}
@@ -193,9 +240,13 @@ export default function Contact() {
                 <button
                   className={resource.primaryButton}
                   type="submit"
-                  disabled={phase === 'sending'}
+                  disabled={phase === 'sending' || available !== true}
                 >
-                  {phase === 'sending' ? 'Sending…' : 'Send Message'}{' '}
+                  {phase === 'sending'
+                    ? 'Sending…'
+                    : available === null
+                      ? 'Checking Contact Form…'
+                      : 'Send Message'}{' '}
                   <span aria-hidden="true">↗</span>
                 </button>
               </fieldset>
@@ -209,6 +260,11 @@ export default function Contact() {
                 {status}
               </p>
             )}
+            <div className={styles.directEmail}>
+              <a href={contactEmailLink(formData)}>Email Me Directly</a>
+              <span>{CONTACT_EMAIL}</span>
+              <p>Opens your email app with your draft.</p>
+            </div>
           </section>
         </div>
       </main>

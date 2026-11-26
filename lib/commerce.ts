@@ -88,7 +88,7 @@ export async function deliverPurchaseEmail(sessionId: string, config: CommerceCo
   await transporter.sendMail({
     from: { name: 'Pramesh Sharma', address: config.email }, to: email,
     messageId: `<essay-${createHash('sha256').update(session.id).digest('hex')}@prameshsharma.com>`,
-    subject: 'Your PhD essay bundle — download link',
+    subject: 'Your PhD essay bundle download link',
     text: `Thank you for purchasing My PhD Application Essays.\n\nDownload your two essay PDFs and companion reading note here:\n${link}\n\nKeep this email: the link is your access to the bundle. Please keep it private.\n\nThis edition is for your personal reading and reference.\n\nFor help with your download, reply to this email.\n\nPramesh`,
   });
   // Stripe metadata persists completed delivery across webhook retries. A rare

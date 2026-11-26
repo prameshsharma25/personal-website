@@ -1,5 +1,6 @@
 export const SITE_URL = 'https://prameshsharma.com';
 export const SITE_NAME = 'Pramesh Sharma';
+export const CONTACT_EMAIL = 'prameshsharma25@gmail.com';
 export const TRACKER_URL = '/downloads/lab-search-tracker.xlsx';
 export const ESSAY_PRODUCT = {
   id: 'phd-essays-v1', name: 'My PhD Application Essays', priceCents: 500, currency: 'usd',

@@ -55,6 +55,10 @@ export default function PrivacyPolicy() {
             </li>
           </ul>
 
+          <h2>YouTube Videos And Public Analytics</h2>
+          <p>The Posts page displays public videos and view counts from Pramesh Sharma’s YouTube channel. The video player loads from YouTube’s privacy enhanced domain only when you choose to play a video. Playback may share connection and viewing information with YouTube under Google’s privacy policy. Thumbnails are served through this website’s image service.</p>
+          <p>When channel analytics are connected, this page also publishes aggregate video views, watch time, average viewing duration, and search terms reported by YouTube. These reports concern the channel’s videos and do not identify individual viewers. Channel authorization credentials stay on the server. The website does not track repeat video viewers or infer returning viewer counts.</p>
+
           <h2>How We Use Your Information</h2>
           <p>We use collected information to:</p>
           <ul>
@@ -90,6 +94,12 @@ export default function PrivacyPolicy() {
           <p>On product pages, Gumroad’s embedded product viewer loads from Gumroad. Selecting a purchase link can open a product preview on this site; checkout and file delivery take place on Gumroad. Gumroad collects the information needed to process your order and emails your purchase receipt and download link. See <a href="https://gumroad.com/privacy">Gumroad’s privacy policy</a> for its handling of purchase information.</p>
           <p>When this site’s Stripe checkout is available, Stripe handles payment details. This site does not receive or store your full card number. Your checkout email address is used to deliver files and handle purchase support. Payment status is checked before downloads are released. Private files are stored using Vercel Blob, and transactional emails are sent through the seller’s email service. Stripe checkout metadata records completed email delivery.</p>
           <p>The purchase-download page does not run this site’s analytics. It keeps your purchase reference in browser session storage so you can retry a download in the same browser session. Keep your purchase email and access link private.</p>
+          <h2>Structure Analysis Tools</h2>
+          <p>On My Device calculates structural descriptors, warnings, and optional batch comparisons and clustering in your browser. Coordinate files, filenames, optional confidence metadata, and analysis results are not uploaded. The engine runs in Web Workers. Save Progress On This Device is enabled by default where supported. It stores each saved run’s input files, confidence metadata, settings, completed descriptor artifacts, accepted comparisons, and final results in this browser’s IndexedDB storage for recovery and run history. Pausing stops calculations but keeps saved progress. Delete Saved Run removes only the selected run. Starting another analysis preserves earlier runs. With saving turned off, current calculations use temporary memory and are lost when the page closes. Saved data is not uploaded or shared across devices. Clearing site data, private browsing, browser storage cleanup, or storage limits can remove or prevent checkpoints. Download your reports before leaving. Structure previews and inspection of calculated results also happen locally.</p>
+          <p>The on-device engine downloads a pinned Python/WebAssembly runtime and scientific libraries from jsDelivr when you start a calculation. This CDN receives normal connection information, such as your IP address, when serving those public assets; it does not receive your structure files. Ordinary site analytics remain separate from the analysis and are not given filenames, coordinates, or results.</p>
+          <p>Hosted Server Analysis is planned for a future release. If this mode becomes available and you explicitly submit a job, coordinates, filenames, settings, and optional confidence metadata are uploaded to that service for analysis and clustering.</p>
+          <p>The prepared Server Analysis implementation retains inputs, outputs, and worker diagnostics for up to 24 hours after submission, with periodic cleanup. You can use Cancel Analysis or Delete Job Files to request earlier removal. Results require a randomly generated job-access key, kept in this browser tab’s session storage to allow a refresh. Anyone with that key can access the job until it expires. Files are not added to the public examples.</p>
+          <p>That implementation also stores a keyed hash of your IP address for daily usage limits. Hosting providers may process connection information in their infrastructure logs.</p>
           <h2>Data Sharing</h2>
           <p>
             We do not sell your personal information. However, we share information with third-party service providers including Google, Vercel, and analytics platforms to operate the Site and display advertisements.
@@ -108,7 +118,7 @@ export default function PrivacyPolicy() {
           </p>
           <p>
             Email:{' '}
-            <a href="mailto:contact@prameshsharma.com">contact@prameshsharma.com</a>
+            <a href="mailto:prameshsharma25@gmail.com">prameshsharma25@gmail.com</a>
           </p>
 
           <h2>Changes to This Privacy Policy</h2>

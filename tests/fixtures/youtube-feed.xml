@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UC8ULgisbWvZlqcn6ZnI0bPA"/>
+ <id>yt:channel:8ULgisbWvZlqcn6ZnI0bPA</id>
+ <yt:channelId>8ULgisbWvZlqcn6ZnI0bPA</yt:channelId>
+ <title>Pramesh Sharma</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UC8ULgisbWvZlqcn6ZnI0bPA"/>
+ <author>
+  <name>Pramesh Sharma</name>
+  <uri>https://www.youtube.com/channel/UC8ULgisbWvZlqcn6ZnI0bPA</uri>
+ </author>
+ <published>2015-03-21T23:10:21+00:00</published>
+ <entry>
+  <id>yt:video:oDGqUMBvrpY</id>
+  <yt:videoId>oDGqUMBvrpY</yt:videoId>
+  <yt:channelId>UC8ULgisbWvZlqcn6ZnI0bPA</yt:channelId>
+  <title>Day in the life of a Computational Biologist</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=oDGqUMBvrpY"/>
+  <author>
+   <name>Pramesh Sharma</name>
+   <uri>https://www.youtube.com/channel/UC8ULgisbWvZlqcn6ZnI0bPA</uri>
+  </author>
+  <published>2026-04-13T05:33:47+00:00</published>
+  <updated>2026-11-20T18:08:57+00:00</updated>
+  <media:group>
+   <media:title>Day in the life of a Computational Biologist</media:title>
+   <media:content url="https://www.youtube.com/v/oDGqUMBvrpY?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/oDGqUMBvrpY/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Support Me:
+prameshsharma.com
+
+Substack:
+https://prameshsharma.substack.com/
+
+Buy Me a Coffee:
+https://buymeacoffee.com/prameshsharma</media:description>
+   <media:community>
+    <media:starRating count="7" average="5.00" min="1" max="5"/>
+    <media:statistics views="216"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>

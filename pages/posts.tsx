@@ -4,6 +4,9 @@ import type { GetStaticProps } from 'next';
 import Seo from '../components/Seo';
 import PageIntro from '../components/PageIntro';
 import ChoiceGroup from '../components/ChoiceGroup';
+import YouTubeSection from '../components/YouTubeSection';
+import { youtubeService } from '../lib/youtube-server';
+import type { YouTubeFeed } from '../lib/youtube';
 import { getAllPosts, type PostMetadata } from '../lib/posts';
 import { labelCase } from '../lib/labels';
 import ui from '../styles/Interface.module.css';
@@ -12,8 +15,9 @@ import resource from '../styles/Resources.module.css';
 
 interface Props {
   posts: Omit<PostMetadata, 'content'>[];
+  youtube: YouTubeFeed;
 }
-export default function Posts({ posts }: Props) {
+export default function Posts({ posts, youtube }: Props) {
   const [category, setCategory] = useState('All posts');
   const [query, setQuery] = useState('');
   const categories = [
@@ -30,13 +34,26 @@ export default function Posts({ posts }: Props) {
   return (
     <>
       <Seo
-        title="Research Careers, Personal Essays & Reading"
-        description="Read Pramesh Sharma’s essays on research careers, NIH and NASA experiences, community college, chronic illness, books, and finding direction."
+        title="Research Careers, Personal Essays & YouTube Videos"
+        description="Read Pramesh Sharma’s essays and watch his YouTube videos about research, computational biology, education, and life, with public video analytics."
         path="/posts"
+        schema={{
+          '@type': 'CollectionPage',
+          name: 'Pramesh Sharma: Essays And YouTube Videos',
+          hasPart: youtube.videos.map((video) => ({
+            '@type': 'VideoObject',
+            name: video.title,
+            description: 'A video by Pramesh Sharma, computational biologist.',
+            uploadDate: video.publishedAt,
+            thumbnailUrl: `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,
+            embedUrl: `https://www.youtube-nocookie.com/embed/${video.id}`,
+            url: `https://www.youtube.com/watch?v=${video.id}`,
+          })),
+        }}
       />
       <main className={ui.page}>
         <PageIntro
-          eyebrow="Essays & Reflections"
+          eyebrow="Essays & Videos"
           title="Notes From"
           accent="The Path."
           description={
@@ -50,8 +67,8 @@ export default function Posts({ posts }: Props) {
               <p className={ui.miniLabel}>A Place To Begin</p>
               <h2>Finding Your Way Into Research?</h2>
               <p>
-                The lab search, the first email, and the decision to change
-                direction—I’ve written about those steps as I’ve taken them.
+                I’ve written about finding a lab, sending that first email, and
+                deciding to change direction as I’ve taken those steps.
               </p>
               <Link
                 href="/posts/how-i-found-an-nih-postbac-lab"
@@ -72,7 +89,15 @@ export default function Posts({ posts }: Props) {
             </>
           }
         />
-        <section className={ui.section} aria-label="Browse Essays">
+        <nav className={styles.formatLinks} aria-label="Explore Posts">
+          <a href="#essays" className={ui.textLink}>
+            Browse Essays <span aria-hidden="true">↘</span>
+          </a>
+          <a href="#videos" className={ui.textLink}>
+            YouTube Videos & Analytics <span aria-hidden="true">↘</span>
+          </a>
+        </nav>
+        <section id="essays" className={ui.section} aria-label="Browse Essays">
           <div className={ui.toolbar}>
             <ChoiceGroup
               label="Filter Posts By Topic"
@@ -158,12 +183,14 @@ export default function Posts({ posts }: Props) {
             </div>
           )}
         </section>
+        <YouTubeSection initialFeed={youtube} />
       </main>
     </>
   );
 }
 export const getStaticProps: GetStaticProps<Props> = async () => ({
   props: {
+    youtube: await youtubeService.feed(),
     posts: getAllPosts().map(({ content, ...post }) => {
       void content;
       return post;

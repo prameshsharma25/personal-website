@@ -8,7 +8,7 @@ test('purchase link works when the Gumroad overlay script is blocked', async ({ 
   const stripeRequests: string[] = [];
   page.on('request', request => { if (request.url().includes('/api/checkout')) stripeRequests.push(request.url()); });
   await page.goto('/resources/phd-essay-bundle');
-  await page.getByRole('link', { name: 'Buy The Essay Bundle — $5' }).click();
+  await page.getByRole('link', { name: 'Buy The Essay Bundle For $5' }).click();
   await expect(page).toHaveURL('https://pramesh6.gumroad.com/l/phd-application-essays');
   expect(stripeRequests).toHaveLength(0);
 });

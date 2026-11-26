@@ -1,0 +1,413 @@
+Amyloid Structure Analysis — On-Device Pipeline
+
+Default route: /tools/amyloid-inspector
+No AMYLOID_API_URL, account, local Python installation, or analysis server is
+required. Selecting files alone previews a single structure. Analyze On My Device
+starts calculations in Python module Web Workers. Descriptor Workers controls
+parallel structure calculations. Batch comparisons use a separate pool of
+MM-align Web Workers after the descriptor pool is released. No coordinates, filenames,
+confidence metadata, or results are uploaded.
+
+CALCULATIONS
+The unchanged pinned Amyloid Candidates package calculates common QC, geometry,
+packing, energetics, and positive-reference warning gates. Progress observers wrap
+component entry/return without altering arguments or returned scientific results.
+The progress bar counts completed work within the CURRENT stage, not predicted
+elapsed time. Setup and report packaging use an indeterminate bar. Descriptor
+progress has six stages per input: parsing, QC, geometry, packing, energy, reports.
+Alignment progress counts completed/skipped directed calls; clustering counts
+finished construct groups. Failures remain visible. Elapsed time includes loading.
+
+LIVE DIAGNOSTICS
+The local run displays processed operations per minute, last-operation wall time,
+a rolling mean of up to 20 operations, and an approximate time remaining for the
+current calculation stage after three timing samples. Estimates use observed
+completion intervals across all active workers, rather than summing individual
+comparison durations. The rolling window contains up to 20 completion intervals.
+Skips do not increase the
+rate; failure/skip counts remain visible. Estimates exclude later stages and are
+not completion guarantees. Completed-stage statistics freeze when that stage ends.
+
+Python memory is allocated WebAssembly linear memory, read using the public
+Pyodide PyBuffer.getBuffer API on a one-byte probe. Views are refreshed and released
+for every sample to accommodate growth. Descriptor workers report allocation at
+component boundaries; the coordinator sums the latest samples from active
+runtimes. The coordinator runtime is created after the descriptor pool stops,
+so their allocations do not overlap. The sampled peak is not total browser or
+device memory: it excludes the independent MM-align runtimes, MEMFS file storage,
+JavaScript objects, and other page allocations. CPU utilization is not estimated.
+https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.ffi.PyBuffer.getBuffer
+
+A resource PerformanceObserver in the Python worker counts engine/runtime requests
+made by that worker. The MM-align binary and wrapper are fetched once there and
+passed to the pool. Worker entry scripts and imports fetched by the page or the
+alignment and descriptor workers are outside this measurement; it is not a complete network log.
+Transfer bytes use the browser's transferSize including its header-size estimate.
+Average download rate is observed bytes divided by the span from the earliest
+measured request start to the latest measured response end (overlap counted once).
+It is not instantaneous bandwidth or a connection speed test. Zero-byte
+cross-origin records are marked unmeasured because timing restrictions and cache
+hits cannot be distinguished. Same-origin zero-transfer/nonzero-body records are
+counted as local/cache responses. Unsupported APIs show unavailable metrics.
+https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming/transferSize
+
+Interface delay measures excess delay of a one-second main-thread timer; it is
+not network latency. Sampling pauses while the document is hidden. Diagnostics
+emit at most once per second, plus stage boundaries and the final snapshot.
+Synchronous calculation steps can delay samples; their age is shown without
+claiming that a busy worker has stalled. Telemetry does not reset job watchdogs.
+All diagnostics stay in page memory, freeze on cancellation/completion, and reset
+on a new run/selection. They are not sent to analytics or the analysis server.
+
+For multiple files, Compare And Cluster Structures is enabled by default and can
+be turned off. It uses:
+- Package-normalized first-model C-alpha exports with sequential chain/residue IDs
+  and coordinates at 0.001 angstrom, shared with the native worker.
+- Groups with identical sorted normalized chain sequences and stoichiometry.
+- MM-align compiled from the same pinned source as the native executable, with
+  full scoring, no -fast approximation, self checks, both directions, explicit
+  length-normalized TM scores, and validated alignment coverage/chain mapping.
+- Distance = 1 - mean(forward minimum TM score, reverse minimum TM score).
+  Missing/failed distances are never imputed. A failed comparison invalidates
+  clustering for that group; successful individual reports remain downloadable.
+- scikit-learn 1.8.0 HDBSCAN: precomputed distance, brute, EOM, epsilon 0, alpha 1,
+  n_jobs 1, allow_single_cluster false. The UI min_samples excludes the point
+  itself, matching the native pipeline convention; sklearn receives min_samples+1.
+  Native server jobs retain contrib hdbscan 0.8.44. The browser backend, version,
+  and effective settings are explicit in every group report. Despite matched
+  conventions, ties/implementation differences may produce different partitions.
+- Shared frozen feature transforms, ranking, medoids, support checks, and diversity
+  selection. Missing confidence stays unavailable. Optional confidence CSV is
+  validated identically to the server. No confidence is inferred from B-factors.
+
+LIMITS AND LIFECYCLE
+Up to 125 unique filenames, 10 MiB each, 100 MiB total; PDB/mmCIF, first model only,
+20,000 normalized atoms and 32 polymer chains per structure. Confidence CSV <=64 KiB.
+Default clustering: min_cluster_size 10, min_samples 3 (4 including self in sklearn).
+Pools too small for the settings get unavailable clusters, not fabricated noise.
+There can be at most 15,625 directed MM-align executions; comparable singleton groups
+need none. Runtime and memory use depend on the device, structure, and batch size.
+The pairwise workload grows quadratically. Desktop use is recommended for batches.
+These are configured input safeguards, not measured browser capacity guarantees.
+The selection summary shows the maximum comparison count before starting; the
+progress bar uses the actual count after grouping. Smaller batches may still
+exhaust memory on some devices. The cluster-size control allows 2-125 members,
+and minimum samples allows 1-124 neighbors; scientific defaults remain unchanged.
+
+PARALLEL DESCRIPTORS
+Descriptor Workers offers Auto, 1, 2, and 4. Manual choices are capped by input
+count and browser-reported logical cores. Auto uses up to two workers with one
+logical core of headroom. It uses one for fewer than four inputs, unavailable
+core information, or browser-reported deviceMemory of 4 GB or less. Memory
+reporting is optional and approximate; this is not a guarantee against exhaustion.
+
+One worker preserves the original sequential coordinator path. Parallel runs
+start independent Pyodide runtimes with NumPy, Biopython, FreeSASA, and the same
+unchanged pinned package. Workers take the next structure from a bounded queue,
+use fixed input IDs, and return unchanged component artifacts. Intermediates are
+released between inputs. Completion order cannot reorder results. Invalid PDBs
+remain failed entries while other structures continue. A worker crash or timeout
+stops the run explicitly; partial results are not presented as a completed run.
+
+All descriptor runtimes stop before the coordinator Python runtime loads. The
+coordinator imports component files in input order, prepares the original batch
+normalization/confidence metadata, and runs the existing alignment, clustering,
+ranking and export stages. Only one stage's worker pool is active at a time.
+Every worker belongs to the page and is terminated on cancellation/navigation.
+Startup failure retries once with one worker and records the fallback.
+
+Live diagnostics show active and peak descriptor workers, aggregate sampled
+Python allocation, stage throughput and ETA. results.json records the requested
+and actual descriptor counts, fallback, setup time (including coordinator setup),
+calculation wall time, merge time, per-structure durations, and descriptor memory
+peak. Parallel calculation time includes output transfer; batch normalization
+is done during merge. Summary elapsed_seconds starts at job receipt and is sampled
+before archive creation. The benchmark also measures end-to-end completion time,
+including startup, result collection and export. More workers can be slower on
+small batches because each runtime must start separately.
+
+PARALLEL ALIGNMENT
+The Parallel Workers setting offers Auto, 1, 2, and 4. Auto uses at most two
+alignment workers and leaves one reported logical core available when possible:
+min(2, max(1, hardwareConcurrency - 1)). Manual choices are capped by reported
+logical cores and all choices are capped by the actual comparison count. When
+hardwareConcurrency is unavailable, the fallback assumes two logical cores.
+This is a conservative scheduling policy, not a measured optimum for every device.
+
+The page owns the coordinator and every alignment worker. After descriptor
+processing, one Pyodide runtime handles result acceptance, clustering, ranking,
+and report generation serially. A bounded queue dispatches at most
+one directed MM-align comparison per alignment worker. Coordinate buffers are
+transferred between workers; the queue does not copy the entire batch into every
+runtime. Results are accepted into Python serially, and matrix entries retain
+their fixed structure IDs regardless of completion order. Neither scoring nor
+HDBSCAN settings change with the worker count. No Python threading is enabled.
+
+Diagnostics show active/available alignment workers and peak concurrency. Active
+means an assigned comparison, not measured CPU utilization. More workers use more
+memory and may be slower for small inputs or on a busy device. If multiple workers
+cannot initialize, the pool retries with one and records the fallback in the
+downloaded result. A crashed or timed-out worker is terminated and replaced for
+subsequent work. The affected construct group fails explicitly; remaining queued
+comparisons in that group are skipped, with no distances imputed.
+
+Each MM-align invocation gets a fresh Emscripten instance to avoid cross-pair state.
+Its memory may grow to 1 GiB; this is a ceiling, not an allocated amount or an
+estimate for the whole browser job. Memory exhaustion can still stop a job.
+Descriptor worker startup: one minute per attempt. Each descriptor job has a
+five-minute timeout independent of progress or diagnostics. Coordinator
+initialization inactivity timeout: three minutes. Each descriptor/report phase:
+five minutes without a stage update. Each alignment worker startup: 30 seconds.
+Each directed alignment: two minutes. The overall alignment inactivity watchdog
+allows three minutes so individual timeouts and replacement can report failure.
+Cancel terminates the coordinator, descriptor workers, and alignment workers
+immediately. When saving is enabled, committed checkpoints remain available for
+recovery; in-memory work is discarded. Completion and navigation also terminate
+every worker. The alignment pool is released before clustering. Switching
+inspector modes retains the active local run. Calculations do not continue after
+closing the page; return to the same browser and use Resume Saved Run.
+
+SOURCES AND DEPLOYMENT
+Browser assets: public/tools/amyloid-device/v1/.
+Amyloid Candidates: 1c85221ea38ffbaa1695eeb0a2962997abf94563, unchanged public source.
+MM-align/USalign: 23f14ffcf8647f2dc1c0e01043db3a7f3a661c28, unchanged public source.
+Pyodide 314.0.8: https://cdn.jsdelivr.net/pyodide/v314.0.8/full/
+NumPy 2.4.6, Biopython 1.87, FreeSASA 2.2.1; batch analysis additionally loads
+pandas 3.0.2, scikit-learn 1.8.0, and SciPy 1.18.0 from this pinned release.
+Dependencies are loaded with Pyodide integrity checks. The package, Python adapter,
+shared pipeline archive, and MM-align assets have SHA-256 records in engine.json.
+The Wasm module and its JS wrapper are verified before use. Build/source/license
+records accompany the binary and downloaded reports. No private research outcomes
+or benchmark labels ship. Scientific scope remains exploratory compatibility with
+known amyloid structures, not a probability of amyloid formation or correctness.
+
+Runtime/CDN requests carry normal connection metadata, never selected files.
+An Internet connection is needed to load engine assets. Browser caching can reduce
+subsequent downloads; fully offline operation is not promised. No per-job server
+compute is required. Ordinary website bandwidth/hosting quotas still apply.
+No cross-origin isolation or SharedArrayBuffer is required. Use a modern browser
+with module workers, WebAssembly, and Web Crypto over HTTPS or localhost.
+
+REPRODUCIBLE BUILDS
+Activate Emscripten 4.0.10 in an isolated SDK, then:
+python3 scripts/build-amyloid-mmalign.py /path/to/em++
+Optional --archive /path/to/source.tar.gz uses a cached archive. Its SHA-256 must
+match the pinned source. Build flags, source hashes, and output hashes are recorded
+in mmalign/build.json; the upstream license is distributed with the binary.
+
+Then bundle the science package and shared pipeline:
+python3 scripts/package-amyloid-device.py /path/to/Amyloid_Candidates
+The script reads the pinned commit with git archive, not the package working tree.
+It also bundles this website's shared analysis modules. Regenerate engine.json
+after changing adapters/shared modules or rebuilding MM-align. Dependency/toolchain
+upgrades require numerical revalidation. No npm install step downloads a compiler;
+the generated browser artifacts are committed for ordinary website deployments.
+
+OUTPUT
+The ZIP includes results.json, original coordinate bytes, per-structure component
+outputs, gate reports, portable manifests, source/normalized hashes, chain mapping,
+canonical confidence metadata, and runtime/scientific provenance. Batch jobs add
+alignment coordinates, directed comparison reports, distance matrices, scored
+members, clustering settings/results, representatives, and shortlist eligibility.
+Run Summary.html is a standalone report with counts, group outcomes, annotated
+members, representatives, selection reasons, candidate scores, failures, settings,
+and links to the exported artifacts. Extract the full ZIP before opening links.
+The report uses no external assets or scripts and can be printed from a browser.
+shortlisted/index.json maps each within-group rank to its original and copied
+files. shortlisted/<group>/rank-<rank>-<id>/ contains original coordinates,
+reports, manifests, and their component files. For mmCIF, an additional alignment
+PDB is explicitly labeled C-alpha only; the original full mmCIF is preserved.
+No shortlist produces an empty index and an explanation, not a claimed success.
+The report exporter does not change calculation, clustering, or selection code.
+All new artifacts are included in SHA256.json.
+results.json also records alignment_execution: requested worker setting, actual
+worker count, startup fallback (if any), and alignment-stage wall time. Engine
+startup and later clustering/export time are excluded from that alignment timing.
+SHA256.json covers every archive file except itself. Reports are paired with their
+manifest and coordinate bytes using SHA-256 before interactive display.
+
+VALIDATION
+npm run test && npm run typecheck && npm run lint && npm run build
+TEST_BASE_URL=http://127.0.0.1:3838 npm run test:browser
+Native worker: see services/amyloid/README.txt.
+Browser tests need network access to the pinned runtime CDN. python3 is used only
+by the TEST RUNNER to inspect ZIP files; visitors need no Python installation.
+Tests compare PDB/mmCIF descriptor outputs to native fixtures, clustering partitions
+on 12 synthetic matrices (noise, ties, duplicates, degenerate pools), and a real
+six-structure browser job against native MM-align distances. The same job runs
+with 1, 2, and 4 workers and requires identical distances, clusters, ranking, and
+representatives across modes. Per-mode wall times are attached to test results;
+they measure this small fixture on the test device, not general speedup. It uses
+synthetic chain translations of a public prediction, not experimental or private
+benchmark data. Archive checksums, confidence handling, cancellation, failure/retry,
+progress, mobile layout, and no-upload assertions are included. Pool unit tests
+cover startup fallback, worker crashes/timeouts, bounded concurrency, and serial
+Python acceptance. A real-browser cancellation test stops all workers during
+alignment, then verifies a fresh run completes.
+The 125-file limit is checked through actual browser selection, worker startup,
+and cancellation. A 21-input single-chain fixture completes all 441 directed
+alignments, clustering, and a checksum-verified ZIP, exercising the former
+400-alignment ceiling. This is not a full 125-assembly capacity benchmark.
+
+DESCRIPTOR BENCHMARK REPRODUCTION
+With the production preview running on port 3844:
+.local/node/bin/node --import tsx scripts/benchmark-amyloid-descriptors.ts
+
+TEST_BASE_URL accepts the preview base URL. BENCHMARK_FILES defaults to 12,
+BENCHMARK_REPEATS to 3, and BENCHMARK_WORKERS to 1,2,4. BENCHMARK_COMPARE=true
+also runs the batch pipeline with two alignment workers held constant.
+BENCHMARK_OUTPUT defaults to .local/descriptor-benchmark. The benchmark uses
+repeated public 2BEG and 6QJH prediction fixtures, one unmeasured cache warmup,
+rotating worker-count order, new runtimes each run, and one browser at a time.
+It verifies every downloaded checksum and compares all scientific component
+files, result structures, and groups. Only energy metadata.created_utc and the
+corresponding gate component digest are normalized for comparison. The actual
+exported reports and checksums remain intact. Numerical values are compared
+exactly without rounding. Coordinates and CSV component files are byte-identical.
+Raw ZIPs and diagnostic screenshots stay in the chosen local output directory.
+Timing excludes file selection/read and page rendering; engine initialization,
+calculation, transfers, coordinator setup, merge and ZIP export are included.
+Results do not establish capacity or speedup for 125 large or diverse assemblies.
+
+RESULT BROWSING AND RECOVERY
+Completed browser batches can be filtered by construct group and cluster.
+Cluster labels are scoped to each construct group; noise stays separate from
+missing cluster assignments. Failed structures and groups too small for the
+settings remain available under Not Clustered. A representative is the medoid,
+not necessarily a candidate that passes shortlist eligibility. Filtering does
+not recalculate or change the downloaded archive.
+
+Shortlisting uses the existing QC, four evidence components, pool-relative score
+floor, finite ipTM/pLDDT confidence, non-noise membership, and greedy diversity
+threshold of 0.20. Missing confidence does not prevent descriptors or clustering.
+The initial viewer now opens the first viewable candidate in the pipeline's
+diversity shortlist, in recorded shortlist order. For multiple construct groups,
+it uses the first group with a shortlist; ranks are not compared across groups.
+The selection card identifies the group and shortlist position. With no eligible
+shortlist, the viewer opens the first calculated structure and explicitly labels
+that fallback. A calculated structure is not automatically a shortlisted candidate.
+
+Save Progress On This Device is enabled by default when IndexedDB and Web Locks
+are available. Each run is stored separately, including exact input bytes,
+confidence CSV, settings, descriptor artifacts, accepted directed alignments, and
+completed downloads. The UI offers Resume Saved Run, Open Saved Results, and
+Delete Saved Run. Run History lists Completed, Running, Paused, and Failed runs,
+with status filters, filenames, saved counts, dates, and stable run identifiers.
+Clicking a completed run restores its settings, results, cluster browsing, and
+download. Clicking an unfinished run restores inputs, settings, and verified
+assessment rows without automatically resuming calculations. Pause Analysis
+retains committed work. New Analysis clears the workspace without deleting
+earlier runs. Delete Saved Run affects only the selected run.
+Turning saving off leaves an earlier saved run intact and calculates in memory.
+
+Calculation completion and durable result saving are separate. The coordinator
+shows Saving Your Results while persisting the final ZIP and viewer artifacts.
+Large binary outputs are sealed and written in parts of at most 8 MiB, avoiding
+Chrome's roughly 127 MiB serialized-value limit. Only after all parts commit are
+the completion manifest and run's complete status committed atomically. Reopening
+verifies each part and reconstructs the identical bytes. Earlier whole-record
+completed runs remain readable. An interrupted final save is never treated as a
+durably saved browser copy;
+its abandoned parts are removed on resume, preserving assessments and alignments.
+Storage quota errors are still possible. If final saving fails, downloads remain
+available in the open page. The UI and history mark the analysis Completed and
+show browser storage separately as Results Not Saved In Browser. After a reload,
+Rebuild Download From Checkpoints recovers the export using the saved work. Existing
+unfinished runs from the previous release can resume with their saved work to
+rebuild clustering, selection, and final downloads using the smaller-record format.
+
+Each operation and its saved counter commit in one IndexedDB transaction with
+strict durability where supported. Completed descriptor records include failures;
+only successfully accepted comparisons are cached. Original file order and IDs
+are preserved. Resuming checks input/settings hashes, record integrity, checkpoint
+format, and the entire engine manifest. It rebuilds the coordinator from saved
+artifacts and replays accepted comparisons through the existing parser before
+recomputing clustering, selection, and the final ZIP. Interrupted operations are
+rerun; partial Python heaps are never reused. Completed results can be reopened
+without loading Python or fetching the current engine manifest. Reports record
+resumed status and counts of reused descriptors/comparisons. Recorded operation
+timings for cached descriptors describe their original calculations; stage wall
+times and elapsed_seconds describe the current attempt. Reused operations count
+as skipped/reused diagnostics and do not inflate throughput.
+
+The progress timer instead shows cumulative active time across attempts. It uses
+a monotonic clock and freezes immediately on pause, failure, or completion.
+Elapsed milliseconds are saved with run metadata every second and when stopping,
+before releasing the run lock. Resuming or reopening a run restores this total;
+paused time and time spent opening completed results never count. An abrupt tab
+closure restores the last committed time sample (background browser throttling
+can delay samples). Runs saved before cumulative timing was added have no prior
+active total: incomplete runs begin accumulating on their next resume, while
+completed runs display the measured final attempt from their existing report.
+
+A same-origin Web Lock specific to each run is held by the page until every
+worker is terminated. Each page runs one analysis at a time.
+Other tabs cannot open, resume, or delete the same saved run while it is held.
+List metadata refreshes on focus and every two seconds in visible tabs. Lock
+state distinguishes active calculations from interrupted runs, which appear as
+Paused. Failures retain their error message and saved progress. Completed runs
+with per-structure or clustering errors are labeled Completed With Errors.
+Immutable run IDs and per-attempt tokens fence stale writes. Storage
+errors stop checkpoint writes with a visible warning but allow the calculation
+and download to finish. Earlier committed work remains recoverable. Integrity or
+engine mismatches stop recovery explicitly without deleting the saved data.
+
+Completion means an exportable analysis, independently of browser storage.
+Run metadata records analysisStatus and resultStorage separately from the legacy
+status field that indicates whether a finished ZIP is durably stored. An
+exportable run without that browser copy displays Completed, with Results Not
+Saved In Browser. Calculation failures that still produce a ZIP are Completed
+With Errors; an interrupted calculation is not completed. Small completion
+metadata is attempted even if saving the archive failed. If all browser writes
+fail, the active page preserves the completed label in memory; it cannot promise
+to persist that status after reload. Opening the current completed run retains
+its in-memory download. After reload, a completed run without a saved copy offers
+Rebuild Download From Checkpoints rather than pretending saved results exist.
+
+Saving warnings preserve the browser error name and the failing storage stage,
+even when the DOMException message is empty. The completed result panel shows
+an estimated site storage usage and quota when the browser exposes them. These
+estimates do not prove enough physical disk space is available.
+Retry Saving Results saves the in-memory finished output without starting Python,
+descriptor workers, or alignments again. It holds the same per-run lock, requires
+the original attempt token, and clears only that incomplete run's completion
+chunks before retrying. Inputs, assessments, comparisons, other runs, and active
+analysis time are preserved. A newer attempt in another tab prevents a stale
+retry. Reloading before a successful save still requires Resume Saved Run.
+
+Checkpoint storage is browser managed, not a backup guarantee. Clearing site
+data, private browsing, storage eviction, and quotas can prevent recovery. A run
+can only resume on the same origin in the same browser profile. The runtime still
+needs to load after an interruption. No persistence service, upload, or analytics
+integration is used. Scientific package and MM-align binaries are unchanged.
+
+Hosted Server Analysis is a future release on the public website. With no
+connected worker, its tab shows an informational preview without upload controls.
+The prepared backend remains available for explicitly configured local testing.
+
+RUN HISTORY STORAGE UPGRADE
+IndexedDB version 2 atomically migrates the previous single run into namespaced
+records. The upgrade waits until an active older tab releases its writer lock;
+the page explains how to pause or close that tab. Input bytes, sealed payloads,
+checksums, and completed downloads remain
+unchanged. No run is automatically deleted to make room. Quota errors preserve
+prior committed records and are reported by the existing saving warning.
+The exact previous checkpoint engine is accepted for unfinished runs only when
+its recorded scientific configuration hash still matches this release. This
+excludes the coordinator and storage modules, whose compatibility was tested.
+Other engine changes remain incompatible. Existing completed results need no
+engine runtime. Browser eviction or clearing site storage still removes history.
+
+RECOVERY WHEN BROWSER WRITES ARE BLOCKED
+If a verified resumed run cannot write its new attempt metadata because of a
+QuotaExceededError, recovery opens a read-only checkpoint session. It preserves
+all input, assessment, alignment, and partial-completion records and reuses their
+integrity-checked contents. It does not bypass engine or input verification. The
+page continues holding the run lock, skips heartbeat and final-status writes,
+and keeps elapsed time in memory. New work is exportable but cannot be recovered
+again unless it is saved later. Retry Saving Results can persist the finished
+output when browser storage becomes writable.
+An explicit Rebuild Download From Checkpoints action remains available while
+unsaved results are open. Their prior ZIP stays downloadable during rebuilding
+and after a stopped rebuild. Empty error messages retain an error name and a
+fallback explanation instead of leaving a blank failure state.

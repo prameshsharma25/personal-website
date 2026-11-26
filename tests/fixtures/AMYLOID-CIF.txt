@@ -1,0 +1,6 @@
+amyloid-2beg.cif is a format conversion of public/tools/amyloid-example/2beg.pdb,
+a predicted-coordinate fixture from Amyloid Candidates commit
+1c85221ea38ffbaa1695eeb0a2962997abf94563, not a deposited experimental model.
+Generated with Biopython 1.88 PDBParser(QUIET=True) followed by MMCIFIO.save.
+Its coordinates are unchanged; it exercises the real browser mmCIF analysis path.
+See public/tools/amyloid-example/ for original provenance and package licensing.

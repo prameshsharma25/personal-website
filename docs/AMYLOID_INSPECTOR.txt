@@ -1,0 +1,54 @@
+Amyloid Structure Analysis
+
+Routes: /tools and /tools/amyloid-inspector
+Scientific source: https://github.com/DevlinaC/Amyloid_Candidates
+Pinned package commit: 1c85221ea38ffbaa1695eeb0a2962997abf94563
+
+On My Device is the default. It calculates descriptors and warnings locally
+using the actual Python package through Pyodide. No server is required. Batches
+can also run WebAssembly MM-align, sklearn HDBSCAN, ranking, and reports locally.
+See docs/AMYLOID_ON_DEVICE.txt for limits, packaging, privacy, and validation.
+
+Server Analysis retains the full comparison/clustering pipeline. Selecting its
+Analyze button sends coordinates and optional confidence metadata to the worker.
+Comparable pools produce MM-align distances, HDBSCAN clustering, medoids,
+shortlist eligibility, and a complete downloadable archive. No predictions are
+generated. Missing confidence is not inferred. See services/amyloid/README.txt.
+
+Set AMYLOID_API_URL only if enabling Server Analysis, using a public HTTPS base
+URL (or localhost HTTP for development). No service is contacted until the user
+opens Server Analysis. Without a worker, on-device calculations and calculated
+examples still work. A website build or PR merge does not deploy the optional service.
+
+The interface offers On My Device and Server Analysis. Selecting a single
+coordinate file previews its structure before calculation. Calculated results and
+public examples open in the shared inspector, which verifies SHA-256 pairing
+between the gate report, manifest, and coordinate bytes. This establishes file
+consistency, not scientific correctness. The renderer supports model index 0 and
+never silently substitutes another model. Warnings are assembly-level; this
+version does not map them onto residues. Downloaded reports remain available as
+files, but there is no separate report-upload mode.
+
+Package invocation in its installed environment:
+amyloid-structural-pipeline --structure candidate.pdb --prediction-id candidate --output-directory results
+amyloid-gates --manifest results/candidate/candidate.manifest.json --output results/candidate/candidate.gates.json
+
+Regenerate public examples from the pinned package:
+python examples/pilot5/run.py --target 2BEG --target 6QJH --output-directory /tmp/amyloid-examples
+Then from the website:
+python scripts/export-amyloid-examples.py /path/to/package /tmp/amyloid-examples
+
+Examples are predicted-coordinate fixtures, not deposited experimental structures.
+The exporter preserves scientific descriptors and coordinate bytes, removes
+machine provenance/absolute paths, and updates the portable manifest hash.
+Component outputs are included in new server analysis archives; public example
+fixtures can be regenerated with the package. Attribution accompanies fixtures.
+
+Validation:
+npm run test
+npm run typecheck
+npm run lint
+npm run build
+TEST_BASE_URL=http://127.0.0.1:3835 npm run test:browser -- tests/browser/amyloid-tools.spec.ts
+
+See the service README for Python tests and real upload integration checks.

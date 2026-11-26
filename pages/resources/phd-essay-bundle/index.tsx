@@ -12,7 +12,7 @@ import styles from '../../../styles/Essays.module.css';
 
 const excerpts = [
   { label: 'Statement Of Purpose', text: 'I want to investigate how sequence variation alters protein structure and molecular function, and how these changes propagate to cellular behavior and responses to treatment.' },
-  { label: 'Personal Statement', text: 'Through code, I could create a figure that was immune to restrictions. Regardless of the anxiety-inducing setbacks that creating successful code involved, computer science became my new track - one in which I could run forever.' },
+  { label: 'Personal Statement', text: 'Through code, I could create a figure that was immune to restrictions. Regardless of the anxiety-inducing setbacks that creating successful code involved, computer science became my new track, one in which I could run forever.' },
 ];
 export default function EssayBundle({ available, cancelled, gumroadUrl }: { available: boolean; cancelled: boolean; gumroadUrl: string | null }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
@@ -30,7 +30,7 @@ export default function EssayBundle({ available, cancelled, gumroadUrl }: { avai
       window.location.assign(data.url);
     } catch (err) { setError(err instanceof Error ? err.message : 'Please try again.'); setBusy(false); }
   }
-  return <><Seo title="PhD Application Essays — Statement of Purpose & Personal Statement" description="Two PhD application essays by Pramesh Sharma, on research and the experiences behind it. Individual PDFs and a companion reading note. The collection is $5." path={ESSAY_PRODUCT.path} image="/images/social/phd-essay-bundle.png" breadcrumbs={[{name:'Home',path:'/'},{name:'Resources',path:'/resources'},{name:'PhD Application Essays',path:ESSAY_PRODUCT.path}]} schema={{ '@type': 'Product', name: ESSAY_PRODUCT.name, description: ESSAY_PRODUCT.description, image: `${SITE_URL}/images/social/phd-essay-bundle.png`, ...(available ? { offers: { '@type':'Offer', price:'5.00', priceCurrency:'USD', availability:'https://schema.org/InStock', url:`${SITE_URL}${ESSAY_PRODUCT.path}` } } : {}) }} />
+  return <><Seo title="PhD Application Essays: Statement of Purpose & Personal Statement" description="Two PhD application essays by Pramesh Sharma, on research and the experiences behind it. Individual PDFs and a companion reading note. The collection is $5." path={ESSAY_PRODUCT.path} image="/images/social/phd-essay-bundle.png" breadcrumbs={[{name:'Home',path:'/'},{name:'Resources',path:'/resources'},{name:'PhD Application Essays',path:ESSAY_PRODUCT.path}]} schema={{ '@type': 'Product', name: ESSAY_PRODUCT.name, description: ESSAY_PRODUCT.description, image: `${SITE_URL}/images/social/phd-essay-bundle.png`, ...(available ? { offers: { '@type':'Offer', price:'5.00', priceCurrency:'USD', availability:'https://schema.org/InStock', url:`${SITE_URL}${ESSAY_PRODUCT.path}` } } : {}) }} />
     <main className={styles.page}>
       <nav className={resource.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><Link href="/resources">Resources</Link><span>/ Application Essays</span></nav>
       <header className={styles.masthead}>
@@ -62,14 +62,14 @@ export default function EssayBundle({ available, cancelled, gumroadUrl }: { avai
         <aside className={styles.purchase} aria-label="Purchase The Essay Collection">
           <p className={styles.kicker}>THE COMPLETE COLLECTION</p><p className={styles.price}>$5<span>USD · One-Time Purchase</span></p>
           <p>Two essays and a reading note.<br />Three PDF files in one ZIP.</p>
-          {gumroadUrl ? <GumroadPurchase href={gumroadUrl} className={resource.primaryButton}>Buy The Essay Bundle — $5</GumroadPurchase> : available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening Secure Checkout…' : 'Buy The Essay Bundle — $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
+          {gumroadUrl ? <GumroadPurchase href={gumroadUrl} className={resource.primaryButton}>Buy The Essay Bundle For $5</GumroadPurchase> : available ? <button className={resource.primaryButton} onClick={buy} disabled={busy}>{busy ? 'Opening Secure Checkout…' : 'Buy The Essay Bundle For $5'}</button> : <p className={styles.unavailable}>Checkout is not open yet.</p>}
           {error && <p className={resource.error} role="alert">{error}</p>}
           <p className={styles.finePrint}>{gumroadUrl ? 'Checkout and file delivery through Gumroad. Your receipt includes a download link.' : available ? 'Secure payment through Stripe. Download after purchase, with a link sent to your receipt email.' : 'Explore the contents and selected passages below. Sales will open here when checkout is available.'}</p>
         </aside>
       </section>
       <section data-reveal className={styles.excerpts} aria-labelledby="excerpt-heading">
         <div className={styles.excerptHeader}><h2 id="excerpt-heading">From The Essays</h2><div className={styles.excerptButtons} role="group" aria-label="Choose An Excerpt">{excerpts.map((item, index) => <button key={item.label} type="button" aria-pressed={excerpt === index} onClick={() => setExcerpt(index)}>{item.label}</button>)}</div></div>
-        <div className={styles.quoteFrame} aria-live="polite"><blockquote key={excerpt} className={styles.quote}><p>“{excerpts[excerpt].text}”</p><footer>— From the {excerpts[excerpt].label.toLowerCase()}</footer></blockquote></div>
+        <div className={styles.quoteFrame} aria-live="polite"><blockquote key={excerpt} className={styles.quote}><p>“{excerpts[excerpt].text}”</p><footer>From the {excerpts[excerpt].label.toLowerCase()}</footer></blockquote></div>
       </section>
       <section data-reveal className={styles.readingNote} aria-labelledby="reading-heading">
         <p className={styles.kicker}>A NOTE ON READING</p>

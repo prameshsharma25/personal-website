@@ -35,7 +35,8 @@ test('Gumroad links can be paused and overrides must belong to the seller', () =
 
 test('the public UC guide preserves the complete free essay without paid commentary', () => {
   const guide = getGuideBySlug('college-essay');
-  // A digest protects the exact free text without copying private commentary into Git.
+  // Protect the free text, including the approved change from a dash to a comma,
+  // without copying private commentary into Git.
   const digest = createHash('sha256').update(guide.content.trim()).digest('hex');
-  assert.equal(digest, 'abc625548411cce328265213d1b52d4eb31432aec481e57c9b080bf6f1c8d11f');
+  assert.equal(digest, '15b3d66e2b29f59c643dc36322ef4b69f71ff7991d5fd48bbc5a8c9465812283');
 });
