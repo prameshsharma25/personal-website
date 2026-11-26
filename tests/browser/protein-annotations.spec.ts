@@ -7,6 +7,169 @@ const pdb = fs.readFileSync(
   'public/tools/protein-annotations/1LYZ.pdb',
   'utf8'
 );
+// Real UniProt sequence; annotation lists are deliberately omitted from this workflow fixture.
+const fubp1 = JSON.parse(
+  fs.readFileSync('tests/fixtures/protein-annotations/Q96AE4.json', 'utf8')
+);
+test('lysozyme and FUBP1 are clearly distinguished until the user opens the new protein', async ({
+  page,
+}) => {
+  const requests: string[] = [];
+  await page.route('**/api/protein-annotations?**', (route) => {
+    requests.push(route.request().url());
+    return route.fulfill({ json: fubp1 });
+  });
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await page
+    .getByLabel('Protein Sequence', { exact: true })
+    .getByRole('button', { name: 'GLU 35, A, Reference 53', exact: true })
+    .click();
+  await page.getByText('Save A Region And Notes', { exact: true }).click();
+  await page.getByLabel('Region Name', { exact: true }).fill('Lysozyme Region');
+  await page
+    .getByLabel('Research Notes', { exact: true })
+    .fill('Keep this note while comparing references.');
+  await page.getByRole('button', { name: 'Save Selected Region' }).click();
+  const context = page.getByLabel('Loaded Protein And Reference', {
+    exact: true,
+  });
+  await page.getByLabel('UniProt Accession', { exact: true }).fill('Q96AE4');
+  await expect(context).toContainText('1LYZ.pdb');
+  await expect(context).toContainText('P00698');
+  expect(requests).toHaveLength(0);
+  await page
+    .getByRole('button', { name: 'Load Annotations', exact: true })
+    .click();
+  await expect(context).toContainText('Q96AE4');
+  await expect(context).toContainText('1LYZ.pdb');
+  await expect(
+    page.getByText('Reference Mapping Needs Review', { exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      'The loaded protein does not closely match this reference.',
+      { exact: false }
+    )
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('complementary', { name: 'Region Annotations' })
+      .locator('article')
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: '1LYZ.pdb', exact: true })
+  ).toBeVisible();
+  await expect(page.getByText('1 Selected', { exact: true })).toBeVisible();
+  let download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export Review' }).click();
+  let exported = JSON.parse(
+    fs.readFileSync(await (await download).path(), 'utf8')
+  );
+  expect(exported.input.name).toBe('1LYZ.pdb');
+  expect(exported.reference.accession).toBe('Q96AE4');
+  expect(exported.savedRegions[0].notes).toBe(
+    'Keep this note while comparing references.'
+  );
+  expect(exported.mapping.usable).toBe(false);
+  await page
+    .getByRole('button', { name: 'Open Reference Protein', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: fubp1.name, exact: true })
+  ).toBeVisible();
+  await expect(context).not.toContainText('1LYZ.pdb');
+  await expect(context).toContainText('644 Residues');
+  await expect(
+    page.getByText('Exact Sequence Match', { exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByLabel('Protein Sequence', { exact: true }).getByRole('button')
+  ).toHaveCount(644);
+  await expect(page.locator('[data-annotation-viewer]')).toHaveCount(0);
+  await expect(page.getByText('0 Selected', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Research Notes', { exact: true })).toHaveValue(
+    ''
+  );
+  await expect(
+    page.getByRole('button', { name: 'Load Existing AlphaFold Structure' })
+  ).toBeEnabled();
+  download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export Review' }).click();
+  exported = JSON.parse(fs.readFileSync(await (await download).path(), 'utf8'));
+  expect(exported.input.name).toBe(fubp1.name);
+  expect(exported.input.origin).toContain('UniProt Q96AE4');
+  expect(exported.reference.accession).toBe('Q96AE4');
+  expect(exported.mapping.exact).toBe(true);
+  expect(exported.savedRegions).toEqual([]);
+  expect(requests).toHaveLength(1);
+});
+test('opening a new accession preserves the current protein on failure and replaces it on success', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  let fail = true;
+  await page.route('**/api/protein-annotations?**', (route) => {
+    expect(new URL(route.request().url()).searchParams.get('id')).toBe(
+      'Q96AE4'
+    );
+    return route.fulfill(
+      fail
+        ? { status: 502, json: { error: 'Reference temporarily unavailable.' } }
+        : { json: fubp1 }
+    );
+  });
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await page
+    .getByLabel('Protein Sequence', { exact: true })
+    .getByRole('button')
+    .first()
+    .click();
+  await page.getByLabel('UniProt Accession', { exact: true }).fill('Q96AE4');
+  await page
+    .getByRole('button', { name: 'Open As New Protein', exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole('region', { name: 'Protein Annotation Explorer', exact: true })
+      .getByRole('alert')
+  ).toHaveText('Reference temporarily unavailable.');
+  await expect(
+    page.getByRole('heading', { name: '1LYZ.pdb', exact: true })
+  ).toBeVisible();
+  await expect(page.getByLabel('Loaded Protein And Reference')).toContainText(
+    'P00698'
+  );
+  await expect(page.getByText('1 Selected', { exact: true })).toBeVisible();
+  fail = false;
+  await page
+    .getByRole('button', { name: 'Open As New Protein', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: fubp1.name, exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByText('Exact Sequence Match', { exact: true })
+  ).toBeVisible();
+  await expect(page.getByText('0 Selected', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Loaded Protein And Reference')).toContainText(
+    'Q96AE4'
+  );
+  await expect(
+    page.getByRole('button', { name: 'Load Existing AlphaFold Structure' })
+  ).toBeEnabled();
+  await expect(
+    page
+      .getByRole('region', { name: 'Protein Annotation Explorer', exact: true })
+      .getByRole('alert')
+  ).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1
+    )
+  ).toBe(true);
+});
 test('example links sequence, real WebGL selection, annotations, notes and exported provenance', async ({
   page,
 }) => {

@@ -138,6 +138,21 @@
 .inline input {
   flex: 1 1 9rem;
 }
+.newProtein {
+  margin-top: 0.65rem;
+}
+.proteinContext {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #31577c;
+  border-radius: 8px;
+  background: #061323;
+  font-size: 0.76rem;
+}
+.proteinContext strong {
+  color: #9ddcff;
+  font-weight: 600;
+}
 .explorer .primary {
   background: #8acfff;
   color: #071322;

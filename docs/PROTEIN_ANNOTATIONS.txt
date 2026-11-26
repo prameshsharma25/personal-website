@@ -26,6 +26,14 @@ Isoform IDs, de novo protein identification, homology searches, and multi-FASTA 
 Sequence-only users provide the canonical reference accession themselves.
 AlphaFold loading requires exact full-length sequence identity, matching model sequence and coordinates.
 
+Switching proteins
+Load Annotations keeps the loaded structure/sequence, selection, and saved region notes.
+The setup panel separately labels the currently viewed protein and the active annotation reference.
+Open As New Protein loads the entered accession as a fresh reference sequence, clearing old selections
+and notes only after a successful lookup. The AlphaFold button can then open its matching model.
+A withheld mapping also offers Open Reference Protein using the already retrieved reference.
+Editing the accession alone does not change either the loaded protein or active annotation reference.
+
 Sources
 UniProt: https://rest.uniprot.org/uniprotkb/ACCESSION.json
 Feature endpoints and location uncertainty preserved. Disulfide bonds/crosslinks map endpoints only.

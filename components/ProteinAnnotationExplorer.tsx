@@ -174,7 +174,19 @@ export default function ProteinAnnotationExplorer() {
       }
     });
   };
-  const loadReference = () =>
+  const openReferenceProtein = (data: ReferenceProtein) => {
+    replaceInput(
+      {
+        ...parseSequence(data.sequence, data.name),
+        suggestedAccession: data.accession,
+        origin: `UniProt ${data.accession}, ${data.organism}. Reference sequence.`,
+      },
+      data
+    );
+    setAccession(data.accession);
+    setError('');
+  };
+  const loadReference = (asNewProtein = false) =>
     void run('Retrieving Public Annotations…', async (signal, current) => {
       const id = accession.trim().toUpperCase();
       if (!ACCESSION.test(id))
@@ -185,7 +197,7 @@ export default function ProteinAnnotationExplorer() {
         await get(`/api/protein-annotations?kind=reference&id=${id}`, signal)
       ).json();
       if (current()) {
-        if (!input) replaceInput(parseSequence(data.sequence, data.name), data);
+        if (!input || asNewProtein) openReferenceProtein(data);
         else {
           setReference(data);
           setCategory('All');
@@ -402,6 +414,7 @@ export default function ProteinAnnotationExplorer() {
               <input
                 id="protein-accession"
                 value={accession}
+                disabled={!ready || Boolean(busy)}
                 maxLength={15}
                 onChange={(e) => setAccession(e.target.value)}
                 placeholder="For Example, P00698"
@@ -415,11 +428,39 @@ export default function ProteinAnnotationExplorer() {
                 Load Annotations
               </button>
             </div>
+            {input && (
+              <button
+                className={styles.newProtein}
+                type="button"
+                disabled={!ready || Boolean(busy) || !accession.trim()}
+                onClick={() => loadReference(true)}
+              >
+                Open As New Protein
+              </button>
+            )}
           </form>
           <p className={styles.small}>
-            Use the accession for your protein or a reference you want to
-            compare. With no file loaded, this opens the reference sequence.
+            {input
+              ? 'Load Annotations compares the reference with your current protein. Open As New Protein replaces it with the reference sequence and clears the current selection and notes.'
+              : 'Enter an accession to open its reference sequence and annotations. You can then load its existing AlphaFold structure.'}
           </p>
+          {input && (
+            <div
+              className={styles.proteinContext}
+              aria-label="Loaded Protein And Reference"
+            >
+              <p>
+                <strong>Currently Viewing:</strong> {input.name} · Chain{' '}
+                {chain || 'Unnamed'} · {residues.length} Residues
+              </p>
+              <p>
+                <strong>Annotations From:</strong>{' '}
+                {reference
+                  ? `${reference.name} (${reference.accession})`
+                  : 'No Reference Loaded'}
+              </p>
+            </div>
+          )}
           <button
             className={styles.example}
             onClick={loadExample}
@@ -790,10 +831,33 @@ export default function ProteinAnnotationExplorer() {
                       <p>
                         {mapping.usable
                           ? 'Annotations describe the reference protein. Their presence here does not establish function in your uploaded structure.'
-                          : mapping.ambiguous
-                            ? 'This sequence has more than one equally scoring placement. Annotations are withheld to avoid assigning them to the wrong region.'
-                            : 'Mapping requires at least 90% identity and 90% query coverage. Check the reference accession and selected chain. Annotations are withheld.'}
+                          : mapping.identity < 0.9 || mapping.coverage < 0.9
+                            ? 'The loaded protein does not closely match this reference. Mapping requires at least 90% identity and 90% query coverage. Annotations are withheld. Check the accession and selected chain, or open the reference as a new protein.'
+                            : mapping.ambiguous
+                              ? 'This sequence has more than one equally scoring alignment. Annotations are withheld to avoid assigning them to the wrong region.'
+                              : 'Too few matching residues support this mapping. Check the accession and selected chain. Annotations are withheld.'}
                       </p>
+                      {!mapping.usable && (
+                        <>
+                          <p>
+                            Comparing {input.name}, chain {chain || 'Unnamed'},
+                            with {reference.name} ({reference.accession}).
+                            Loading annotations keeps the current protein in the
+                            viewer.
+                          </p>
+                          <button
+                            disabled={Boolean(busy)}
+                            onClick={() => openReferenceProtein(reference)}
+                          >
+                            Open Reference Protein
+                          </button>
+                          <p className={styles.small}>
+                            Opens {reference.accession} as a new sequence and
+                            clears the current selection and notes. You can then
+                            load its existing AlphaFold structure.
+                          </p>
+                        </>
+                      )}
                     </div>
                   )}
                   <div className={styles.sourceStatus}>
