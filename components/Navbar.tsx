@@ -11,6 +11,7 @@ const links = [
   { href: '/mentorship', label: 'Mentorship' },
   { href: '/tools', label: 'Tools' },
   { href: '/books', label: 'Books' },
+  { href: '/road-to-10000', label: 'Road To $10K' },
   { href: '/contact', label: 'Contact' },
 ];
 

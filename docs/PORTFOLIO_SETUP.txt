@@ -1,0 +1,123 @@
+ROAD TO $10,000
+==============
+Page: /road-to-10000
+Public API: /api/portfolio
+
+The page is built. Your coffee link is active. Portfolio values stay unpublished
+until you choose a source and explicitly enable publication. No example balance
+or stocks are presented as yours. The referral card waits for your actual link.
+
+AUTOMATIC UPDATES WITH SNAPTRADE PERSONAL
+
+This connection reads your own account. Visitors cannot connect their accounts,
+select other accounts, request raw brokerage data, or place trades.
+
+1. Create a Personal account at https://dashboard.snaptrade.com and enable two
+   factor authentication. Connect your Robinhood account there with read access.
+   Do not give this website your Robinhood password or MFA code.
+
+2. Create a Personal API key in the SnapTrade dashboard. Put the following in
+   .env.local, which is ignored by Git. Also set them as server environment
+   variables in Vercel for the environments where you want to publish:
+
+   SNAPTRADE_CLIENT_ID=your_personal_client_id
+   SNAPTRADE_CONSUMER_KEY=your_personal_consumer_key
+
+   Use Personal API credentials, not Commercial credentials. Personal requests
+   do not require a separate userId or userSecret. Never use NEXT_PUBLIC for
+   these variables and never paste secret values into chat or commit them.
+
+3. Find the specific investment account ID. If it is not visible in the
+   dashboard, run this locally in the website directory:
+
+   node --env-file=.env.local --import tsx scripts/portfolio-accounts.ts
+
+   The output includes private account IDs, not credentials. Pick the Robinhood
+   account you intend to share. This avoids automatically publishing an IRA or
+   another connected account.
+
+4. Add these settings to .env.local and Vercel:
+
+   SNAPTRADE_ACCOUNT_ID=the_selected_account_id
+   PORTFOLIO_SOURCE=snaptrade
+   PORTFOLIO_PUBLIC_ENABLED=true
+
+   Setting the flag to true publishes the account's total USD value plus stock
+   and fund names and portfolio percentages. It does not publish account
+   numbers, account IDs, share counts, cost basis, transactions or credentials.
+   Given total value and allocation, visitors can infer approximate position
+   values. Set the flag to false and redeploy to turn publication off; an existing
+   public CDN response can remain cached for up to five minutes.
+
+5. Restart the local server or redeploy Vercel. Open /road-to-10000 and check
+   the balance and holdings against Robinhood. /api/portfolio should contain
+   only the public schema in lib/portfolio.ts. Verify the reported sync times.
+
+   This integration has been tested against documented response fixtures. It
+   cannot be verified against your actual account until you connect it.
+
+FRESHNESS, VALUES AND LIMITS
+
+The site checks for updates every five minutes while visible. The server also
+caches for five minutes and shares simultaneous requests within one instance.
+Vercel's public response cache reduces provider calls across visitors. The
+website reads account data only and does not invoke paid manual refreshes.
+
+Automatic does not mean a streaming market feed. Brokerage sync frequency and
+price freshness depend on the provider and account plan. Both balance and
+holding timestamps are displayed; missing or older than 36 hours is flagged.
+An upstream failure keeps the last snapshot if it exists in the warm server
+instance. A cold instance can instead show Update Unavailable. No failure is
+converted into a zero balance. Historical charts are not fabricated.
+
+The total uses the provider's USD net account value, including cash and other
+assets. Positions displayed are stock, ETF, ADR, preferred stock, mutual fund
+and closed end fund positions valued in USD. Weights use price times units
+divided by net account value. Other currencies and unsupported instruments are
+omitted from the stock breakdown and disclosed. Missing valuations are omitted,
+not treated as zero. Short weights can be negative, margin weights can exceed
+100%, and a zero or negative net value has no allocation percentage. Cash is
+not double counted. The app rejects paper accounts and noninvestment accounts.
+
+SnapTrade currently documents Personal as free; verify its current terms and
+account limits before connecting. Commercial plans have separate pricing. No
+paid service is provisioned by this code. Hosting usage follows your Vercel plan.
+This implementation is for the owner's own account, not a multiuser brokerage app.
+
+MANUAL SNAPSHOT ALTERNATIVE
+
+This requires no brokerage connection. Set PORTFOLIO_SOURCE=manual and put a
+dated snapshot in PORTFOLIO_SNAPSHOT_JSON. Use only the fields below and replace
+ALL example values with your own verified values. Example for the variable:
+
+{"currency":"USD","total":1250,"asOf":"2026-11-27T15:00:00Z","holdings":[{"symbol":"EXAMPLE","name":"Example Holding, Replace Before Publishing","percent":40}]}
+
+Set PORTFOLIO_PUBLIC_ENABLED=true only after verifying the snapshot. This is
+explicitly labeled Dated Portfolio Snapshot and does not imply live prices.
+When entering JSON in .env.local, enclose the entire value in single quotes.
+For the Vercel variable value, enter raw JSON without wrapping single quotes.
+Update the timestamp and redeploy whenever you change the snapshot.
+
+SUPPORT LINKS
+
+Buy Me A Coffee is already linked to https://buymeacoffee.com/prameshsharma.
+Set ROBINHOOD_REFERRAL_URL to your actual HTTPS referral link. Supported hosts
+are robinhood.com (including subdomains) and robinhood.app.link. The card stays
+inactive until configured; a reward disclosure appears beside an active link.
+Restart or redeploy after changes. Support is not added to portfolio totals.
+
+CALCULATOR
+
+The adjustable contribution example uses ceil((10000 - balance) / monthly
+contribution), floored at zero months when the goal is already reached. It
+assumes no returns or other account changes. It never alters published values.
+
+OFFICIAL DOCUMENTATION (REVIEWED NOVEMBER 27, 2026)
+
+https://robinhood.com/us/en/support/articles/third-party-connections/
+https://docs.snaptrade.com/docs/personal-api-key
+https://docs.snaptrade.com/docs/personal-vs-commercial
+https://docs.snaptrade.com/docs/request-signatures
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountDetails
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAllAccountPositions
+https://docs.snaptrade.com/openapi.yaml
