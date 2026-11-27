@@ -267,17 +267,7 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
                 </div>
               </dl>
             </div>
-            <div
-              className={styles.gauge}
-              role={progress ? 'meter' : undefined}
-              aria-label="Progress Toward $10,000"
-              aria-valuemin={progress ? 0 : undefined}
-              aria-valuemax={progress ? 100 : undefined}
-              aria-valuenow={progress?.percent}
-              aria-valuetext={
-                progress ? `${dollars(snapshot.total)} of $10,000` : undefined
-              }
-            >
+            <div className={styles.gauge} aria-hidden="true">
               <svg viewBox="0 0 260 260" aria-hidden="true">
                 <circle
                   className={styles.outerRing}
@@ -302,6 +292,41 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
                 </strong>
                 <span>{progress ? 'Of The Goal' : 'The Destination'}</span>
               </div>
+            </div>
+          </div>
+          <div
+            className={styles.goalProgress}
+            data-goal-progress
+            role={progress ? 'meter' : undefined}
+            aria-label="Progress Toward $10,000"
+            aria-valuemin={progress ? 0 : undefined}
+            aria-valuemax={progress ? 100 : undefined}
+            aria-valuenow={progress?.percent}
+            aria-valuetext={
+              progress ? `${dollars(snapshot.total)} of $10,000` : undefined
+            }
+            style={
+              {
+                '--goal-progress': `${progress?.percent ?? 0}%`,
+                '--goal-label-shift': `${-(progress?.percent ?? 0)}%`,
+              } as CSSProperties
+            }
+          >
+            <div className={styles.goalMarkerRow}>
+              <strong className={styles.goalMarker} data-goal-total>
+                <small>{snapshot ? 'Current Total' : 'Progress'}</small>
+                {snapshot ? dollars(snapshot.total) : 'Awaiting Update'}
+              </strong>
+            </div>
+            <div className={styles.goalTrack} aria-hidden="true">
+              <span className={styles.goalFill} data-goal-fill />
+              {!!progress && progress.percent > 0 && (
+                <i className={styles.goalTip} />
+              )}
+            </div>
+            <div className={styles.goalScale} aria-hidden="true">
+              <span>$0</span>
+              <span>$10,000 Goal</span>
             </div>
           </div>
           <ol className={styles.milestones} aria-label="Portfolio Milestones">
