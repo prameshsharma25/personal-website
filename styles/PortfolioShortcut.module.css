@@ -22,7 +22,7 @@
     box-shadow 180ms ease;
 }
 .jitter {
-  animation: badgeJitter 6s linear 1.5s infinite;
+  animation: badgeJitter 2s linear 1.5s infinite;
 }
 .mark {
   position: absolute;
