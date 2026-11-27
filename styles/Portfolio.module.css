@@ -608,6 +608,25 @@
   line-height: 1.8;
   margin: 0.65rem 0.5rem 0;
 }
+.investmentNote {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.2rem;
+  border-left: 2px solid #78bde9;
+  border-radius: 0 10px 10px 0;
+  background: #0d20338a;
+  color: #b8cee3;
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+.investmentNote strong {
+  display: block;
+  color: #d6ecff;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+}
+.investmentNote p {
+  margin: 0;
+}
 .disclosure {
   border-top: 1px solid #273e56;
   padding-top: 1.5rem;

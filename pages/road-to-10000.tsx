@@ -179,6 +179,20 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
             Support My Work <span aria-hidden="true">↗</span>
           </a>
         </div>
+        <aside
+          className={styles.investmentNote}
+          aria-labelledby="investment-disclaimer-title"
+        >
+          <strong id="investment-disclaimer-title">
+            Not Investment Advice
+          </strong>
+          <p>
+            I share my portfolio for informational purposes only. I do not
+            provide investment advice, and my holdings and examples are not
+            recommendations to buy or sell. Investing involves risk, including
+            the loss of money.
+          </p>
+        </aside>
         <noscript>
           <p className={styles.small}>
             Enable JavaScript to load portfolio updates and use the calculator.
@@ -656,10 +670,9 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
           </div>
         </section>
         <p className={styles.disclosure}>
-          This page documents my own investing. It is not a recommendation to
-          buy or sell any security. Investments can lose value, and reaching the
-          goal is not guaranteed. Account growth is not the same as investment
-          return.
+          Nothing on this page is investment advice. Investments can lose value,
+          and reaching the goal is not guaranteed. Account growth is not the
+          same as investment return.
         </p>
       </main>
     </>

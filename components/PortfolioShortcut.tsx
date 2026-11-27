@@ -14,7 +14,7 @@ export default function PortfolioShortcut({ active }: { active: boolean }) {
         <path d="M13 42h7l6-5 7 2 12-13h7M46 26h6v6" className={styles.path} />
       </svg>
       <span className={styles.logo} aria-hidden="true">
-        10K
+        $10K
       </span>
       <span className={styles.tooltip} aria-hidden="true">
         Road To $10,000
