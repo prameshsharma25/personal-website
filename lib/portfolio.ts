@@ -6,6 +6,17 @@ export type PublicHolding = {
   symbol: string;
   name: string;
   percent: number | null;
+  marketValue?: number | null;
+  costBasis?: number | null;
+  unrealizedGain?: number | null;
+  unrealizedGainPercent?: number | null;
+  side?: 'long' | 'short' | 'mixed';
+};
+export type PositionObservation = { asOf: string; value: number };
+export type PositionHistory = {
+  status: 'available' | 'unavailable' | 'disabled';
+  symbol: string;
+  points: PositionObservation[];
 };
 export type PortfolioSnapshot = {
   total: number;

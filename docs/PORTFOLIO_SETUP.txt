@@ -45,10 +45,11 @@ select other accounts, request raw brokerage data, or place trades.
    PORTFOLIO_PUBLIC_ENABLED=true
 
    Setting the flag to true publishes the account's total USD value plus stock
-   and fund names and portfolio percentages. It does not publish account
-   numbers, account IDs, share counts, cost basis, transactions or credentials.
-   Given total value and allocation, visitors can infer approximate position
-   values. Set the flag to false and redeploy to turn publication off; an existing
+   and fund names, portfolio percentages, position values, aggregate cost basis,
+   unrealized gains in dollars and percent, and recorded position value history.
+   It does not publish account numbers, account IDs, raw share counts, per share
+   prices, transactions, tax lots or credentials. Public values may allow visitors
+   to infer approximate share quantities. Set the flag to false and redeploy to turn publication off; an existing
    public CDN response can remain cached for up to five minutes.
 
 5. Restart the local server or redeploy Vercel. Open /road-to-10000 and check
@@ -81,6 +82,55 @@ omitted from the stock breakdown and disclosed. Missing valuations are omitted,
 not treated as zero. Short weights can be negative, margin weights can exceed
 100%, and a zero or negative net value has no allocation percentage. Cash is
 not double counted. The app rejects paper accounts and noninvestment accounts.
+
+HOLDING DETAILS AND POSITION HISTORY
+
+Click a holding to open its details. Current value is units times price; cost
+basis is absolute units times the provider's average purchase price per share.
+Unrealized gain is signed units times (price minus average purchase price).
+The percent uses gross opening basis, which also handles short and mixed
+positions. Duplicate symbols aggregate before rounding. If any row lacks a
+usable basis, aggregate basis and gain stay unavailable. Zero basis can have
+a dollar gain but no percentage. These are open position results, not total
+returns, realized profit, dividends or a tax calculation. Missing manual
+snapshot details are unavailable rather than inferred from rounded weights.
+
+History uses the existing Upstash Redis REST connection. Either the complete
+UPSTASH_REDIS_REST_URL/TOKEN pair or KV_REST_API_URL/TOKEN pair works. No new
+database is required. It is enabled for a published SnapTrade portfolio unless
+PORTFOLIO_HISTORY_ENABLED=false. The manual source does not collect history.
+
+The server saves the latest actual provider observation per New York calendar
+day. Updating the page does not invent a new date for stale brokerage data.
+The chart begins with the first recorded observation, not the account opening
+date. SnapTrade's documented balance history is for the whole account and is
+not used as individual position history. Value changes include purchases and
+sales, so the chart explicitly does not present them as investment returns.
+Missing observations remain gaps. No values are backfilled or replaced by zero.
+
+Public portfolio reads collect snapshots, and vercel.json schedules an additional
+daily production capture at 23:00 UTC (6 PM EST / 7 PM EDT). This uses existing
+synced data and never forces a paid brokerage refresh. To activate the scheduled
+job, create a random CRON_SECRET of at least 32 characters in Vercel Production
+and redeploy. Vercel supplies it as the Authorization header. The route refuses
+requests without the matching secret. A daily schedule fits Vercel's Hobby cron
+frequency limit; scheduling can be delayed by up to an hour and normal function
+and database usage limits apply. Preview deployments do not schedule this job.
+
+Check /api/portfolio-history?symbol=YOUR_CURRENT_SYMBOL to verify chart data.
+Only currently published holdings can be queried; no account selector exists.
+The first capture shows one point. More recorded days produce a trend. History
+storage failures do not hide current holding details. The scheduled endpoint
+returns 503 for provider/storage failure, with no private error bodies.
+
+History keys are separate from website view counters, use a hashed account ID,
+and isolate production, preview and development by VERCEL_ENV. Optionally set
+PORTFOLIO_HISTORY_NAMESPACE to a distinct lowercase name for another environment.
+Never point local or preview collection at the production namespace. The chart
+retains up to 366 calendar days; inactive keys expire after 400 days. Switching
+accounts starts a separate history. Symbols identify positions; corporate
+actions and stock splits are not reconstructed. Disabling publication stops
+reads and collection but does not immediately delete already stored snapshots.
 
 SnapTrade currently documents Personal as free; verify its current terms and
 account limits before connecting. Commercial plans have separate pricing. No
@@ -126,3 +176,6 @@ https://docs.snaptrade.com/docs/request-signatures
 https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountDetails
 https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAllAccountPositions
 https://docs.snaptrade.com/openapi.yaml
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountBalanceHistory
+https://vercel.com/docs/cron-jobs/usage-and-pricing
+https://vercel.com/docs/cron-jobs/manage-cron-jobs

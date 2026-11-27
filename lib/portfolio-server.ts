@@ -99,7 +99,17 @@ export function normalizeSnapTrade(
     data.results.length > 1000
   )
     throw new Error('Unsupported portfolio');
-  const holdings = new Map<string, PublicHolding>();
+  const holdings = new Map<
+    string,
+    {
+      symbol: string;
+      name: string;
+      marketValue: number;
+      costBasis: number | null;
+      gain: number | null;
+      side: 'long' | 'short' | 'mixed';
+    }
+  >();
   let incompleteHoldings = false;
   for (const raw of data.results) {
     const position = record(raw),
@@ -122,17 +132,38 @@ export function normalizeSnapTrade(
     const name = instrument.description
       ? label(instrument.description, 180)
       : symbol;
-    const percent = total > 0 ? ((units * price) / total) * 100 : null;
+    const marketValue = units * price;
+    if (!Number.isFinite(marketValue) || Math.abs(marketValue) > 1e12)
+      throw new Error('Invalid position value');
+    const percent = total > 0 ? (marketValue / total) * 100 : null;
     if (
       percent !== null &&
       (!Number.isFinite(percent) || Math.abs(percent) > 1e6)
     )
       throw new Error('Invalid allocation');
     const previous = holdings.get(symbol);
+    const averageCost = numeric(position.cost_basis);
+    const basis =
+      averageCost !== null && averageCost >= 0
+        ? Math.abs(units) * averageCost
+        : null;
+    if (basis !== null && (!Number.isFinite(basis) || basis > 1e12))
+      throw new Error('Invalid cost basis');
+    const side = units < 0 ? 'short' : 'long';
+    const gain = basis === null ? null : units * (price - averageCost!);
     holdings.set(symbol, {
       symbol,
       name,
-      percent: percent === null ? null : (previous?.percent ?? 0) + percent,
+      marketValue: (previous?.marketValue ?? 0) + marketValue,
+      costBasis:
+        basis === null || previous?.costBasis === null
+          ? null
+          : (previous?.costBasis ?? 0) + basis,
+      gain:
+        gain === null || previous?.gain === null
+          ? null
+          : (previous?.gain ?? 0) + gain,
+      side: previous && previous.side !== side ? 'mixed' : side,
     });
   }
   const sync = record(account.sync_status);
@@ -140,10 +171,29 @@ export function normalizeSnapTrade(
     total: round(total),
     currency: 'USD',
     holdings: Array.from(holdings.values())
-      .map((holding) => ({
-        ...holding,
-        percent: holding.percent === null ? null : round(holding.percent),
-      }))
+      .map((holding): PublicHolding => {
+        const percent = total > 0 ? (holding.marketValue / total) * 100 : null;
+        if (
+          Math.abs(holding.marketValue) > 1e12 ||
+          (holding.costBasis !== null && holding.costBasis > 1e12) ||
+          (percent !== null && Math.abs(percent) > 1e6)
+        )
+          throw new Error('Invalid aggregate position');
+        return {
+          symbol: holding.symbol,
+          name: holding.name,
+          side: holding.side,
+          marketValue: round(holding.marketValue),
+          costBasis:
+            holding.costBasis === null ? null : round(holding.costBasis),
+          unrealizedGain: holding.gain === null ? null : round(holding.gain),
+          unrealizedGainPercent:
+            holding.gain !== null && holding.costBasis
+              ? round((holding.gain / holding.costBasis) * 100)
+              : null,
+          percent: percent === null ? null : round(percent),
+        };
+      })
       .sort(
         (a, b) =>
           Math.abs(b.percent ?? 0) - Math.abs(a.percent ?? 0) ||

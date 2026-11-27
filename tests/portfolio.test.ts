@@ -104,9 +104,14 @@ test('portfolio publishes only allowed fields and weights use net account value 
     [20, 20]
   );
   assert.deepEqual(Object.keys(result.holdings[0]).sort(), [
+    'costBasis',
+    'marketValue',
     'name',
     'percent',
+    'side',
     'symbol',
+    'unrealizedGain',
+    'unrealizedGainPercent',
   ]);
   const publicJson = JSON.stringify(result);
   for (const privateValue of [
@@ -120,6 +125,113 @@ test('portfolio publishes only allowed fields and weights use net account value 
   ])
     assert.ok(!publicJson.includes(privateValue));
   assert.equal(result.balanceAsOf, '2026-11-27T15:00:00.000Z');
+});
+
+test('position totals use per share basis and fractional units, without exposing source fields', () => {
+  const result = normalizeSnapTrade(
+    details,
+    {
+      ...positions,
+      results: [
+        { ...position('FRACTION', '2.5', '120'), cost_basis: '80' },
+        { ...position('LOSS', '3', '20'), cost_basis: '25' },
+        { ...position('FREE', '2', '15'), cost_basis: '0' },
+      ],
+    },
+    id,
+    now
+  );
+  assert.deepEqual(result.holdings[0], {
+    symbol: 'FRACTION',
+    name: 'FRACTION Corporation',
+    marketValue: 300,
+    costBasis: 200,
+    unrealizedGain: 100,
+    unrealizedGainPercent: 50,
+    percent: 6,
+    side: 'long',
+  });
+  assert.equal(result.holdings[1].unrealizedGain, -15);
+  assert.equal(result.holdings[1].unrealizedGainPercent, -20);
+  assert.equal(result.holdings[2].unrealizedGain, 30);
+  assert.equal(result.holdings[2].unrealizedGainPercent, null);
+});
+
+test('aggregate basis, short profit and mixed direction returns use gross opening basis', () => {
+  const result = normalizeSnapTrade(
+    details,
+    {
+      ...positions,
+      results: [
+        { ...position('LONG', 2, 100), cost_basis: 50 },
+        { ...position('LONG', 3, 100), cost_basis: 80 },
+        { ...position('SHORT', -5, 40), cost_basis: 60 },
+        { ...position('MIXED', 5, 40), cost_basis: 30 },
+        { ...position('MIXED', -5, 40), cost_basis: 60 },
+      ],
+    },
+    id,
+    now
+  );
+  const [long, short, mixed] = result.holdings;
+  assert.equal(long.costBasis, 340);
+  assert.equal(long.unrealizedGain, 160);
+  assert.equal(long.unrealizedGainPercent, 47.06);
+  assert.equal(short.marketValue, -200);
+  assert.equal(short.costBasis, 300);
+  assert.equal(short.unrealizedGain, 100);
+  assert.equal(short.unrealizedGainPercent, 33.33);
+  assert.equal(short.side, 'short');
+  assert.equal(mixed.marketValue, 0);
+  assert.equal(mixed.costBasis, 450);
+  assert.equal(mixed.unrealizedGain, 150);
+  assert.equal(mixed.side, 'mixed');
+});
+
+test('missing aggregate basis stays unknown, tiny positions round only after summing, and overflow fails', () => {
+  for (const basis of [null, '', 'NaN', -3, true]) {
+    const result = normalizeSnapTrade(
+      details,
+      {
+        ...positions,
+        results: [
+          { ...position('PARTIAL', 2, 100), cost_basis: 30 },
+          { ...position('PARTIAL', 2, 100), cost_basis: basis },
+        ],
+      },
+      id,
+      now
+    ).holdings[0];
+    assert.equal(result.marketValue, 400);
+    assert.equal(result.costBasis, null);
+    assert.equal(result.unrealizedGain, null);
+    assert.equal(result.unrealizedGainPercent, null);
+  }
+  const tiny = normalizeSnapTrade(
+    details,
+    {
+      ...positions,
+      results: [
+        { ...position('TINY', '0.001', '5.1'), cost_basis: '2.7' },
+        { ...position('TINY', '0.001', '5.1'), cost_basis: '2.7' },
+        { ...position('TINY', '0.001', '5.1'), cost_basis: '2.7' },
+      ],
+    },
+    id,
+    now
+  ).holdings[0];
+  assert.equal(tiny.marketValue, 0.02);
+  assert.equal(tiny.costBasis, 0.01);
+  assert.equal(tiny.unrealizedGain, 0.01);
+  assert.equal(tiny.unrealizedGainPercent, 88.89);
+  assert.throws(() =>
+    normalizeSnapTrade(
+      details,
+      { ...positions, results: [position('HUGE', 1e12, 1e12)] },
+      id,
+      now
+    )
+  );
 });
 
 test('missing valuations, unsupported currencies and instruments are not fabricated or used as stock weights', () => {

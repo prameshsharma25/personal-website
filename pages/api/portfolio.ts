@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { portfolioService } from '../../lib/portfolio-server';
+import { portfolioHistoryService } from '../../lib/portfolio-history-server';
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,6 +18,9 @@ export default async function handler(
       .json({ error: 'This portfolio has no account selector.' });
   const report = await portfolioService.read();
   if (report.status === 'available') {
+    // Storage is optional: a history outage must not hide the current balance.
+    if (report.snapshot && !report.stale)
+      await portfolioHistoryService.record(report.snapshot);
     const age = report.checkedAt
       ? (Date.now() - Date.parse(report.checkedAt)) / 1000
       : 300;

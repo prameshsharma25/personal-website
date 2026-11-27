@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import Seo from '../components/Seo';
 import PageIntro from '../components/PageIntro';
+import PortfolioHoldingDetails from '../components/PortfolioHoldingDetails';
 import {
   contributionMonths,
   emptyPortfolio,
@@ -77,6 +78,7 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
   const [monthly, setMonthly] = useState('100');
   const [exampleStart, setExampleStart] = useState<string | null>(null);
   const lastRefresh = useRef(0);
+  const holdingButtons = useRef(new Map<string, HTMLButtonElement>());
 
   useEffect(() => {
     const controller = new AbortController();
@@ -373,8 +375,8 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
           {holdings.length ? (
             <>
               <p className={styles.muted}>
-                Select a holding to see its share of the total account value.
-                Share counts and purchase prices are private.
+                Select a holding to explore its value, cost basis, unrealized
+                gain or loss, and recorded position history.
               </p>
               <div className={styles.holdings}>
                 {holdings.map((holding, index) => (
@@ -382,6 +384,17 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
                     key={holding.symbol}
                     className={styles.holding}
                     aria-pressed={selected === holding.symbol}
+                    aria-expanded={selected === holding.symbol}
+                    aria-controls={
+                      selected === holding.symbol
+                        ? 'holding-details'
+                        : undefined
+                    }
+                    ref={(element) => {
+                      if (element)
+                        holdingButtons.current.set(holding.symbol, element);
+                      else holdingButtons.current.delete(holding.symbol);
+                    }}
                     onClick={() =>
                       setSelected((current) =>
                         current === holding.symbol ? null : holding.symbol
@@ -424,6 +437,18 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
                   'Portfolio weight reflects position value relative to total account value.'
                 )}
               </p>
+              {activeHolding && (
+                <PortfolioHoldingDetails
+                  key={activeHolding.symbol}
+                  holding={activeHolding}
+                  asOf={snapshot.holdingsAsOf}
+                  checkedAt={report.checkedAt}
+                  onClose={() => {
+                    setSelected(null);
+                    holdingButtons.current.get(activeHolding.symbol)?.focus();
+                  }}
+                />
+              )}
               <p className={styles.small}>
                 Cash and other assets may not appear in this list, so these
                 percentages need not add up to 100%. Borrowing or short
