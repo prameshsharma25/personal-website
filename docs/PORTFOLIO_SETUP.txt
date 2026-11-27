@@ -1,0 +1,222 @@
+ROAD TO $10,000
+==============
+Page: /road-to-10000
+Public API: /api/portfolio
+
+The page is built. Your coffee and Robinhood referral links are active. A circular
+$10K shortcut sits at the bottom right across pages, except the Tools index and
+all Tools subpages. It replaces the top navigation entry. Portfolio values stay unpublished
+until you choose a source and explicitly enable publication. No example balance
+or stocks are presented as yours.
+
+The shortcut jitters until the visitor first activates it. Clicking, tapping,
+or using the keyboard stops the jitter and saves a small local browser preference.
+It remains stopped across page changes and future visits in that browser, and
+other open tabs receive the same preference. If local storage is blocked, the
+current tab still remembers the choice across page changes. Clearing site data
+resets the saved preference. Reduced motion always disables the animation.
+
+AUTOMATIC UPDATES WITH SNAPTRADE PERSONAL
+
+This connection reads your own account. Visitors cannot connect their accounts,
+select other accounts, request raw brokerage data, or place trades.
+
+1. Create a Personal account at https://dashboard.snaptrade.com and enable two
+   factor authentication. Connect your Robinhood account there with read access.
+   Do not give this website your Robinhood password or MFA code.
+
+2. Create a Personal API key in the SnapTrade dashboard. Put the following in
+   .env.local, which is ignored by Git. Also set them as server environment
+   variables in Vercel for the environments where you want to publish:
+
+   SNAPTRADE_CLIENT_ID=your_personal_client_id
+   SNAPTRADE_CONSUMER_KEY=your_personal_consumer_key
+
+   Use Personal API credentials, not Commercial credentials. Personal requests
+   do not require a separate userId or userSecret. Never use NEXT_PUBLIC for
+   these variables and never paste secret values into chat or commit them.
+
+3. Find the specific investment account ID. If it is not visible in the
+   dashboard, run this locally in the website directory:
+
+   node --env-file=.env.local --import tsx scripts/portfolio-accounts.ts
+
+   The output includes private account IDs, not credentials. Pick the Robinhood
+   account you intend to share. This avoids automatically publishing an IRA or
+   another connected account.
+
+4. Add these settings to .env.local and Vercel:
+
+   SNAPTRADE_ACCOUNT_ID=the_selected_account_id
+   PORTFOLIO_SOURCE=snaptrade
+   PORTFOLIO_PUBLIC_ENABLED=true
+
+   Setting the flag to true publishes the account's total USD value plus stock
+   and fund names, portfolio percentages, position values, aggregate cost basis,
+   unrealized gains in dollars and percent, recorded position value history,
+   and recent stock/fund transactions (date, type, ticker, name and USD cash amount).
+   It does not publish account numbers, account IDs, raw share counts, per share
+   prices, raw transaction IDs/descriptions, bank transfers, tax lots or credentials. Public values may allow visitors
+   to infer approximate share quantities. Set the flag to false and redeploy to turn publication off; an existing
+   public CDN response can remain cached for up to five minutes.
+
+5. Restart the local server or redeploy Vercel. Open /road-to-10000 and check
+   the balance and holdings against Robinhood. /api/portfolio should contain
+   only the public schema in lib/portfolio.ts. Verify the reported sync times.
+
+   The Robinhood Individual stock account was verified locally on November 27,
+   2026. Local settings do not configure Vercel: add the same portfolio variables
+   there and redeploy to enable automatic updates on the live site.
+
+FRESHNESS, VALUES AND LIMITS
+
+The site checks for updates every five minutes while visible. The server also
+caches for five minutes and shares simultaneous requests within one instance.
+Vercel's public response cache reduces provider calls across visitors. The
+website reads account data only and does not invoke paid manual refreshes.
+
+Automatic does not mean a streaming market feed. Brokerage sync frequency and
+price freshness depend on the provider and account plan. Both balance and
+holding timestamps are displayed; missing or older than 36 hours is flagged.
+An upstream failure keeps the last snapshot if it exists in the warm server
+instance. A cold instance can instead show Update Unavailable. No failure is
+converted into a zero balance. Historical charts are not fabricated.
+
+The total uses the provider's USD net account value, including cash and other
+assets. Positions displayed are stock, ETF, ADR, preferred stock, mutual fund
+and closed end fund positions valued in USD. Weights use price times units
+divided by net account value. Other currencies and unsupported instruments are
+omitted from the stock breakdown and disclosed. Missing valuations are omitted,
+not treated as zero. Short weights can be negative, margin weights can exceed
+100%, and a zero or negative net value has no allocation percentage. Cash is
+not double counted. The app rejects paper accounts and noninvestment accounts.
+
+HOLDING DETAILS AND POSITION HISTORY
+
+Click a holding to open its details. Current value is units times price; cost
+basis is absolute units times the provider's average purchase price per share.
+Unrealized gain is signed units times (price minus average purchase price).
+The percent uses gross opening basis, which also handles short and mixed
+positions. Duplicate symbols aggregate before rounding. If any row lacks a
+usable basis, aggregate basis and gain stay unavailable. Zero basis can have
+a dollar gain but no percentage. These are open position results, not total
+returns, realized profit, dividends or a tax calculation. Missing manual
+snapshot details are unavailable rather than inferred from rounded weights.
+
+History uses the existing Upstash Redis REST connection. Either the complete
+UPSTASH_REDIS_REST_URL/TOKEN pair or KV_REST_API_URL/TOKEN pair works. No new
+database is required. It is enabled for a published SnapTrade portfolio unless
+PORTFOLIO_HISTORY_ENABLED=false. The manual source does not collect history.
+
+The server saves the latest actual provider observation per New York calendar
+day. Updating the page does not invent a new date for stale brokerage data.
+The chart begins with the first recorded observation, not the account opening
+date. SnapTrade's documented balance history is for the whole account and is
+not used as individual position history. Value changes include purchases and
+sales, so the chart explicitly does not present them as investment returns.
+Missing observations remain gaps. No values are backfilled or replaced by zero.
+
+Public portfolio reads collect snapshots, and vercel.json schedules an additional
+daily production capture at 23:00 UTC (6 PM EST / 7 PM EDT). This uses existing
+synced data and never forces a paid brokerage refresh. To activate the scheduled
+job, create a random CRON_SECRET of at least 32 characters in Vercel Production
+and redeploy. Vercel supplies it as the Authorization header. The route refuses
+requests without the matching secret. A daily schedule fits Vercel's Hobby cron
+frequency limit; scheduling can be delayed by up to an hour and normal function
+and database usage limits apply. Preview deployments do not schedule this job.
+
+Check /api/portfolio-history?symbol=YOUR_CURRENT_SYMBOL to verify chart data.
+Only currently published holdings can be queried; no account selector exists.
+The first capture shows one point. More recorded days produce a trend. History
+storage failures do not hide current holding details. The scheduled endpoint
+returns 503 for provider/storage failure, with no private error bodies.
+
+History keys are separate from website view counters, use a hashed account ID,
+and isolate production, preview and development by VERCEL_ENV. Optionally set
+PORTFOLIO_HISTORY_NAMESPACE to a distinct lowercase name for another environment.
+Never point local or preview collection at the production namespace. The chart
+retains up to 366 calendar days; inactive keys expire after 400 days. Switching
+accounts starts a separate history. Symbols identify positions; corporate
+actions and stock splits are not reconstructed. Disabling publication stops
+reads and collection but does not immediately delete already stored snapshots.
+
+SnapTrade currently documents Personal as free; verify its current terms and
+account limits before connecting. Commercial plans have separate pricing. No
+paid service is provisioned by this code. Hosting usage follows your Vercel plan.
+This implementation is for the owner's own account, not a multiuser brokerage app.
+
+RECENT TRANSACTIONS
+
+The activity feed reads the selected account's cached transaction history from
+/accounts/{accountId}/transactions. It displays USD stock/fund purchases, sales,
+dividends, payments in lieu of dividends and reinvestments. Deposits, withdrawals,
+bank transfers, fees, taxes, options and cryptocurrency activity are excluded.
+The API does not return raw transaction IDs, brokerage descriptions, quantities,
+per share prices or account identifiers. Public row IDs are opaque HMAC digests
+used to prevent duplicate rows while loading older pages. Missing amounts stay
+unavailable. Cash movements retain the provider's sign and are not called profit.
+
+The feed is on for a published SnapTrade account unless
+PORTFOLIO_TRANSACTIONS_ENABLED=false. This setting can be changed independently
+of the portfolio and position charts. It requires no additional keys, Redis
+storage, cron job or subscription beyond the existing account connection.
+SnapTrade refreshes transaction history daily; timing and historical coverage
+depend on Robinhood. Dates are shown as reported in UTC, without inventing a
+time of day. The source's synced-through date and initial-sync state are shown
+separately from the website's request time. Pending or cancelled orders are not
+presented as completed transactions.
+
+The page loads 50 provider records at a time, initially displaying 10 matches.
+Show More Transactions reveals loaded matches; Load Older Activity fetches the
+next provider page. Filters apply to loaded records. Selecting a holding also
+filters its activity. Loading pages deduplicates rows by their opaque ID; checking
+for updates restarts from the newest page because the provider uses offsets.
+Each page has a five minute cache and concurrent requests share a provider read.
+Outages retain earlier loaded records with a warning, never an invented empty
+history. Initial-sync and stale states are explicit. Only bounded numeric offsets
+are accepted by /api/portfolio-transactions; there is no public account selector.
+The service bounds its instance cache to 20 pages and offsets to 100,000.
+
+MANUAL SNAPSHOT ALTERNATIVE
+
+This requires no brokerage connection. Set PORTFOLIO_SOURCE=manual and put a
+dated snapshot in PORTFOLIO_SNAPSHOT_JSON. Use only the fields below and replace
+ALL example values with your own verified values. Example for the variable:
+
+{"currency":"USD","total":1250,"asOf":"2026-11-27T15:00:00Z","holdings":[{"symbol":"EXAMPLE","name":"Example Holding, Replace Before Publishing","percent":40}]}
+
+Set PORTFOLIO_PUBLIC_ENABLED=true only after verifying the snapshot. This is
+explicitly labeled Dated Portfolio Snapshot and does not imply live prices.
+When entering JSON in .env.local, enclose the entire value in single quotes.
+For the Vercel variable value, enter raw JSON without wrapping single quotes.
+Update the timestamp and redeploy whenever you change the snapshot.
+
+SUPPORT LINKS
+
+Buy Me A Coffee is already linked to https://buymeacoffee.com/prameshsharma.
+Robinhood defaults to https://join.robinhood.com/pramess-724360.
+ROBINHOOD_REFERRAL_URL optionally overrides that link. Omit it to use the default;
+set it explicitly empty to pause the referral card. Supported hosts
+are robinhood.com (including subdomains) and robinhood.app.link. A reward
+disclosure appears beside an active link.
+Restart or redeploy after changes. Support is not added to portfolio totals.
+
+CALCULATOR
+
+The adjustable contribution example uses ceil((10000 - balance) / monthly
+contribution), floored at zero months when the goal is already reached. It
+assumes no returns or other account changes. It never alters published values.
+
+OFFICIAL DOCUMENTATION (REVIEWED NOVEMBER 27, 2026)
+
+https://robinhood.com/us/en/support/articles/third-party-connections/
+https://docs.snaptrade.com/docs/personal-api-key
+https://docs.snaptrade.com/docs/personal-vs-commercial
+https://docs.snaptrade.com/docs/request-signatures
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountDetails
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAllAccountPositions
+https://docs.snaptrade.com/openapi.yaml
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountTransactions
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountBalanceHistory
+https://vercel.com/docs/cron-jobs/usage-and-pricing
+https://vercel.com/docs/cron-jobs/manage-cron-jobs

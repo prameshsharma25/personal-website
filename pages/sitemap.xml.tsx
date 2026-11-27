@@ -8,7 +8,7 @@ export default function Sitemap() { return null; }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const paths = [
-    '/', '/experience', '/posts', '/mentorship', '/books', '/contact', '/privacy',
+    '/', '/experience', '/posts', '/mentorship', '/books', '/contact', '/privacy', '/road-to-10000',
     '/tools', '/tools/amyloid-inspector', '/tools/protein-annotations',
     '/resources', '/resources/lab-search-tracker', '/resources/phd-essay-bundle',
     ...(dataset.opportunities.length ? ['/research-opportunities'] : []),

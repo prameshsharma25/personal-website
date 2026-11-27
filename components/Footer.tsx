@@ -9,6 +9,7 @@ export default function Footer() {
           <p>&copy; 2026 Pramesh Sharma. All rights reserved.</p>
           <div className={styles.links}>
             <Link href="/resources" className={styles.link}>Resources</Link>
+            <Link href="/road-to-10000" className={styles.link}>Road To $10,000</Link>
             <Link href="/research-opportunities" className={styles.link}>Lab Directory</Link>
             <Link href="/feed.xml" prefetch={false} className={styles.link}>RSS</Link>
             <Link href="/privacy" className={styles.link}>
