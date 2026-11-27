@@ -216,7 +216,7 @@ export default function ResearchProjects() {
     >
       <div className={styles.intro} data-reveal>
         <div>
-          <p className={styles.eyebrow}>04 / Selected Work</p>
+          <p className={styles.eyebrow}>03 / Selected Work</p>
           <h2 id="projects-heading">Projects</h2>
         </div>
         <div>

@@ -151,8 +151,7 @@
   font-size: 0.75rem;
   color: #cadbee;
 }
-.publicationList,
-.experienceList {
+.publicationList {
   list-style: none;
 }
 .publicationList li {
@@ -177,8 +176,7 @@
   line-height: 1.6;
   margin-bottom: 0.7rem;
 }
-.sectionBody .publicationSource,
-.sectionBody .dates {
+.sectionBody .publicationSource {
   font-size: 0.72rem;
   color: #cfdff1;
   margin-bottom: 0.65rem;
@@ -191,36 +189,6 @@
 .authors strong {
   font-weight: 500;
   color: #eaf3fe;
-}
-.experienceList li {
-  position: relative;
-  border-left: 1px solid #63adef39;
-  padding: 0 0 2rem 1.5rem;
-}
-.experienceList li::before {
-  content: '';
-  position: absolute;
-  left: -4px;
-  top: 0.5rem;
-  width: 7px;
-  height: 7px;
-  background: #67b7f0;
-  border-radius: 50%;
-  box-shadow: 0 0 12px #6cb6f34d;
-}
-.experienceList li:last-child {
-  padding-bottom: 0;
-}
-.experienceList li > p:last-child {
-  margin-bottom: 0;
-}
-.sectionBody .organization {
-  color: #e3effc;
-  margin-bottom: 0.2rem;
-}
-.sectionBody .detail {
-  font-size: 0.87rem;
-  margin-bottom: 0.8rem;
 }
 .education {
   border: 1px solid #59a0e439;
