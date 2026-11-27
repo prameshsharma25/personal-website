@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AnnotationStructureViewer from './AnnotationStructureViewer';
+import ProteinComparison from './ProteinComparison';
+import type { ComparisonReport } from '../lib/protein-comparison';
 import AnnotationTypeIcon from './AnnotationTypeIcon';
 import {
   ANNOTATION_LIMITS,
@@ -21,6 +23,10 @@ const title = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 type Region = { name: string; notes: string; chain: string; keys: string[] };
 export default function ProteinAnnotationExplorer() {
   const [ready, setReady] = useState(false);
+  const [inputRevision, setInputRevision] = useState(0);
+  const [initialComparison, setInitialComparison] =
+    useState<ProteinInput | null>(null);
+  const [comparison, setComparison] = useState<ComparisonReport | null>(null);
   const [input, setInput] = useState<ProteinInput | null>(null);
   const [reference, setReference] = useState<ReferenceProtein | null>(null);
   const [chain, setChain] = useState(''),
@@ -110,6 +116,9 @@ export default function ProteinAnnotationExplorer() {
     next: ProteinInput,
     ref: ReferenceProtein | null = null
   ) => {
+    setInputRevision((v) => v + 1);
+    setInitialComparison(null);
+    setComparison(null);
     setInput(next);
     setChain(next.chains[0].id);
     setReference(ref);
@@ -230,6 +239,28 @@ export default function ProteinAnnotationExplorer() {
         setAccession('P00698');
       }
     });
+  const loadComparisonExample = () =>
+    void run('Opening The RfaH States…', async (signal, current) => {
+      const [alpha, beta] = await Promise.all([
+        get('/structures/rfah/2OUG-CTD.pdb', signal).then((r) => r.text()),
+        get('/structures/rfah/2LCL-CTD.pdb', signal).then((r) => r.text()),
+      ]);
+      const primary = {
+        ...parseProteinStructure(alpha, 'RfaH 2OUG CTD.pdb'),
+        origin:
+          'RfaH C terminal domain from PDB 2OUG, chain A, observed residues 115 to 156. Alpha helical state.',
+      };
+      const secondary = {
+        ...parseProteinStructure(beta, 'RfaH 2LCL CTD.pdb'),
+        origin:
+          'Isolated RfaH C terminal domain from PDB 2LCL, first NMR model. Beta barrel state.',
+      };
+      if (current()) {
+        replaceInput(primary);
+        setInitialComparison(secondary);
+        setAccession('');
+      }
+    });
   const loadModel = () =>
     void run(
       'Retrieving An Existing AlphaFold Model…',
@@ -267,6 +298,7 @@ export default function ProteinAnnotationExplorer() {
       }
     );
   const switchChain = (id: string) => {
+    setComparison(null);
     setChain(id);
     setSelectedKeys([]);
     setHover(null);
@@ -360,6 +392,7 @@ export default function ProteinAnnotationExplorer() {
       mapping,
       reference,
       savedRegions: regions,
+      comparison,
       note: 'Annotations describe the cited reference. Mapping is not experimental validation of the uploaded protein. Neighborhoods use alpha carbon distances within the selected chain.',
     };
     const url = URL.createObjectURL(
@@ -499,6 +532,13 @@ export default function ProteinAnnotationExplorer() {
           >
             Try Lysozyme <span aria-hidden="true">↗</span>
           </button>
+          <button
+            className={styles.example}
+            onClick={loadComparisonExample}
+            disabled={!ready || Boolean(busy)}
+          >
+            Compare RfaH States <span aria-hidden="true">↗</span>
+          </button>
         </div>
       </div>
       <p className={styles.privacy}>
@@ -556,6 +596,8 @@ export default function ProteinAnnotationExplorer() {
                 disabled={!ready || Boolean(busy)}
                 onClick={() => {
                   setInput(null);
+                  setInitialComparison(null);
+                  setComparison(null);
                   setReference(null);
                   setSelectedKeys([]);
                   setRegions([]);
@@ -594,17 +636,43 @@ export default function ProteinAnnotationExplorer() {
                   </div>
                 </div>
                 {input.pdb ? (
-                  <AnnotationStructureViewer
+                  <ProteinComparison
+                    key={inputRevision}
                     input={input}
                     chain={chain}
+                    initialComparison={initialComparison}
                     selected={selected}
-                    annotated={annotated}
+                    onPick={pick}
                     reference={reference}
                     mapping={mapping}
-                    onPick={pick}
-                    onHover={setHover}
                     focus={focus}
-                  />
+                    onReport={setComparison}
+                  >
+                    <>
+                      <AnnotationStructureViewer
+                        input={input}
+                        chain={chain}
+                        selected={selected}
+                        annotated={annotated}
+                        reference={reference}
+                        mapping={mapping}
+                        onPick={pick}
+                        onHover={setHover}
+                        focus={focus}
+                      />
+                      <p className={styles.legend}>
+                        <span>● Reference Annotations</span>
+                        <span>● Your Selection</span>
+                        <span>● Hovered Residue</span>
+                      </p>
+                      <p className={styles.small}>
+                        Drag the structure to rotate. Hover over a residue for
+                        its amino acid and annotation preview. Click to select
+                        it. Hold Shift to add residues. Colors identify
+                        annotations and selections, not confidence.
+                      </p>
+                    </>
+                  </ProteinComparison>
                 ) : (
                   <div className={styles.noStructure}>
                     <h3>Sequence Ready</h3>
@@ -628,17 +696,6 @@ export default function ProteinAnnotationExplorer() {
                     </p>
                   </div>
                 )}
-                <p className={styles.legend}>
-                  <span>● Reference Annotations</span>
-                  <span>● Your Selection</span>
-                  <span>● Hovered Residue</span>
-                </p>
-                <p className={styles.small}>
-                  Drag the structure to rotate. Hover over a residue for its
-                  amino acid and annotation preview. Click to select it. Hold
-                  Shift to add residues. Colors identify annotations and
-                  selections, not confidence.
-                </p>
               </div>
               <div className={styles.panel}>
                 <div className={styles.heading}>

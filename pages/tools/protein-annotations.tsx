@@ -10,7 +10,7 @@ export default function ProteinAnnotations() {
     <>
       <Seo
         title="Protein Annotation Explorer"
-        description="Select protein residues in an interactive 3D structure and sequence. Explore UniProt features and InterPro domains with reference mapping and source evidence."
+        description="Annotate protein regions and compare two structures in your browser. Align conformations, explore residue differences, and connect UniProt and InterPro evidence."
         path="/tools/protein-annotations"
         breadcrumbs={[
           { name: 'Home', path: '/' },
@@ -38,7 +38,7 @@ export default function ProteinAnnotations() {
           eyebrow="Tools / Sequence And Structure"
           title="Protein Annotation"
           accent="Explorer."
-          description="Select a region. Explore what is known. Connect the residues in your structure to reference annotations and the evidence behind them."
+          description="Select a region. Explore what is known. Compare two conformations and connect structural differences to reference annotations."
         />
         <ProteinAnnotationExplorer />
         <section className={styles.method} aria-labelledby="annotation-method">
@@ -89,6 +89,36 @@ export default function ProteinAnnotations() {
             view. Missing coordinates are absent from the sequence strip.
             Spatial neighborhoods use alpha carbon distances within the selected
             chain.
+          </p>
+          <p>
+            Structure comparison pairs observed residues by sequence, then fits
+            the comparison chain onto the primary chain using an unweighted
+            least squares alpha carbon alignment. The fit uses a proper rigid
+            rotation with no reflection, scaling, flexible fitting, or outlier
+            removal. Both chain coverage values and RMSD are reported. Missing
+            coordinates and unpaired residues are excluded from the fit.
+            Differences can reflect conformational change, experimental
+            conditions, or uncertainty. They do not establish altered function.
+          </p>
+          <p>
+            The comparison example uses the RfaH C terminal domain from{' '}
+            <a
+              href="https://www.rcsb.org/structure/2OUG"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PDB 2OUG
+            </a>{' '}
+            and the first NMR model of the isolated domain in{' '}
+            <a
+              href="https://www.rcsb.org/structure/2LCL"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PDB 2LCL
+            </a>
+            . These are separate experimental structures. The overlay is not a
+            simulated transition between the states.
           </p>
           <p>
             Features describe the reference sequence. A matching residue or

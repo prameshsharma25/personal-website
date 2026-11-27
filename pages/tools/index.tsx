@@ -83,8 +83,8 @@ export default function Tools() {
           <div className={styles.toolCopy}>
             <p className={styles.kicker}>02 / Free Research Tool</p>
             <h2>Protein Annotation Explorer</h2>
-            <p>Highlight a region in your protein and explore its reference annotations. Keep the sequence, structure, and supporting evidence together.</p>
-            <ul><li>Linked residue selection in sequence and 3D</li><li>UniProt features and InterPro domains</li><li>Reference mapping, research notes, and downloadable reviews</li></ul>
+            <p>Highlight a protein region or compare two conformations. Explore structural differences alongside reference annotations and supporting evidence.</p>
+            <ul><li>Linked residue selection in sequence and 3D</li><li>Aligned structure overlays and residue difference charts</li><li>UniProt features and InterPro domains</li><li>Reference mapping, research notes, and downloadable reviews</li></ul>
             <Link href="/tools/protein-annotations" className={styles.primary}>Open Annotation Explorer <span aria-hidden="true">↗</span></Link>
             <p className={styles.caption}>Your Protein · Public Annotations · Traceable Evidence</p>
           </div>
