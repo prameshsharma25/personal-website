@@ -1,6 +1,11 @@
 // Server only. The route exposes selected public fields, never account records.
 import { createHmac } from 'node:crypto';
 import {
+  TRANSACTION_PAGE_SIZE,
+  TRANSACTION_TYPES,
+  validTransactionOffset,
+} from './portfolio-transactions';
+import {
   emptyPortfolio,
   PORTFOLIO_REFRESH_MS,
   type PortfolioReport,
@@ -255,20 +260,40 @@ export async function snapTradeRead(
   path: string,
   env: Env,
   request: typeof fetch = fetch,
-  now = Date.now()
+  now = Date.now(),
+  transactionOptions: { offset: number } | undefined = undefined
 ): Promise<unknown> {
   if (
     !(
       path === '/accounts' ||
-      /^\/accounts\/[a-f0-9-]{36}\/(details|positions\/all)$/.test(path)
+      /^\/accounts\/[a-f0-9-]{36}\/(details|positions\/all|transactions)$/.test(
+        path
+      )
     ) ||
     !env.SNAPTRADE_CLIENT_ID ||
     !env.SNAPTRADE_CONSUMER_KEY
   )
     throw new Error('Missing connection');
+  const isTransactions = path.endsWith('/transactions');
+  if (
+    transactionOptions &&
+    (!isTransactions ||
+      Object.keys(transactionOptions).some((key) => key !== 'offset'))
+  )
+    throw new Error('Unsupported request options');
+  const offset = transactionOptions?.offset ?? 0;
+  if (isTransactions && !validTransactionOffset(offset))
+    throw new Error('Invalid transaction offset');
   const query = new URLSearchParams({
     clientId: env.SNAPTRADE_CLIENT_ID,
     timestamp: String(Math.floor(now / 1000)),
+    ...(isTransactions
+      ? {
+          type: Object.keys(TRANSACTION_TYPES).join(','),
+          limit: String(TRANSACTION_PAGE_SIZE),
+          offset: String(offset),
+        }
+      : {}),
   }).toString();
   const signature = createHmac('sha256', env.SNAPTRADE_CONSUMER_KEY)
     .update(JSON.stringify({ content: null, path, query }))

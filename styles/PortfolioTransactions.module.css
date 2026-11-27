@@ -1,0 +1,212 @@
+.section {
+  margin: 3rem 0;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid #355e80;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0c2138, #081320);
+  color: #e2f0ff;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.kicker {
+  color: #86cdff;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.7rem;
+}
+.header h2 {
+  font:
+    500 clamp(1.5rem, 3vw, 2.1rem) var(--font-display),
+    sans-serif;
+  margin: 0;
+}
+.section button,
+.section select {
+  min-height: 44px;
+  border: 1px solid #426b8a;
+  border-radius: 9px;
+  padding: 0.65rem 1rem;
+  color: #d6edff;
+  background: #112a42;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.section button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+.section button:hover:not(:disabled) {
+  border-color: #9ddcff;
+  background: #1a3d5b;
+}
+.section :is(button, select, .scroll):focus-visible {
+  outline: 2px solid #a5dfff;
+  outline-offset: 4px;
+}
+.intro {
+  font-size: 0.88rem;
+  line-height: 1.8;
+  color: #b8cde2;
+  margin: 1.3rem 0;
+}
+.meta {
+  display: flex;
+  gap: 0.7rem 1.5rem;
+  flex-wrap: wrap;
+  color: #9ccef1;
+  font-size: 0.74rem;
+}
+.note {
+  font-size: 0.74rem;
+  line-height: 1.8;
+  color: #a9c0d7;
+  margin: 0.7rem 0;
+}
+.notice {
+  background: #bca15713;
+  border-left: 3px solid #d7b472;
+  padding: 0.85rem 1rem;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: #e4d5b9;
+}
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding-top: 1rem;
+}
+.filters label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #b3c9df;
+  min-width: 160px;
+}
+.filters select {
+  max-width: 100%;
+}
+.scroll {
+  max-height: 28rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #5189af #09172a;
+  border: 1px solid #2a4b69;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.8fr) minmax(110px, auto);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  background: #0b1c2e;
+  border-bottom: 1px solid #29465f;
+}
+.list li:last-child {
+  border-bottom: 0;
+}
+.holding strong {
+  display: block;
+  color: #d7eeff;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+.holding span {
+  display: block;
+  font-size: 0.75rem;
+  color: #a6c0d8;
+  line-height: 1.6;
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+}
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.badge {
+  border: 1px solid #47799d;
+  color: #a2d8ff;
+  border-radius: 30px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.68rem;
+}
+.badge[data-kind='SELL'] {
+  border-color: #7766ae;
+  color: #d4bfff;
+}
+.badge[data-kind='DIVIDEND'],
+.badge[data-kind='SUBSTITUTE_DIVIDEND'] {
+  border-color: #387f78;
+  color: #a3e8d8;
+}
+.activity time,
+.amount span {
+  font-size: 0.72rem;
+  color: #aec4da;
+}
+.amount {
+  text-align: right;
+  min-width: 0;
+}
+.amount span,
+.amount strong {
+  display: block;
+}
+.amount strong {
+  margin-top: 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.empty {
+  border: 1px dashed #355e80;
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: #b3cde4;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+.actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 1rem;
+}
+@media (max-width: 600px) {
+  .header > button {
+    width: 100%;
+  }
+  .filters label {
+    flex: 1;
+    min-width: 100%;
+  }
+  .list li {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.8rem;
+    padding: 1rem;
+  }
+  .holding {
+    grid-column: 1 / -1;
+  }
+  .amount strong {
+    font-size: 1rem;
+  }
+}

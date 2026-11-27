@@ -46,9 +46,10 @@ select other accounts, request raw brokerage data, or place trades.
 
    Setting the flag to true publishes the account's total USD value plus stock
    and fund names, portfolio percentages, position values, aggregate cost basis,
-   unrealized gains in dollars and percent, and recorded position value history.
+   unrealized gains in dollars and percent, recorded position value history,
+   and recent stock/fund transactions (date, type, ticker, name and USD cash amount).
    It does not publish account numbers, account IDs, raw share counts, per share
-   prices, transactions, tax lots or credentials. Public values may allow visitors
+   prices, raw transaction IDs/descriptions, bank transfers, tax lots or credentials. Public values may allow visitors
    to infer approximate share quantities. Set the flag to false and redeploy to turn publication off; an existing
    public CDN response can remain cached for up to five minutes.
 
@@ -137,6 +138,38 @@ account limits before connecting. Commercial plans have separate pricing. No
 paid service is provisioned by this code. Hosting usage follows your Vercel plan.
 This implementation is for the owner's own account, not a multiuser brokerage app.
 
+RECENT TRANSACTIONS
+
+The activity feed reads the selected account's cached transaction history from
+/accounts/{accountId}/transactions. It displays USD stock/fund purchases, sales,
+dividends, payments in lieu of dividends and reinvestments. Deposits, withdrawals,
+bank transfers, fees, taxes, options and cryptocurrency activity are excluded.
+The API does not return raw transaction IDs, brokerage descriptions, quantities,
+per share prices or account identifiers. Public row IDs are opaque HMAC digests
+used to prevent duplicate rows while loading older pages. Missing amounts stay
+unavailable. Cash movements retain the provider's sign and are not called profit.
+
+The feed is on for a published SnapTrade account unless
+PORTFOLIO_TRANSACTIONS_ENABLED=false. This setting can be changed independently
+of the portfolio and position charts. It requires no additional keys, Redis
+storage, cron job or subscription beyond the existing account connection.
+SnapTrade refreshes transaction history daily; timing and historical coverage
+depend on Robinhood. Dates are shown as reported in UTC, without inventing a
+time of day. The source's synced-through date and initial-sync state are shown
+separately from the website's request time. Pending or cancelled orders are not
+presented as completed transactions.
+
+The page loads 50 provider records at a time, initially displaying 10 matches.
+Show More Transactions reveals loaded matches; Load Older Activity fetches the
+next provider page. Filters apply to loaded records. Selecting a holding also
+filters its activity. Loading pages deduplicates rows by their opaque ID; checking
+for updates restarts from the newest page because the provider uses offsets.
+Each page has a five minute cache and concurrent requests share a provider read.
+Outages retain earlier loaded records with a warning, never an invented empty
+history. Initial-sync and stale states are explicit. Only bounded numeric offsets
+are accepted by /api/portfolio-transactions; there is no public account selector.
+The service bounds its instance cache to 20 pages and offsets to 100,000.
+
 MANUAL SNAPSHOT ALTERNATIVE
 
 This requires no brokerage connection. Set PORTFOLIO_SOURCE=manual and put a
@@ -176,6 +209,7 @@ https://docs.snaptrade.com/docs/request-signatures
 https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountDetails
 https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAllAccountPositions
 https://docs.snaptrade.com/openapi.yaml
+https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountTransactions
 https://docs.snaptrade.com/reference/Account%20Information/AccountInformation_getAccountBalanceHistory
 https://vercel.com/docs/cron-jobs/usage-and-pricing
 https://vercel.com/docs/cron-jobs/manage-cron-jobs

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Seo from '../components/Seo';
 import PageIntro from '../components/PageIntro';
 import PortfolioHoldingDetails from '../components/PortfolioHoldingDetails';
+import PortfolioTransactions from '../components/PortfolioTransactions';
 import {
   contributionMonths,
   emptyPortfolio,
@@ -481,6 +482,12 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
           )}
         </section>
 
+        {snapshot && report.mode === 'synced' && (
+          <PortfolioTransactions
+            checkedAt={report.checkedAt}
+            selectedSymbol={activeHolding?.symbol ?? null}
+          />
+        )}
         <section
           id="the-plan"
           className={styles.plan}
