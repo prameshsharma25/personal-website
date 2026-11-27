@@ -391,6 +391,7 @@ test('mobile layout fits, empty and over-goal portfolios render, and calculator 
     )
   ).toBe(true);
   await page
+    .locator('#portfolio')
     .getByRole('link', { name: 'Support My Work', exact: false })
     .click();
   await expect(

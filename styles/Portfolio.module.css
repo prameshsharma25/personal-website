@@ -25,6 +25,7 @@
   margin: -0.6rem 0 2.2rem;
 }
 .jumpLinks a,
+.dashboardSupport,
 .refresh,
 .presets button {
   border: 1px solid var(--line);
@@ -43,10 +44,18 @@
   align-items: center;
   font-size: 0.85rem;
 }
-.jumpLinks a:last-child {
+.jumpLinks a:last-child,
+.dashboardSupport {
   background: #a2d6ff;
   color: #06182c;
   border-color: #a2d6ff;
+}
+.dashboardSupport {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+  margin-top: 1.4rem;
+  font-size: 0.85rem;
 }
 .dashboard {
   position: relative;
@@ -727,6 +736,7 @@
     border-color: #93d2ff;
   }
   .jumpLinks a:hover,
+  .dashboardSupport:hover,
   .refresh:hover:not(:disabled) {
     filter: brightness(1.15);
   }
