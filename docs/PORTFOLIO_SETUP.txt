@@ -4,10 +4,17 @@ Page: /road-to-10000
 Public API: /api/portfolio
 
 The page is built. Your coffee and Robinhood referral links are active. A circular
-10K shortcut sits at the bottom right across pages, except the Tools index and
+$10K shortcut sits at the bottom right across pages, except the Tools index and
 all Tools subpages. It replaces the top navigation entry. Portfolio values stay unpublished
 until you choose a source and explicitly enable publication. No example balance
 or stocks are presented as yours.
+
+The shortcut jitters until the visitor first activates it. Clicking, tapping,
+or using the keyboard stops the jitter and saves a small local browser preference.
+It remains stopped across page changes and future visits in that browser, and
+other open tabs receive the same preference. If local storage is blocked, the
+current tab still remembers the choice across page changes. Clearing site data
+resets the saved preference. Reduced motion always disables the animation.
 
 AUTOMATIC UPDATES WITH SNAPTRADE PERSONAL
 

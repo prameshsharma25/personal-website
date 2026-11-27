@@ -16,11 +16,13 @@
     inset 0 1px 0 #c4eaff22;
   text-decoration: none;
   isolation: isolate;
-  animation: badgeJitter 8s linear 1.5s infinite;
   transition:
     transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
+}
+.jitter {
+  animation: badgeJitter 8s linear 1.5s infinite;
 }
 .mark {
   position: absolute;

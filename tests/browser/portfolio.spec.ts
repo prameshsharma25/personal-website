@@ -166,7 +166,10 @@ test('single observations, missing basis and unavailable history remain honest o
     .click();
   const panel = page.getByRole('region', { name: 'ABC Another Test Holding' });
   await expect(panel.getByText(/First snapshot recorded/)).toBeVisible();
-  await expect(panel.getByRole('img')).toHaveAttribute('viewBox', '0 0 400 260');
+  await expect(panel.getByRole('img')).toHaveAttribute(
+    'viewBox',
+    '0 0 400 260'
+  );
   await expect(
     panel.getByText(/has not supplied a usable cost basis/)
   ).toBeVisible();
@@ -420,15 +423,23 @@ test('navigation and support remain accessible without JavaScript', async ({
   await context.close();
 });
 
-test('floating 10K shortcut navigates and stays off every Tools route', async ({
+test('floating 10K shortcut stops jitter after activation, remembers it, and stays off Tools routes', async ({
   page,
 }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   const shortcut = page
     .getByRole('link', { name: 'Road To $10,000', exact: true })
     .filter({ has: page.locator('svg') });
   await expect(shortcut).toBeVisible();
+  await expect
+    .poll(() => shortcut.evaluate((el) => getComputedStyle(el).animationName))
+    .toMatch(/badgeJitter/);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect
+    .poll(() => shortcut.evaluate((el) => getComputedStyle(el).animationName))
+    .toBe('none');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(
     page
       .getByRole('navigation', { name: 'Main Navigation' })
@@ -449,6 +460,21 @@ test('floating 10K shortcut navigates and stays off every Tools route', async ({
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/road-to-10000$/);
   await expect(shortcut).toHaveAttribute('aria-current', 'page');
+  await shortcut.evaluate((el) => (el as HTMLElement).blur());
+  await page.mouse.move(0, 0);
+  await expect
+    .poll(() => shortcut.evaluate((el) => getComputedStyle(el).animationName))
+    .toBe('none');
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem('portfolio-shortcut-visited')
+    )
+  ).toBe('1');
+  await page.reload();
+  await expect(shortcut).toBeVisible();
+  await expect
+    .poll(() => shortcut.evaluate((el) => getComputedStyle(el).animationName))
+    .toBe('none');
   await page
     .getByRole('navigation', { name: 'Main Navigation' })
     .getByRole('link', { name: 'Tools', exact: true })
@@ -466,6 +492,9 @@ test('floating 10K shortcut navigates and stays off every Tools route', async ({
     .getByRole('link', { name: 'Contact', exact: true })
     .click();
   await expect(shortcut).toBeVisible();
+  await expect
+    .poll(() => shortcut.evaluate((el) => getComputedStyle(el).animationName))
+    .toBe('none');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('footer').scrollIntoViewIfNeeded();
   const box = await shortcut.boundingBox();
