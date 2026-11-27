@@ -266,9 +266,6 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
                   </dd>
                 </div>
               </dl>
-              <a href="#support" className={styles.dashboardSupport}>
-                Support My Work <span aria-hidden="true">↗</span>
-              </a>
             </div>
             <div className={styles.gauge} aria-hidden="true">
               <svg viewBox="0 0 260 260" aria-hidden="true">
