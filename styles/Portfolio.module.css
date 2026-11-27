@@ -6,6 +6,18 @@
 .page section[id] {
   scroll-margin-top: 2rem;
 }
+.philosophy {
+  max-width: 650px;
+  margin: 1rem 0 0;
+  color: #9eb6cf;
+  font-size: 0.85rem;
+  line-height: 1.85;
+}
+.philosophy a {
+  color: #93cefb;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .jumpLinks {
   display: flex;
   flex-wrap: wrap;

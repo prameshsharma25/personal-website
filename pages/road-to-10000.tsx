@@ -170,7 +170,28 @@ export default function RoadTo10000({ referralUrl, coffeeUrl }: Props) {
           title="Road To"
           accent="$10,000."
           description="I’m working toward a $10,000 investment portfolio. This is where I’ll share what I hold, keep track of my progress, and make the goal a little more tangible."
-        />
+        >
+          <p className={styles.philosophy}>
+            I’m a Boglehead investor. I believe in keeping costs low,
+            diversifying broadly, and investing for the long term. More on the{' '}
+            <a
+              href="https://www.bogleheads.org/wiki/Bogleheads%C2%AE_investment_philosophy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Bogleheads Philosophy
+            </a>{' '}
+            and{' '}
+            <a
+              href="https://www.reddit.com/r/Bogleheads/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              r/Bogleheads
+            </a>
+            .
+          </p>
+        </PageIntro>
         <div className={styles.jumpLinks}>
           <a href="#portfolio">
             The Portfolio <span aria-hidden="true">↓</span>
