@@ -672,11 +672,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({
   res.setHeader('Cache-Control', 'public, s-maxage=300');
   return {
     props: {
-      referralUrl: publicHttpsLink(process.env.ROBINHOOD_REFERRAL_URL, [
-        'robinhood.com',
-        'join.robinhood.com',
-        'robinhood.app.link',
-      ]),
+      referralUrl: publicHttpsLink(
+        process.env.ROBINHOOD_REFERRAL_URL ??
+          'https://join.robinhood.com/pramess-724360',
+        ['robinhood.com', 'join.robinhood.com', 'robinhood.app.link']
+      ),
       coffeeUrl: 'https://buymeacoffee.com/prameshsharma',
     },
   };

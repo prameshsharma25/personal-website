@@ -41,10 +41,8 @@ test('unconnected portfolio is honest, coffee works, and no public account selec
   ).toHaveAttribute('href', 'https://buymeacoffee.com/prameshsharma');
   await expect(
     page.getByRole('link', { name: /My Robinhood Referral/ })
-  ).toHaveCount(0);
-  await expect(
-    page.getByText('Link Coming Soon', { exact: true })
-  ).toBeVisible();
+  ).toHaveAttribute('href', 'https://join.robinhood.com/pramess-724360');
+  await expect(page.getByText(/Referral Disclosure:/)).toBeVisible();
   const data = await request.get('/api/portfolio');
   expect(data.status()).toBe(200);
   expect((await data.json()).snapshot).toBeNull();
@@ -216,7 +214,72 @@ test('navigation and support remain accessible without JavaScript', async ({
   await expect(
     page
       .getByRole('navigation', { name: 'Main Navigation' })
-      .getByRole('link', { name: 'Road To $10K' })
+      .getByRole('link', { name: /Road To/ })
+  ).toHaveCount(0);
+  await expect(
+    page
+      .getByRole('link', { name: 'Road To $10,000', exact: true })
+      .filter({ has: page.locator('svg') })
   ).toHaveAttribute('aria-current', 'page');
   await context.close();
+});
+
+test('floating 10K shortcut navigates and stays off every Tools route', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const shortcut = page
+    .getByRole('link', { name: 'Road To $10,000', exact: true })
+    .filter({ has: page.locator('svg') });
+  await expect(shortcut).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Main Navigation' })
+      .getByRole('link', { name: /Road To/ })
+  ).toHaveCount(0);
+  const dimensions = await shortcut.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    return {
+      position: getComputedStyle(element).position,
+      radius: getComputedStyle(element).borderRadius,
+      width: box.width,
+      height: box.height,
+    };
+  });
+  expect(dimensions).toMatchObject({ position: 'fixed', radius: '50%' });
+  expect(dimensions.width).toBe(dimensions.height);
+  await shortcut.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/road-to-10000$/);
+  await expect(shortcut).toHaveAttribute('aria-current', 'page');
+  await page
+    .getByRole('navigation', { name: 'Main Navigation' })
+    .getByRole('link', { name: 'Tools', exact: true })
+    .click();
+  await expect(shortcut).toHaveCount(0);
+  for (const route of [
+    '/tools/amyloid-inspector',
+    '/tools/protein-annotations',
+  ]) {
+    await page.goto(route);
+    await expect(shortcut).toHaveCount(0);
+  }
+  await page
+    .getByRole('navigation', { name: 'Main Navigation' })
+    .getByRole('link', { name: 'Contact', exact: true })
+    .click();
+  await expect(shortcut).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('footer').scrollIntoViewIfNeeded();
+  const box = await shortcut.boundingBox();
+  expect(box.x + box.width).toBeLessThanOrEqual(390);
+  expect(box.y + box.height).toBeLessThanOrEqual(844);
+  expect(box.width).toBeGreaterThanOrEqual(44);
+  for (const link of await page.locator('footer a').all()) {
+    const linkBox = await link.boundingBox();
+    expect(
+      linkBox.y + linkBox.height <= box.y || linkBox.x + linkBox.width <= box.x
+    ).toBe(true);
+  }
 });

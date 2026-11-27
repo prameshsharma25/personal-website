@@ -5,6 +5,7 @@ import {
   createPortfolioService,
   normalizeManual,
   normalizeSnapTrade,
+  portfolioAccounts,
   snapTradeRead,
 } from '../lib/portfolio-server';
 import {
@@ -16,6 +17,40 @@ import {
 const id = '11111111-2222-3333-4444-555555555555';
 const now = Date.parse('2026-11-27T16:00:00Z');
 const date = '2026-11-27T15:00:00Z';
+
+test('setup lists legacy and current investment accounts without leaking the account record', () => {
+  const legacy = {
+    id,
+    name: 'Robinhood Individual',
+    account_category: 'INVESTMENT',
+    is_paper: false,
+    number: 'PRIVATE',
+    raw_data: 'PRIVATE',
+  };
+  const current = {
+    id,
+    display_name: 'Robinhood Individual',
+    kind: 'investment',
+    is_paper: false,
+    masked_account_number: 'PRIVATE',
+  };
+  assert.deepEqual(portfolioAccounts([legacy]), [
+    { id, label: 'Robinhood Individual' },
+  ]);
+  assert.deepEqual(portfolioAccounts({ results: [current] }), [
+    { id, label: 'Robinhood Individual' },
+  ]);
+  assert.deepEqual(
+    portfolioAccounts([
+      { ...legacy, is_paper: true },
+      { ...current, kind: 'deposit' },
+      { ...legacy, account_category: 'BANKING' },
+      { ...current, id: 'bad' },
+    ]),
+    []
+  );
+  assert.throws(() => portfolioAccounts({ accounts: [legacy] }));
+});
 const env = {
   PORTFOLIO_PUBLIC_ENABLED: 'true',
   PORTFOLIO_SOURCE: 'snaptrade',

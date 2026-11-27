@@ -1,19 +1,10 @@
 // Run locally after connecting Robinhood in SnapTrade's own dashboard.
 // This script prints account IDs for configuration; it never prints credentials.
-import { snapTradeRead } from '../lib/portfolio-server';
+import { portfolioAccounts, snapTradeRead } from '../lib/portfolio-server';
 
 async function main() {
-  const data = (await snapTradeRead('/accounts', process.env)) as {
-    results?: {
-      id: string;
-      kind: string;
-      is_paper?: boolean;
-      display_name?: string;
-    }[];
-  };
-  if (!Array.isArray(data.results)) throw new Error('No account list');
-  const accounts = data.results.filter(
-    (account) => account.kind === 'investment' && account.is_paper === false
+  const accounts = portfolioAccounts(
+    await snapTradeRead('/accounts', process.env)
   );
   if (!accounts.length) {
     console.log(
@@ -25,9 +16,7 @@ async function main() {
     'Select your Robinhood investment account. Keep these IDs private.'
   );
   for (const account of accounts)
-    console.log(
-      `${account.display_name || 'Investment Account'}: SNAPTRADE_ACCOUNT_ID=${account.id}`
-    );
+    console.log(`${account.label}: SNAPTRADE_ACCOUNT_ID=${account.id}`);
 }
 main().catch(() => {
   console.error(

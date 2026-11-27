@@ -52,6 +52,32 @@ function label(value: unknown, max: number): string {
 }
 const round = (n: number) => Math.round(n * 100) / 100;
 
+// The accounts listing can still use the legacy array while account detail
+// and position endpoints return the current schema. Used only by local setup.
+export function portfolioAccounts(
+  raw: unknown
+): { id: string; label: string }[] {
+  const accounts = Array.isArray(raw) ? raw : record(raw).results;
+  if (!Array.isArray(accounts)) throw new Error('Invalid account list');
+  return accounts
+    .map(record)
+    .filter(
+      (account) =>
+        account.is_paper === false &&
+        (account.kind === 'investment' ||
+          (!account.kind && account.account_category === 'INVESTMENT')) &&
+        typeof account.id === 'string' &&
+        UUID.test(account.id)
+    )
+    .map((account) => ({
+      id: String(account.id),
+      label: label(
+        account.display_name || account.name || 'Investment Account',
+        180
+      ),
+    }));
+}
+
 export function normalizeSnapTrade(
   details: unknown,
   positions: unknown,

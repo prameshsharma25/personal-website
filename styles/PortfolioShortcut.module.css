@@ -1,0 +1,122 @@
+.shortcut {
+  position: fixed;
+  right: max(1.2rem, env(safe-area-inset-right));
+  bottom: calc(1.2rem + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid #6bb9f080;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 20%, #224c70, #0b2036 65%);
+  color: #d8efff;
+  box-shadow:
+    0 5px 20px #0008,
+    inset 0 1px 0 #c4eaff22;
+  text-decoration: none;
+  isolation: isolate;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.mark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+}
+.ring {
+  stroke: #81c9fb55;
+  stroke-width: 1;
+}
+.path {
+  stroke: #70bcf235;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.logo {
+  font:
+    600 1.2rem var(--font-display),
+    sans-serif;
+  letter-spacing: -0.06em;
+  text-shadow: 0 2px 8px #04111f;
+}
+.tooltip {
+  position: absolute;
+  right: calc(100% + 0.7rem);
+  white-space: nowrap;
+  padding: 0.55rem 0.8rem;
+  background: #0d2237;
+  border: 1px solid #436f94;
+  border-radius: 8px;
+  font:
+    500 0.75rem var(--font-body),
+    sans-serif;
+  color: #d1eaff;
+  opacity: 0;
+  transform: translateX(4px);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+.shortcut:focus-visible {
+  outline: 2px solid #a2dcff;
+  outline-offset: 4px;
+}
+.shortcut:focus-visible .tooltip {
+  opacity: 1;
+  transform: none;
+}
+.shortcut[aria-current='page'] {
+  border-color: #a2d8ff;
+}
+/* Keep footer links above the fixed shortcut, including on narrow screens. */
+.withShortcut > footer {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+@media (hover: hover) {
+  .shortcut:hover {
+    transform: translateY(-2px);
+    border-color: #a2d8ff;
+    box-shadow:
+      0 6px 24px #0008,
+      0 0 18px #79bfff20;
+  }
+  .shortcut:hover .tooltip {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 600px) {
+  .shortcut {
+    width: 56px;
+    height: 56px;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  .logo {
+    font-size: 1.05rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shortcut,
+  .tooltip {
+    transition: none;
+  }
+  .shortcut:hover {
+    transform: none;
+  }
+}
+@media print {
+  .shortcut {
+    display: none;
+  }
+  .withShortcut > footer {
+    padding-bottom: 2rem;
+  }
+}

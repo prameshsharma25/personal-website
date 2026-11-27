@@ -3,9 +3,11 @@ ROAD TO $10,000
 Page: /road-to-10000
 Public API: /api/portfolio
 
-The page is built. Your coffee link is active. Portfolio values stay unpublished
+The page is built. Your coffee and Robinhood referral links are active. A circular
+10K shortcut sits at the bottom right across pages, except the Tools index and
+all Tools subpages. It replaces the top navigation entry. Portfolio values stay unpublished
 until you choose a source and explicitly enable publication. No example balance
-or stocks are presented as yours. The referral card waits for your actual link.
+or stocks are presented as yours.
 
 AUTOMATIC UPDATES WITH SNAPTRADE PERSONAL
 
@@ -53,8 +55,9 @@ select other accounts, request raw brokerage data, or place trades.
    the balance and holdings against Robinhood. /api/portfolio should contain
    only the public schema in lib/portfolio.ts. Verify the reported sync times.
 
-   This integration has been tested against documented response fixtures. It
-   cannot be verified against your actual account until you connect it.
+   The Robinhood Individual stock account was verified locally on November 27,
+   2026. Local settings do not configure Vercel: add the same portfolio variables
+   there and redeploy to enable automatic updates on the live site.
 
 FRESHNESS, VALUES AND LIMITS
 
@@ -101,9 +104,11 @@ Update the timestamp and redeploy whenever you change the snapshot.
 SUPPORT LINKS
 
 Buy Me A Coffee is already linked to https://buymeacoffee.com/prameshsharma.
-Set ROBINHOOD_REFERRAL_URL to your actual HTTPS referral link. Supported hosts
-are robinhood.com (including subdomains) and robinhood.app.link. The card stays
-inactive until configured; a reward disclosure appears beside an active link.
+Robinhood defaults to https://join.robinhood.com/pramess-724360.
+ROBINHOOD_REFERRAL_URL optionally overrides that link. Omit it to use the default;
+set it explicitly empty to pause the referral card. Supported hosts
+are robinhood.com (including subdomains) and robinhood.app.link. A reward
+disclosure appears beside an active link.
 Restart or redeploy after changes. Support is not added to portfolio totals.
 
 CALCULATOR
