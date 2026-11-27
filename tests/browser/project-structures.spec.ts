@@ -7,7 +7,6 @@ test('About sections follow the requested order and include the NASA project', a
   const nav = page.getByRole('navigation', { name: 'About Page Sections' });
   await expect(nav.getByRole('link')).toHaveText([
     'Background',
-    'Experience',
     'Research',
     'Projects',
     'Papers',
@@ -16,13 +15,7 @@ test('About sections follow the requested order and include the NASA project', a
     await page
       .locator('main > section[id]')
       .evaluateAll((elements) => elements.map((element) => element.id))
-  ).toEqual([
-    'background',
-    'experience',
-    'research',
-    'projects',
-    'publications',
-  ]);
+  ).toEqual(['background', 'research', 'projects', 'publications']);
   const ammper = page.locator('#project-ammper');
   await expect(ammper.getByRole('heading', { level: 3 })).toHaveText(
     'AMMPER: Microbial Life Under Radiation'

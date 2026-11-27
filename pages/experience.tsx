@@ -5,57 +5,6 @@ import Seo from '../components/Seo';
 import styles from '../styles/Experience.module.css';
 import ResearchProjects from '../components/ResearchProjects';
 
-const experiences = [
-  {
-    role: 'Postbaccalaureate Fellow',
-    organization: 'National Institutes of Health',
-    dates: 'Aug 2025 to Present',
-    detail: 'Dr. Lauren Porter’s lab · Computational Biology Branch',
-    summary:
-      'Developing tools to interpret AlphaFold predictions and identify fold-switching proteins, with an emphasis on reproducible analysis and research software.',
-  },
-  {
-    role: 'Software Engineer',
-    organization: 'Intelligent Retail Lab by Walmart',
-    dates: 'Jul 2024 to Jul 2025',
-    detail: 'Store Vision Services',
-    summary:
-      'Built and deployed computer vision pipelines for edge devices, including model conversion, image augmentation, inference, and GPU monitoring.',
-  },
-  {
-    role: 'Computational Biology Intern',
-    organization: 'NASA',
-    dates: 'Aug 2023 to Dec 2023',
-    detail: 'Space Biosciences Research',
-    summary:
-      'Worked on AMMPER, an agent-based model of microbial responses to radiation. Integrated radiobiology findings into simulations of cell behavior and viability.',
-  },
-  {
-    role: 'Space Systems Engineering Intern',
-    organization: 'NASA',
-    dates: 'Aug 2022 to Dec 2022',
-    detail: 'Systems Engineering Branch',
-    summary:
-      'Developed modeling plans and digital review processes to help engineering teams document and communicate system designs.',
-  },
-  {
-    role: 'Computational Proteomics Intern',
-    organization: 'Genentech',
-    dates: 'Jun 2022 to Sep 2022',
-    detail: 'Microchemistry, Proteomics and Lipidomics',
-    summary:
-      'Contributed to dataMAPPs, building tools that turn data on proteins and peptides into heatmaps and making the analysis easier for researchers to run.',
-  },
-  {
-    role: 'Pharma Technical Operations Intern',
-    organization: 'Genentech',
-    dates: 'Jan 2022 to Jun 2022',
-    detail: 'Manufacturing Science and Technology',
-    summary:
-      'Automated on-call workflows and access management using JavaScript, PagerDuty, and Google Sheets, and documented response procedures.',
-  },
-];
-
 const publications = [
   {
     title:
@@ -99,7 +48,7 @@ export default function Experience() {
     <>
       <Seo
         title="About: Computational Biologist"
-        description="Meet Pramesh Sharma, a computational biologist. Explore his background, NIH and NASA experience, protein structure research, AMMPER, projects, and papers."
+        description="Meet Pramesh Sharma, a computational biologist. Explore his background, protein structure research, NASA’s AMMPER project, and papers, or download his CV."
         path="/experience"
         schema={{
           '@type': 'ProfilePage',
@@ -177,7 +126,6 @@ export default function Experience() {
         </PageIntro>
         <nav className={styles.sectionNav} aria-label="About Page Sections">
           <a href="#background">Background</a>
-          <a href="#experience">Experience</a>
           <a href="#research">Research</a>
           <a href="#projects">Projects</a>
           <a href="#publications">Papers</a>
@@ -220,36 +168,12 @@ export default function Experience() {
         </section>
         <section
           data-reveal
-          id="experience"
-          className={styles.section}
-          aria-labelledby="experience-heading"
-        >
-          <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>02</p>
-            <h2 id="experience-heading">Experience</h2>
-          </div>
-          <div className={styles.sectionBody}>
-            <ol className={styles.experienceList}>
-              {experiences.map((item) => (
-                <li data-reveal key={`${item.organization}-${item.role}`}>
-                  <p className={styles.dates}>{item.dates}</p>
-                  <h3>{item.role}</h3>
-                  <p className={styles.organization}>{item.organization}</p>
-                  <p className={styles.detail}>{item.detail}</p>
-                  <p>{item.summary}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-        <section
-          data-reveal
           id="research"
           className={styles.section}
           aria-labelledby="research-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>03</p>
+            <p className={styles.eyebrow}>02</p>
             <h2 id="research-heading">Research</h2>
           </div>
           <div className={styles.sectionBody}>
@@ -283,7 +207,7 @@ export default function Experience() {
           aria-labelledby="papers-heading"
         >
           <div className={styles.sectionLabel}>
-            <p className={styles.eyebrow}>05</p>
+            <p className={styles.eyebrow}>04</p>
             <h2 id="papers-heading">Papers &amp; Preprints</h2>
           </div>
           <div className={styles.sectionBody}>
