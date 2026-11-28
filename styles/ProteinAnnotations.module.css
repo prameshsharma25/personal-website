@@ -628,3 +628,97 @@
     transition: none;
   }
 }
+
+.entryModes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+.entryModes button[aria-pressed='true'] {
+  background: #193f60;
+  border-color: #82cfff;
+  color: #d5efff;
+}
+.comparisonIntro {
+  max-width: 75ch;
+}
+.comparisonIntro p {
+  font-size: 0.88rem;
+  color: #c1d7ed;
+}
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+.examples .example {
+  margin: 0;
+}
+.primaryProtein {
+  border-top-color: #73c5ff;
+}
+.secondaryProtein {
+  border-top-color: #f6a66a;
+}
+.secondaryProtein .eyebrow {
+  color: #f6b989;
+}
+.loadedFile {
+  padding: 0.8rem;
+  background: #061323;
+  border: 1px solid #31577c;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+.loadedFile strong {
+  color: #d8ecff;
+}
+.referencePanel {
+  grid-column: 1 / -1;
+  border-top-width: 1px;
+}
+.referencePanel details {
+  margin-top: 0;
+}
+.referencePanel details[open] summary {
+  margin-bottom: 1rem;
+}
+.comparisonNext {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  font-size: 0.8rem;
+  color: #bbdfff;
+}
+
+.accessionLoader {
+  margin: 1.25rem 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid #31577c;
+}
+.accessionLoader .inline button {
+  flex: 1 1 auto;
+}
+
+.inspectionControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+.inspectionControls p {
+  flex-basis: 100%;
+  margin: 0;
+}
+.inspectionControls button[aria-pressed='true'] {
+  background: #b4e0ff;
+  color: #071521;
+  border-color: #b4e0ff;
+}

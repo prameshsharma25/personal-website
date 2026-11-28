@@ -210,6 +210,73 @@
   font-size: 0.75rem;
   color: #a7c5df;
 }
+.goalProgress {
+  margin: 0 0 1.5rem;
+}
+.goalMarkerRow {
+  position: relative;
+  min-height: 4.5rem;
+}
+.goalMarker {
+  position: absolute;
+  bottom: 0.75rem;
+  left: var(--goal-progress);
+  transform: translateX(var(--goal-label-shift));
+  display: grid;
+  gap: 0.2rem;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #5e9bc0;
+  border-radius: 8px;
+  background: #10283f;
+  color: #e3f2ff;
+  font: 500 1rem/1.35 var(--font-display), sans-serif;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  transition: left 1.1s ease, transform 1.1s ease;
+}
+.goalMarker small {
+  color: #b2cce1;
+  font: 400 0.68rem/1.5 var(--font-body), sans-serif;
+}
+.goalTrack {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: #19324a;
+  box-shadow: inset 0 0 0 1px #345772;
+}
+.goalFill {
+  display: block;
+  width: var(--goal-progress);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #448bda, #86d6ff);
+  transition: width 1.1s ease;
+}
+.goalTip {
+  position: absolute;
+  top: 50%;
+  left: var(--goal-progress);
+  width: 16px;
+  height: 16px;
+  border: 3px solid #d6f1ff;
+  border-radius: 50%;
+  background: #64bdf7;
+  box-shadow: 0 0 14px #70c4ff66;
+  transform: translate(-50%, -50%);
+  transition: left 1.1s ease;
+}
+.goalScale {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+  color: #afc9df;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
 .milestones {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
