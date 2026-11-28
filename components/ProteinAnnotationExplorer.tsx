@@ -1158,16 +1158,11 @@ export default function ProteinAnnotationExplorer() {
                         onHover={setHover}
                         focus={focus}
                       />
-                      <p className={styles.legend}>
-                        <span>● Reference Annotations</span>
-                        <span>● Your Selection</span>
-                        <span>● Hovered Residue</span>
-                      </p>
                       <p className={styles.small}>
                         Drag the structure to rotate. Hover over a residue for
                         its amino acid and annotation preview. Click to select
-                        it. Hold Shift to add residues. Colors identify
-                        annotations and selections, not confidence.
+                        it. Hold Shift to add residues. Use Color By to change
+                        the palette.
                       </p>
                     </>
                   </ProteinComparison>

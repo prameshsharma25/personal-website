@@ -563,11 +563,11 @@ export default function ProteinComparison({
               </p>
             )}
             <p>
-              Unpaired residues are gray and excluded from RMSD. Distance colors
-              describe coordinate differences, not confidence or functional
-              significance. Reference annotations remain attached to the protein
-              for which they were loaded. Structural alignment does not transfer
-              annotations.
+              Unpaired residues are gray in Structure and Difference modes and
+              are excluded from RMSD. Distance colors describe coordinate
+              differences, not confidence or functional significance. Reference
+              annotations remain attached to the protein for which they were
+              loaded. Structural alignment does not transfer annotations.
             </p>
           </details>
         </>
