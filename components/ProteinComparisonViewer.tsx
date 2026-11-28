@@ -5,6 +5,7 @@ import {
 } from '../lib/molecular-viewer';
 import {
   comparisonPdb,
+  type InspectionProtein,
   type ProteinComparisonResult,
 } from '../lib/protein-comparison';
 import type {
@@ -38,6 +39,7 @@ export default function ProteinComparisonViewer({
   comparison,
   result,
   selected,
+  inspectionProtein,
   active,
   onActive,
   onPick,
@@ -49,6 +51,7 @@ export default function ProteinComparisonViewer({
   comparison: ProteinInput;
   result: ProteinComparisonResult;
   selected: Set<string>;
+  inspectionProtein: InspectionProtein;
   active: number | null;
   onActive: (index: number | null) => void;
   onPick: (key: string, add: boolean) => void;
@@ -58,8 +61,8 @@ export default function ProteinComparisonViewer({
 }) {
   const host = useRef<HTMLDivElement>(null),
     viewer = useRef<Viewer>(null);
-  const callbacks = useRef({ onActive, onPick });
-  callbacks.current = { onActive, onPick };
+  const callbacks = useRef({ onActive, onPick, inspectionProtein });
+  callbacks.current = { onActive, onPick, inspectionProtein };
   const [state, setState] = useState('loading'),
     [error, setError] = useState('');
   const [color, setColor] = useState('Structure'),
@@ -124,11 +127,17 @@ export default function ProteinComparisonViewer({
           const hit = lookup.get(`${atom.model}:${atom.chain}:${atom.resi}`);
           if (hit?.pair >= 0)
             callbacks.current.onPick(
-              result.pairs[hit.pair].primary.key,
+              result.pairs[hit.pair][callbacks.current.inspectionProtein].key,
               Boolean(event?.shiftKey || event?.ctrlKey || event?.metaKey)
             );
-          else if (hit?.model === 0)
-            callbacks.current.onPick(hit.residue.key, Boolean(event?.shiftKey));
+          else if (
+            hit?.model ===
+            (callbacks.current.inspectionProtein === 'primary' ? 0 : 1)
+          )
+            callbacks.current.onPick(
+              hit.residue.key,
+              Boolean(event?.shiftKey || event?.ctrlKey || event?.metaKey)
+            );
         });
         scene.setHoverable(
           {},
@@ -212,11 +221,12 @@ export default function ProteinComparisonViewer({
         { cartoon: { colorfunc }, line: { colorfunc, opacity: 0.15 } }
       );
       const picked = result.pairs
-        .filter((p) => selected.has(p.primary.key))
+        .filter((p) => selected.has(p[inspectionProtein].key))
         .map((p) => (model ? p.comparison : p.primary).viewerPosition);
-      if (!model)
-        for (const r of primary.chains.find((c) => c.id === result.primaryChain)
-          .residues)
+      if (model === (inspectionProtein === 'primary' ? 0 : 1))
+        for (const r of (model ? comparison : primary).chains.find(
+          (c) => c.id === (model ? result.comparisonChain : result.primaryChain)
+        ).residues)
           if (selected.has(r.key) && !picked.includes(r.viewerPosition))
             picked.push(r.viewerPosition);
       if (picked.length)
@@ -246,28 +256,61 @@ export default function ProteinComparisonViewer({
         );
     }
     scene.render();
-  }, [state, visible, color, selected, active, hover, result, lookup, primary]);
+  }, [
+    state,
+    visible,
+    color,
+    selected,
+    active,
+    hover,
+    result,
+    lookup,
+    primary,
+    comparison,
+    inspectionProtein,
+  ]);
   useEffect(() => {
     if (!focus || !viewer.current || state !== 'ready') return;
-    const positions = primary.chains
-      .find((c) => c.id === result.primaryChain)
+    const model = inspectionProtein === 'primary' ? 0 : 1;
+    const positions = (model ? comparison : primary).chains
+      .find(
+        (c) => c.id === (model ? result.comparisonChain : result.primaryChain)
+      )
       .residues.filter((r) => selected.has(r.key))
       .map((r) => r.viewerPosition);
-    viewer.current.zoomTo(
-      positions.length ? { model: 0, resi: positions } : {}
-    );
+    viewer.current.zoomTo(positions.length ? { model, resi: positions } : {});
     viewer.current.render();
     // Focus only on an explicit request, preserving the camera during selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus]);
-  const primaryResidue =
+  // Changing inspection preserves the renderer and camera, but clears transient hover.
+  useEffect(() => {
+    viewer.current?.setHover(null);
+    setHover(null);
+    callbacks.current.onActive(null);
+    setVisible((old) =>
+      old === 'Both'
+        ? old
+        : inspectionProtein === 'primary'
+          ? 'Primary'
+          : 'Comparison'
+    );
+  }, [inspectionProtein]);
+  const inspectionResidue =
     hover?.pair >= 0
-      ? result.pairs[hover.pair].primary
-      : hover?.model === 0
+      ? result.pairs[hover.pair][inspectionProtein]
+      : hover?.model === (inspectionProtein === 'primary' ? 0 : 1)
         ? hover.residue
         : null;
-  const preview = primaryResidue
-    ? residuePreview(primaryResidue, result.primaryChain, reference, mapping)
+  const preview = inspectionResidue
+    ? residuePreview(
+        inspectionResidue,
+        inspectionProtein === 'primary'
+          ? result.primaryChain
+          : result.comparisonChain,
+        reference,
+        mapping
+      )
     : null;
   return (
     <div data-comparison-viewer={state} data-visible-structures={visible}>
@@ -319,7 +362,8 @@ export default function ProteinComparisonViewer({
       </div>
       <p className={styles.note}>
         Switch views without changing the alignment or camera angle. Annotations
-        and the sequence strip refer to Protein 1.
+        and the sequence strip follow Inspect Protein{' '}
+        {inspectionProtein === 'primary' ? '1' : '2'}.
       </p>
       <div
         className={styles.viewport}
@@ -353,19 +397,31 @@ export default function ProteinComparisonViewer({
             {hover.pair >= 0 ? (
               <p>
                 {result.pairs[hover.pair].distance.toFixed(2)} Å Difference ·
-                Click To Select The Corresponding Primary Residue
+                Click To Select The Corresponding Protein{' '}
+                {inspectionProtein === 'primary' ? '1' : '2'} Residue
               </p>
             ) : (
               <p>No paired residue. Excluded from the fit.</p>
+            )}
+            {preview?.annotations.length > 0 && (
+              <small>
+                Protein {inspectionProtein === 'primary' ? '1' : '2'}{' '}
+                Annotations · {inspectionResidue.name}{' '}
+                {inspectionResidue.number} · UniProt {reference?.accession}
+              </small>
             )}
             {preview?.annotations.slice(0, 2).map((a) => (
               <p key={a.id}>
                 {a.source} · {a.description || a.category}
               </p>
             ))}
-            {hover.model === 1 && preview?.annotations.length > 0 && (
-              <small>Annotations refer to the paired primary residue.</small>
-            )}
+            {hover.model !== (inspectionProtein === 'primary' ? 0 : 1) &&
+              preview?.annotations.length > 0 && (
+                <small>
+                  Annotations describe the paired residue of the inspected
+                  protein, not the hovered protein.
+                </small>
+              )}
           </div>
         )}
       </div>

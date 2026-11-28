@@ -15,6 +15,7 @@ export type ComparisonPair = {
   comparison: Residue;
   distance: number;
 };
+export type InspectionProtein = 'primary' | 'comparison';
 export type ComparisonMode = 'structure' | 'sequence';
 export type StructuralAlignmentOutput = {
   stdout: string;
@@ -58,7 +59,7 @@ export const COMPARISON_METHOD =
 export const STRUCTURAL_COMPARISON_METHOD =
   'MM-align structure search with no sequence identity or TM score cutoff. The displayed pairing and rigid transform come from the engine. Structural similarity does not establish homology or a unique residue correspondence. The search is heuristic and does not guarantee a global optimum.';
 export const COMPARISON_LIMITATIONS =
-  'Only the selected chains and first coordinate models are compared. Missing coordinates are excluded. A large displacement can reflect a domain movement, different experimental conditions, or model uncertainty; it does not establish a functional change. Annotation evidence belongs to the primary reference and is not independently validated on the comparison structure.';
+  'Only the selected chains and first coordinate models are compared. Missing coordinates are excluded. A large displacement can reflect a domain movement, different experimental conditions, or model uncertainty; it does not establish a functional change. Annotation evidence belongs to each protein’s own reference. Structural alignment does not transfer annotations between proteins.';
 
 export function transformPoint(p: Vec3, fit: RigidTransform): Vec3 {
   return fit.rotation.map((row, i) =>
@@ -438,7 +439,7 @@ export function structuralComparison(
   ];
   if (identity < 0.9)
     warnings.push(
-      'Sequence identity is low. Reference annotations describe the primary protein only.'
+      'Sequence identity is low. Each protein requires its own reference mapping for annotations.'
     );
   return {
     mode: 'structure',
@@ -506,7 +507,9 @@ export function comparisonReport(
   comparison: ProteinInput,
   result: ProteinComparisonResult,
   reference: ReferenceProtein | null,
-  mapping: Mapping | null
+  mapping: Mapping | null,
+  comparisonReference: ReferenceProtein | null = null,
+  comparisonMapping: Mapping | null = null
 ) {
   return {
     schema: 'protein-structure-comparison-1.1',
@@ -561,8 +564,22 @@ export function comparisonReport(
           mapping,
         }
       : null,
+    comparisonReference: comparisonReference
+      ? {
+          accession: comparisonReference.accession,
+          version: comparisonReference.version,
+          retrievedAt: comparisonReference.retrievedAt,
+          mapping: comparisonMapping,
+        }
+      : null,
     pairs: result.pairs.map((pair) => ({
       ...pair,
+      comparisonAnnotations: residuePreview(
+        pair.comparison,
+        result.comparisonChain,
+        comparisonReference,
+        comparisonMapping
+      ).annotations,
       primaryAnnotations: residuePreview(
         pair.primary,
         result.primaryChain,
@@ -598,6 +615,9 @@ export function comparisonCsv(report: ComparisonReport): string {
       'sequence_alignment_ambiguous',
       'tm_score_primary',
       'tm_score_comparison',
+      'comparison_annotations',
+      'primary_reference_accession',
+      'comparison_reference_accession',
     ],
   ];
   for (const p of report.pairs)
@@ -618,6 +638,11 @@ export function comparisonCsv(report: ComparisonReport): string {
       report.sequenceAmbiguous,
       report.metrics.tmScores?.primary,
       report.metrics.tmScores?.comparison,
+      p.comparisonAnnotations
+        .map((a) => `${a.source}: ${a.description}`)
+        .join('; '),
+      report.reference?.accession,
+      report.comparisonReference?.accession,
     ]);
   return rows.map((row) => row.map(cell).join(',')).join('\r\n');
 }

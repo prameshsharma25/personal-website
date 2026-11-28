@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useProteinInspection } from '../lib/use-protein-inspection';
+import type { InspectionProtein } from '../lib/protein-comparison';
 import AnnotationStructureViewer from './AnnotationStructureViewer';
 import ProteinComparison from './ProteinComparison';
 import ProteinAccessionLoader from './ProteinAccessionLoader';
@@ -22,7 +24,6 @@ import { parseProteinStructure } from '../lib/protein-input';
 import styles from '../styles/ProteinAnnotations.module.css';
 
 const title = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
-type Region = { name: string; notes: string; chain: string; keys: string[] };
 export default function ProteinAnnotationExplorer() {
   const [ready, setReady] = useState(false);
   const [inputRevision, setInputRevision] = useState(0);
@@ -36,21 +37,45 @@ export default function ProteinAnnotationExplorer() {
   const comparisonOperation = useRef(0);
   const comparisonAbort = useRef<AbortController | null>(null);
   const [comparison, setComparison] = useState<ComparisonReport | null>(null);
-  const [input, setInput] = useState<ProteinInput | null>(null);
-  const [reference, setReference] = useState<ReferenceProtein | null>(null);
-  const [chain, setChain] = useState(''),
-    [accession, setAccession] = useState('');
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]),
-    [hover, setHover] = useState<Residue | null>(null);
+  const [primaryInput, setInput] = useState<ProteinInput | null>(null);
+  const [primaryChain, setPrimaryChain] = useState('');
+  const [inspectionProtein, setInspectionProtein] =
+    useState<InspectionProtein>('primary');
+  const primaryInspection = useProteinInspection();
+  const comparisonInspection = useProteinInspection();
+  const inspectionSide =
+    comparisonEnabled && comparisonInput ? inspectionProtein : 'primary';
+  const inspection =
+    inspectionSide === 'primary' ? primaryInspection : comparisonInspection;
+  const input = inspectionSide === 'primary' ? primaryInput : comparisonInput;
+  const chain = inspectionSide === 'primary' ? primaryChain : comparisonChain;
+  const setChain =
+    inspectionSide === 'primary' ? setPrimaryChain : setComparisonChain;
+  const {
+    reference,
+    accession,
+    setAccession,
+    selectedKeys,
+    setSelectedKeys,
+    category,
+    setCategory,
+    radius,
+    setRadius,
+    regions,
+    setRegions,
+    regionName,
+    setRegionName,
+    notes,
+    setNotes,
+  } = inspection;
+  const inputVersions = useRef({ primary: 0, comparison: 0 });
+  const [hover, setHover] = useState<Residue | null>(null);
   const [busy, setBusy] = useState(''),
     [error, setError] = useState(''),
     [paste, setPaste] = useState('');
-  const [category, setCategory] = useState('All'),
-    [radius, setRadius] = useState(6),
-    [focus, setFocus] = useState(0);
-  const [regions, setRegions] = useState<Region[]>([]),
-    [regionName, setRegionName] = useState(''),
-    [notes, setNotes] = useState('');
+  const [focus, setFocus] = useState(0);
+  const inspectingLabel =
+    inspectionSide === 'primary' ? 'Protein 1' : 'Protein 2';
   const operation = useRef(0),
     abort = useRef<AbortController | null>(null),
     anchor = useRef<number | null>(null),
@@ -58,6 +83,13 @@ export default function ProteinAnnotationExplorer() {
   const residueRefs = useRef(new Map<string, HTMLButtonElement>());
   const sequenceStrip = useRef<HTMLDivElement>(null);
   const structurePanel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // Range anchors and hover belong to the displayed sequence, including when
+    // Annotation View temporarily returns inspection to Protein 1.
+    setHover(null);
+    anchor.current = null;
+    dragging.current = false;
+  }, [input, chain, inspectionSide]);
   useEffect(() => {
     // Retain the stable ref objects so cleanup invalidates the latest request.
     const comparisonRequests = comparisonOperation;
@@ -84,11 +116,26 @@ export default function ProteinAnnotationExplorer() {
     () => residues.map((r) => r.letter).join(''),
     [residues]
   );
-  const mapping = useMemo(
-    () =>
-      reference && sequence ? mapSequence(sequence, reference.sequence) : null,
-    [reference, sequence]
-  );
+  const primaryMapping = useMemo(() => {
+    const sequence = primaryInput?.chains
+      .find((c) => c.id === primaryChain)
+      ?.residues.map((r) => r.letter)
+      .join('');
+    return primaryInspection.reference && sequence
+      ? mapSequence(sequence, primaryInspection.reference.sequence)
+      : null;
+  }, [primaryInput, primaryChain, primaryInspection.reference]);
+  const comparisonMapping = useMemo(() => {
+    const sequence = comparisonInput?.chains
+      .find((c) => c.id === comparisonChain)
+      ?.residues.map((r) => r.letter)
+      .join('');
+    return comparisonInspection.reference && sequence
+      ? mapSequence(sequence, comparisonInspection.reference.sequence)
+      : null;
+  }, [comparisonInput, comparisonChain, comparisonInspection.reference]);
+  const mapping =
+    inspectionSide === 'primary' ? primaryMapping : comparisonMapping;
   const selected = useMemo(() => new Set(selectedKeys), [selectedKeys]);
   const mapped = useMemo(
     () =>
@@ -137,15 +184,15 @@ export default function ProteinAnnotationExplorer() {
       setComparisonEnabled(false);
     }
     setComparison(null);
+    inputVersions.current.primary++;
     setInput(next);
-    setChain(next.chains[0].id);
-    setReference(ref);
-    setSelectedKeys([]);
-    setRegions([]);
-    setRegionName('');
-    setNotes('');
+    setPrimaryChain(next.chains[0].id);
+    primaryInspection.reset(
+      ref,
+      ref?.accession || next.suggestedAccession || ''
+    );
+    setInspectionProtein('primary');
     setHover(null);
-    setCategory('All');
     anchor.current = null;
   };
   const run = async (
@@ -200,7 +247,6 @@ export default function ProteinAnnotationExplorer() {
       if (!next) throw new Error('Choose PDB, mmCIF, or a protein FASTA file.');
       if (current()) {
         replaceInput(next, null, comparisonEnabled);
-        setAccession(next.suggestedAccession || '');
       }
     });
   };
@@ -212,6 +258,9 @@ export default function ProteinAnnotationExplorer() {
   };
   const removeComparison = () => {
     cancelComparisonLoad();
+    inputVersions.current.comparison++;
+    comparisonInspection.reset();
+    setInspectionProtein('primary');
     setComparisonInput(null);
     setComparisonChain('');
     setComparison(null);
@@ -233,6 +282,8 @@ export default function ProteinAnnotationExplorer() {
       );
       if (comparisonOperation.current !== id) return;
       const next = parseProteinStructure(text, file.name);
+      inputVersions.current.comparison++;
+      comparisonInspection.reset(null, next.suggestedAccession || '');
       setComparisonInput(next);
       setComparisonChain(next.chains[0].id);
     } catch (e) {
@@ -258,7 +309,7 @@ export default function ProteinAnnotationExplorer() {
       const next = await fetchAccessionStructure(id, signal);
       if (current()) {
         replaceInput(next, null, true);
-        setAccession(id);
+        primaryInspection.setAccession(id);
       }
     });
   const loadComparisonAccession = async (id: string) => {
@@ -271,6 +322,8 @@ export default function ProteinAnnotationExplorer() {
       const next = await fetchAccessionStructure(id, controller.signal);
       if (comparisonOperation.current !== request || controller.signal.aborted)
         return;
+      inputVersions.current.comparison++;
+      comparisonInspection.reset(null, next.suggestedAccession || '');
       setComparisonInput(next);
       setComparisonChain(next.chains[0].id);
       setComparison(null);
@@ -294,10 +347,13 @@ export default function ProteinAnnotationExplorer() {
       },
       data
     );
-    setAccession(data.accession);
+    primaryInspection.setAccession(data.accession);
     setError('');
   };
-  const loadReference = (asNewProtein = false) =>
+  const loadReference = (asNewProtein = false) => {
+    const target = inspectionSide;
+    const version = inputVersions.current[target];
+    const targetInspection = inspection;
     void run('Retrieving Public Annotations…', async (signal, current) => {
       const id = accession.trim().toUpperCase();
       if (!ACCESSION.test(id))
@@ -307,15 +363,17 @@ export default function ProteinAnnotationExplorer() {
       const data: ReferenceProtein = await (
         await get(`/api/protein-annotations?kind=reference&id=${id}`, signal)
       ).json();
-      if (current()) {
-        if (!input || asNewProtein) openReferenceProtein(data);
+      if (current() && inputVersions.current[target] === version) {
+        if (target === 'primary' && (!input || asNewProtein))
+          openReferenceProtein(data);
         else {
-          setReference(data);
-          setCategory('All');
+          targetInspection.setReference(data);
+          targetInspection.setCategory('All');
         }
-        setAccession(data.accession);
+        targetInspection.setAccession(data.accession);
       }
     });
+  };
   const loadExample = () =>
     void run('Opening Lysozyme…', async (signal, current) => {
       const [structure, data] = await Promise.all([
@@ -335,7 +393,7 @@ export default function ProteinAnnotationExplorer() {
           },
           data
         );
-        setAccession('P00698');
+        primaryInspection.setAccession('P00698');
       }
     });
   const loadComparisonExample = () =>
@@ -359,7 +417,7 @@ export default function ProteinAnnotationExplorer() {
         setComparisonInput(secondary);
         setComparisonChain(secondary.chains[0].id);
         setComparisonEnabled(true);
-        setAccession('');
+        primaryInspection.setAccession('');
       }
     });
   const loadModel = () =>
@@ -398,13 +456,22 @@ export default function ProteinAnnotationExplorer() {
         if (current()) replaceInput(next, reference, comparisonEnabled);
       }
     );
-  const switchChain = (id: string) => {
+  const switchProteinChain = (side: InspectionProtein, id: string) => {
     setComparison(null);
-    setChain(id);
-    setSelectedKeys([]);
+    (side === 'primary' ? setPrimaryChain : setComparisonChain)(id);
+    const state = side === 'primary' ? primaryInspection : comparisonInspection;
+    state.setSelectedKeys([]);
+    state.setCategory('All');
     setHover(null);
-    setCategory('All');
     anchor.current = null;
+    dragging.current = false;
+  };
+  const switchChain = (id: string) => switchProteinChain(inspectionSide, id);
+  const switchInspection = (side: InspectionProtein) => {
+    setInspectionProtein(side);
+    setHover(null);
+    anchor.current = null;
+    dragging.current = false;
   };
   const revealResidue = (key: string) => {
     const strip = sequenceStrip.current,
@@ -480,6 +547,27 @@ export default function ProteinAnnotationExplorer() {
   const exportRegion = () => {
     const document = {
       schema: 'protein-annotation-review-1.0',
+      inspectedProtein: inspectionSide,
+      proteins: {
+        primary: {
+          name: primaryInput?.name,
+          chain: primaryChain,
+          reference: primaryInspection.reference,
+          selectedKeys: primaryInspection.selectedKeys,
+          savedRegions: primaryInspection.regions,
+          draftNotes: primaryInspection.notes,
+        },
+        comparison: comparisonInput
+          ? {
+              name: comparisonInput.name,
+              chain: comparisonChain,
+              reference: comparisonInspection.reference,
+              selectedKeys: comparisonInspection.selectedKeys,
+              savedRegions: comparisonInspection.regions,
+              draftNotes: comparisonInspection.notes,
+            }
+          : null,
+      },
       exportedAt: new Date().toISOString(),
       input: {
         name: input.name,
@@ -507,6 +595,29 @@ export default function ProteinAnnotationExplorer() {
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const inspectionControls =
+    comparisonEnabled && comparisonInput ? (
+      <div
+        className={styles.inspectionControls}
+        role="group"
+        aria-label="Protein To Inspect"
+      >
+        {(['primary', 'comparison'] as const).map((side) => (
+          <button
+            key={side}
+            type="button"
+            aria-pressed={inspectionSide === side}
+            onClick={() => switchInspection(side)}
+          >
+            Inspect Protein {side === 'primary' ? '1' : '2'}
+          </button>
+        ))}
+        <p className={styles.small}>
+          Sequence, selections, annotations, and notes follow {inspectingLabel}.
+          Paired residues highlight in both structures.
+        </p>
+      </div>
+    ) : null;
   const referenceControls = (
     <>
       <p className={styles.eyebrow}>02 / Reference Annotations</p>
@@ -536,7 +647,7 @@ export default function ProteinAnnotationExplorer() {
             Load Annotations
           </button>
         </div>
-        {input && (
+        {input && inspectionSide === 'primary' && (
           <button
             className={styles.newProtein}
             type="button"
@@ -548,9 +659,11 @@ export default function ProteinAnnotationExplorer() {
         )}
       </form>
       <p className={styles.small}>
-        {input
-          ? 'Load Annotations compares the reference with your current protein. Open As New Protein replaces it with the reference sequence and clears the current selection and notes.'
-          : 'Enter an accession to open its reference sequence and annotations. You can then load its existing AlphaFold structure.'}
+        {inspectionSide === 'comparison'
+          ? 'Load Annotations connects the reference to Protein 2 only. Use its upload card to replace the structure.'
+          : input
+            ? 'Load Annotations compares the reference with your current protein. Open As New Protein replaces it with the reference sequence and clears the current selection and notes.'
+            : 'Enter an accession to open its reference sequence and annotations. You can then load its existing AlphaFold structure.'}
       </p>
       {input && (
         <div
@@ -612,8 +725,8 @@ export default function ProteinAnnotationExplorer() {
           </p>
           <p className={styles.small}>
             Use Overlay, Protein 1 Only, or Protein 2 Only above the 3D view to
-            switch what you see. Protein 1 remains the reference for
-            annotations.
+            switch what you see. Use Inspect Protein 1 or Inspect Protein 2 to
+            choose which sequence, annotations, and notes to explore.
           </p>
         </div>
       )}
@@ -633,6 +746,7 @@ export default function ProteinAnnotationExplorer() {
           Compare RfaH States <span aria-hidden="true">↗</span>
         </button>
       </div>
+      {inspectionControls}
       <div className={styles.setup}>
         <div
           className={`${styles.inputPanel} ${comparisonEnabled ? styles.primaryProtein : ''}`}
@@ -687,23 +801,27 @@ export default function ProteinAnnotationExplorer() {
           {comparisonEnabled && (
             <>
               <p className={styles.loadedFile}>
-                <strong>{input?.name || 'No Structure Loaded'}</strong>
+                <strong>{primaryInput?.name || 'No Structure Loaded'}</strong>
                 <br />
-                {input?.pdb
+                {primaryInput?.pdb
                   ? 'Structure Ready'
-                  : input
+                  : primaryInput
                     ? 'Sequence Loaded · Add Coordinates To Align'
                     : 'Upload A Structure Or Load An Accession'}
               </p>
-              {input?.origin && <p className={styles.small}>{input.origin}</p>}
-              {input && (
+              {primaryInput?.origin && (
+                <p className={styles.small}>{primaryInput.origin}</p>
+              )}
+              {primaryInput && (
                 <label>
                   Primary Chain
                   <select
-                    value={chain}
-                    onChange={(e) => switchChain(e.target.value)}
+                    value={primaryChain}
+                    onChange={(e) =>
+                      switchProteinChain('primary', e.target.value)
+                    }
                   >
-                    {input.chains.map((c) => (
+                    {primaryInput.chains.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.id || 'Unnamed'} · {c.residues.length} Residues
                       </option>
@@ -731,7 +849,6 @@ export default function ProteinAnnotationExplorer() {
                 try {
                   const next = parseSequence(paste);
                   replaceInput(next, null, comparisonEnabled);
-                  setAccession(next.suggestedAccession || '');
                 } catch (e) {
                   setError((e as Error).message);
                 }
@@ -789,7 +906,9 @@ export default function ProteinAnnotationExplorer() {
                   Comparison Chain
                   <select
                     value={comparisonChain}
-                    onChange={(e) => setComparisonChain(e.target.value)}
+                    onChange={(e) =>
+                      switchProteinChain('comparison', e.target.value)
+                    }
                   >
                     {comparisonInput.chains.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -817,7 +936,7 @@ export default function ProteinAnnotationExplorer() {
           {comparisonEnabled ? (
             <details>
               <summary>
-                Optional: Add Reference Annotations To Protein 1
+                Optional: Add Reference Annotations To {inspectingLabel}
               </summary>
               {referenceControls}
             </details>
@@ -829,15 +948,15 @@ export default function ProteinAnnotationExplorer() {
       {comparisonEnabled && (
         <div className={styles.comparisonNext}>
           <p role="status">
-            {input?.pdb && comparisonInput
+            {primaryInput?.pdb && comparisonInput
               ? 'Both Structures Ready. Your Alignment Appears Below.'
-              : !input?.pdb
+              : !primaryInput?.pdb
                 ? 'Add Coordinates For Protein 1 To Continue.'
                 : 'Add Protein 2 To Start The Comparison.'}
           </p>
           <button
             type="button"
-            disabled={!input?.pdb || !comparisonInput}
+            disabled={!primaryInput?.pdb || !comparisonInput}
             onClick={() => {
               structurePanel.current?.scrollIntoView({
                 behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -888,7 +1007,12 @@ export default function ProteinAnnotationExplorer() {
         <>
           <div className={styles.heading}>
             <div>
-              <p className={styles.eyebrow}>03 / Explore Your Protein</p>
+              <p className={styles.eyebrow}>
+                03 /{' '}
+                {comparisonEnabled
+                  ? `Inspecting ${inspectingLabel}`
+                  : 'Explore Your Protein'}
+              </p>
               <h2>{input.name}</h2>
               <p className={styles.small}>
                 {input.kind === 'structure'
@@ -907,12 +1031,15 @@ export default function ProteinAnnotationExplorer() {
               <button
                 disabled={!ready || Boolean(busy)}
                 onClick={() => {
+                  if (inspectionSide === 'comparison') {
+                    removeComparison();
+                    return;
+                  }
+                  inputVersions.current.primary++;
+                  primaryInspection.reset();
                   setInput(null);
                   removeComparison();
                   setComparison(null);
-                  setReference(null);
-                  setSelectedKeys([]);
-                  setRegions([]);
                   setError('');
                 }}
               >
@@ -920,6 +1047,7 @@ export default function ProteinAnnotationExplorer() {
               </button>
             </div>
           </div>
+          {inspectionControls}
           <div className={styles.workspace}>
             <div className={styles.visualColumn}>
               <div
@@ -953,15 +1081,18 @@ export default function ProteinAnnotationExplorer() {
                 {input.pdb ? (
                   <ProteinComparison
                     key={inputRevision}
-                    input={input}
-                    chain={chain}
+                    input={primaryInput}
+                    chain={primaryChain}
                     other={comparisonInput}
                     otherChain={comparisonChain}
-                    enabled={comparisonEnabled}
+                    enabled={comparisonEnabled && Boolean(primaryInput?.pdb)}
+                    inspectionProtein={inspectionSide}
+                    primaryReference={primaryInspection.reference}
+                    primaryMapping={primaryMapping}
+                    comparisonReference={comparisonInspection.reference}
+                    comparisonMapping={comparisonMapping}
                     selected={selected}
                     onPick={pick}
-                    reference={reference}
-                    mapping={mapping}
                     focus={focus}
                     onReport={setComparison}
                   >
@@ -1016,7 +1147,10 @@ export default function ProteinAnnotationExplorer() {
               </div>
               <div className={styles.panel}>
                 <div className={styles.heading}>
-                  <h3>Residue Selection</h3>
+                  <h3>
+                    Residue Selection
+                    {comparisonEnabled ? ` · ${inspectingLabel}` : ''}
+                  </h3>
                   <span className={styles.badge} role="status">
                     {selected.size} Selected
                   </span>
@@ -1030,6 +1164,7 @@ export default function ProteinAnnotationExplorer() {
                 <div
                   ref={sequenceStrip}
                   className={styles.sequence}
+                  key={inspectionSide}
                   aria-label="Protein Sequence"
                   onPointerLeave={() => {
                     dragging.current = false;
@@ -1193,6 +1328,11 @@ export default function ProteinAnnotationExplorer() {
               aria-label="Region Annotations"
             >
               <p className={styles.eyebrow}>04 / What Is Known Here?</p>
+              {comparisonEnabled && (
+                <p className={styles.small}>
+                  {inspectingLabel} · {input.name} · Chain {chain || 'Unnamed'}
+                </p>
+              )}
               <h2>
                 {selected.size
                   ? 'Selected Region'
@@ -1259,17 +1399,21 @@ export default function ProteinAnnotationExplorer() {
                             Loading annotations keeps the current protein in the
                             viewer.
                           </p>
-                          <button
-                            disabled={Boolean(busy)}
-                            onClick={() => openReferenceProtein(reference)}
-                          >
-                            Open Reference Protein
-                          </button>
-                          <p className={styles.small}>
-                            Opens {reference.accession} as a new sequence and
-                            clears the current selection and notes. You can then
-                            load its existing AlphaFold structure.
-                          </p>
+                          {inspectionSide === 'primary' && (
+                            <>
+                              <button
+                                disabled={Boolean(busy)}
+                                onClick={() => openReferenceProtein(reference)}
+                              >
+                                Open Reference Protein
+                              </button>
+                              <p className={styles.small}>
+                                Opens {reference.accession} as a new sequence
+                                and clears the current selection and notes. You
+                                can then load its existing AlphaFold structure.
+                              </p>
+                            </>
+                          )}
                         </>
                       )}
                     </div>

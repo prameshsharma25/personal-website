@@ -237,3 +237,77 @@ test('symmetric reflected tetrahedron has the analytic proper rotation RMSD of 2
   );
   close(Math.sqrt(squared / fixed.length), 2);
 });
+
+test('comparison exports keep independently mapped evidence for both proteins with identical residue keys', () => {
+  const input = parseProteinStructure(
+    fs.readFileSync('public/tools/protein-annotations/1LYZ.pdb', 'utf8'),
+    'same-keys.pdb'
+  );
+  const reference = JSON.parse(
+    fs.readFileSync('public/tools/protein-annotations/P00698.json', 'utf8')
+  );
+  const otherReference = {
+    ...reference,
+    accession: 'TEST_SECOND_REFERENCE',
+    annotations: reference.annotations.map((a) => ({
+      ...a,
+      id: `second-${a.id}`,
+      description: `Second reference: ${a.description}`,
+    })),
+  };
+  const result = compareProteins(input, 'A', input, 'A');
+  const mapping = {
+    positions: input.chains[0].residues.map((_, i) => i + 19),
+    identity: 1,
+    coverage: 1,
+    usable: true,
+    exact: false,
+    ambiguous: false,
+    substitutions: 0,
+    method: 'fixture',
+  };
+  const report = comparisonReport(
+    input,
+    input,
+    result,
+    reference,
+    mapping,
+    otherReference,
+    mapping
+  );
+  assert.equal(report.reference.accession, 'P00698');
+  assert.equal(report.comparisonReference.accession, 'TEST_SECOND_REFERENCE');
+  assert.ok(report.pairs.some((p) => p.comparisonAnnotations.length));
+  for (const pair of report.pairs) {
+    assert.ok(
+      pair.primaryAnnotations.every((a) => !a.id.startsWith('second-'))
+    );
+    assert.ok(
+      pair.comparisonAnnotations.every((a) => a.id.startsWith('second-'))
+    );
+  }
+  assert.match(comparisonCsv(report), /comparison_annotations/);
+  assert.match(comparisonCsv(report), /Second reference:/);
+  const withheld = comparisonReport(
+    input,
+    input,
+    result,
+    reference,
+    mapping,
+    otherReference,
+    { ...mapping, usable: false }
+  );
+  assert.ok(withheld.pairs.every((p) => !p.comparisonAnnotations.length));
+  assert.ok(withheld.pairs.some((p) => p.primaryAnnotations.length));
+  const secondaryOnly = comparisonReport(
+    input,
+    input,
+    result,
+    null,
+    null,
+    otherReference,
+    mapping
+  );
+  assert.ok(secondaryOnly.pairs.every((p) => !p.primaryAnnotations.length));
+  assert.ok(secondaryOnly.pairs.some((p) => p.comparisonAnnotations.length));
+});

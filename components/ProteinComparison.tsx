@@ -7,6 +7,7 @@ import {
 import {
   comparisonReport,
   comparisonCsv,
+  type InspectionProtein,
   type ComparisonMode,
   type ComparisonReport,
   type ProteinComparisonResult,
@@ -30,8 +31,11 @@ export default function ProteinComparison({
   enabled,
   selected,
   onPick,
-  reference,
-  mapping,
+  inspectionProtein,
+  primaryReference,
+  primaryMapping,
+  comparisonReference,
+  comparisonMapping,
   focus,
   onReport,
   children,
@@ -43,8 +47,11 @@ export default function ProteinComparison({
   enabled: boolean;
   selected: Set<string>;
   onPick: (key: string, add: boolean) => void;
-  reference: ReferenceProtein | null;
-  mapping: Mapping | null;
+  inspectionProtein: InspectionProtein;
+  primaryReference: ReferenceProtein | null;
+  primaryMapping: Mapping | null;
+  comparisonReference: ReferenceProtein | null;
+  comparisonMapping: Mapping | null;
   focus: number;
   onReport: (report: ComparisonReport | null) => void;
   children: ReactNode;
@@ -73,7 +80,7 @@ export default function ProteinComparison({
     setActive(null);
     setCursor(0);
     setError('');
-    if (!other) {
+    if (!other || !input?.pdb) {
       setLoading('');
       return;
     }
@@ -149,9 +156,25 @@ export default function ProteinComparison({
   const report = useMemo(
     () =>
       result && other
-        ? comparisonReport(input, other, result, reference, mapping)
+        ? comparisonReport(
+            input,
+            other,
+            result,
+            primaryReference,
+            primaryMapping,
+            comparisonReference,
+            comparisonMapping
+          )
         : null,
-    [input, other, result, reference, mapping]
+    [
+      input,
+      other,
+      result,
+      primaryReference,
+      primaryMapping,
+      comparisonReference,
+      comparisonMapping,
+    ]
   );
   useEffect(() => {
     onReport(report);
@@ -192,8 +215,8 @@ export default function ProteinComparison({
           <h3>Align And Compare Structures</h3>
           <p>
             Protein 2 is aligned to Protein 1. Switch between the individual
-            structures and their overlay below. Reference annotations describe
-            Protein 1.
+            structures and their overlay below. Each protein has its own
+            reference annotations and inspection controls.
           </p>
           <label>
             Alignment Method
@@ -298,21 +321,30 @@ export default function ProteinComparison({
             onActive={setActive}
             onPick={(key, add) => {
               const index = result.pairs.findIndex(
-                (pair) => pair.primary.key === key
+                (pair) => pair[inspectionProtein].key === key
               );
               if (index >= 0) setCursor(index);
               onPick(key, add);
             }}
-            reference={reference}
-            mapping={mapping}
+            inspectionProtein={inspectionProtein}
+            reference={
+              inspectionProtein === 'primary'
+                ? primaryReference
+                : comparisonReference
+            }
+            mapping={
+              inspectionProtein === 'primary'
+                ? primaryMapping
+                : comparisonMapping
+            }
             focus={focus}
           />
           <div ref={chartHost} className={styles.chartPanel}>
             <h3>Residue Differences</h3>
             <p className={styles.note}>
-              Hover to highlight both structures. Click to select a primary
-              residue and see its annotations. The slider also supports keyboard
-              selection.
+              Hover to highlight both structures. Click to select a residue in
+              Protein {inspectionProtein === 'primary' ? '1' : '2'} and see its
+              annotations. The slider also supports keyboard selection.
             </p>
             <svg
               viewBox={`0 0 ${w} ${h}`}
@@ -348,7 +380,7 @@ export default function ProteinComparison({
                 setActive(index);
                 setCursor(index);
                 onPick(
-                  result.pairs[index].primary.key,
+                  result.pairs[index][inspectionProtein].key,
                   e.shiftKey || e.ctrlKey || e.metaKey
                 );
               }}
@@ -377,7 +409,7 @@ export default function ProteinComparison({
                 strokeWidth="2"
               />
               {result.pairs.map((p, i) =>
-                selected.has(p.primary.key) ? (
+                selected.has(p[inspectionProtein].key) ? (
                   <circle
                     key={p.primary.key}
                     cx={x(i)}
@@ -406,13 +438,14 @@ export default function ProteinComparison({
                 </>
               )}
               <text x={left} y={h - 19}>
-                {result.pairs[0].primary.number}
+                {result.pairs[0][inspectionProtein].number}
               </text>
               <text x={w - right} y={h - 19} textAnchor="end">
-                {result.pairs[count - 1].primary.number}
+                {result.pairs[count - 1][inspectionProtein].number}
               </text>
               <text x={w / 2} y={h - 2} textAnchor="middle">
-                Primary Residues In Aligned Order
+                Protein {inspectionProtein === 'primary' ? '1' : '2'} Residues
+                In Aligned Order
               </text>
             </svg>
             <label>
@@ -424,14 +457,14 @@ export default function ProteinComparison({
                 value={cursor + 1}
                 aria-valuetext={
                   cursorPair
-                    ? `${cursorPair.primary.name} ${cursorPair.primary.number}; ${cursorPair.distance.toFixed(2)} angstroms`
+                    ? `${cursorPair[inspectionProtein].name} ${cursorPair[inspectionProtein].number}; ${cursorPair.distance.toFixed(2)} angstroms`
                     : undefined
                 }
                 onChange={(e) => {
                   const index = Number(e.target.value) - 1;
                   setActive(index);
                   setCursor(index);
-                  onPick(result.pairs[index].primary.key, false);
+                  onPick(result.pairs[index][inspectionProtein].key, false);
                 }}
               />
             </label>
@@ -457,7 +490,7 @@ export default function ProteinComparison({
                 );
                 setActive(i);
                 setCursor(i);
-                onPick(result.pairs[i].primary.key, false);
+                onPick(result.pairs[i][inspectionProtein].key, false);
               }}
             >
               Select Largest Difference
@@ -532,8 +565,9 @@ export default function ProteinComparison({
             <p>
               Unpaired residues are gray and excluded from RMSD. Distance colors
               describe coordinate differences, not confidence or functional
-              significance. Reference annotations remain attached to the primary
-              protein.
+              significance. Reference annotations remain attached to the protein
+              for which they were loaded. Structural alignment does not transfer
+              annotations.
             </p>
           </details>
         </>

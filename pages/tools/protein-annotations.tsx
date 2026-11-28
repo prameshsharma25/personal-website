@@ -119,7 +119,10 @@ export default function ProteinAnnotations() {
             sequence identity or TM score cutoff is used to reject a fit.
             Sequence Correspondence is also available and displays a
             deterministic alignment when sequence scores tie. Reference
-            annotation mapping retains its separate sequence quality checks.
+            annotation mapping retains its separate sequence quality checks. Use
+            Inspect Protein 1 or Inspect Protein 2 to switch the sequence,
+            annotations, and notes. Each protein keeps its own selection and
+            reference; aligned residues highlight in both structures.
           </p>
           <p>
             RMSD, identity, coverage, and normalized TM scores describe the
