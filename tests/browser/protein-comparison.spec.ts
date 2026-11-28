@@ -3,6 +3,25 @@ import fs from 'node:fs';
 const lysozyme = fs.readFileSync('public/tools/protein-annotations/1LYZ.pdb');
 const rfah = fs.readFileSync('public/structures/rfah/2LCL-CTD.pdb');
 
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/protein-annotations?kind=reference&*', (route) => {
+    const id = new URL(route.request().url()).searchParams.get('id');
+    if (id === 'P00698')
+      return route.fulfill({
+        json: JSON.parse(
+          fs.readFileSync(
+            'public/tools/protein-annotations/P00698.json',
+            'utf8'
+          )
+        ),
+      });
+    return route.fulfill({
+      status: 503,
+      json: { error: 'Reference fixture unavailable.' },
+    });
+  });
+});
+
 test('RfaH comparison computes in a worker, links chart selection, and exports numerical results and image', async ({
   page,
 }) => {
@@ -711,6 +730,7 @@ test('two accessions load independently and their source identities survive alig
     await expect(page.getByLabel('Proteins In This Comparison')).toContainText(
       'AF-Q96AE4.pdb'
     );
+    await expect(first).not.toContainText('Loading Protein 1 Annotations');
     const download = page.waitForEvent('download');
     await page
       .getByRole('button', { name: 'Download Comparison Report' })
@@ -722,7 +742,7 @@ test('two accessions load independently and their source identities survive alig
     expect(report.comparison.name).toBe('AF-Q96AE4.pdb');
     expect(report.primary.origin).toContain('AF-P00698-F1-model_v6.pdb');
     expect(report.comparison.origin).toContain('AF-Q96AE4-F1-model_v6.pdb');
-    expect(report.reference).toBeNull();
+    expect(report.reference.accession).toBe('P00698');
     await page.setViewportSize({ width: 390, height: 844 });
     expect(
       await page.evaluate(
@@ -761,13 +781,11 @@ test('mixed upload and accession inputs retain current structures on unavailable
     .click();
   const first = page.getByRole('group', { name: 'Protein 1 Input' }),
     second = page.getByRole('group', { name: 'Protein 2 Input' });
-  await first
-    .getByLabel('Upload Protein', { exact: true })
-    .setInputFiles({
-      name: 'my-protein.pdb',
-      mimeType: 'text/plain',
-      buffer: lysozyme,
-    });
+  await first.getByLabel('Upload Protein', { exact: true }).setInputFiles({
+    name: 'my-protein.pdb',
+    mimeType: 'text/plain',
+    buffer: lysozyme,
+  });
   await second.getByLabel('UniProt Accession For Protein 2').fill('P00698');
   await second
     .getByRole('button', { name: 'Load Protein 2', exact: true })

@@ -1,5 +1,6 @@
 import {
   AMINO,
+  ACCESSION,
   ANNOTATION_LIMITS,
   type ProteinInput,
   type Residue,
@@ -226,11 +227,33 @@ export function parseProteinStructure(
     throw new Error(
       'No protein residues with alpha carbon coordinates were found in the first model.'
     );
-  const suggested = text.match(/^DBREF\s+.*?\bUNP\s+([A-Z0-9]+)\b/m)?.[1];
+  // DBREF identifiers are scoped to their author chain. Multiple distinct
+  // references on one chain (for example a fusion) require manual review.
+  const references = new Map<string, Set<string>>();
+  if (/\.pdb$/i.test(name)) {
+    for (const line of text.split(/\r?\n/)) {
+      if (!line.startsWith('DBREF ')) continue;
+      const chain = line.slice(12, 13).trim();
+      const id = line.match(/\bUNP\s+([A-Z0-9-]+)\b/)?.[1];
+      if (!id) continue;
+      if (!references.has(chain)) references.set(chain, new Set());
+      references.get(chain).add(id);
+    }
+  }
+  const parsedChains = [...chains].map(([id, residues]) => ({
+    id,
+    residues,
+    referenceAccession:
+      references.get(id)?.size === 1 &&
+      ACCESSION.test([...references.get(id)][0])
+        ? [...references.get(id)][0]
+        : undefined,
+  }));
+  const suggested = parsedChains[0].referenceAccession;
   return {
     name,
     kind: 'structure',
-    chains: [...chains].map(([id, residues]) => ({ id, residues })),
+    chains: parsedChains,
     pdb: lines.join('\n') + '\nEND\n',
     suggestedAccession: suggested,
   };

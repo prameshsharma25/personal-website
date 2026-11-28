@@ -53,6 +53,7 @@ export function parseAccessionModel(
   return {
     ...input,
     suggestedAccession: id,
+    chains: input.chains.map((chain) => ({ ...chain, referenceAccession: id })),
     origin: `AlphaFold DB prediction for ${id}; model version ${source[1]}. Source: ${model.url}`,
   };
 }

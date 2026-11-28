@@ -4,12 +4,12 @@ import type { InspectionProtein } from '../lib/protein-comparison';
 import AnnotationStructureViewer from './AnnotationStructureViewer';
 import ProteinComparison from './ProteinComparison';
 import ProteinAccessionLoader from './ProteinAccessionLoader';
+import { referenceAccession } from '../lib/protein-reference-accession';
 import { parseAccessionModel } from '../lib/protein-accession-model';
 import type { ComparisonReport } from '../lib/protein-comparison';
 import AnnotationTypeIcon from './AnnotationTypeIcon';
 import {
   ANNOTATION_LIMITS,
-  ACCESSION,
   annotationPositions,
   evidenceUrl,
   mapSequence,
@@ -49,8 +49,6 @@ export default function ProteinAnnotationExplorer() {
     inspectionSide === 'primary' ? primaryInspection : comparisonInspection;
   const input = inspectionSide === 'primary' ? primaryInput : comparisonInput;
   const chain = inspectionSide === 'primary' ? primaryChain : comparisonChain;
-  const setChain =
-    inspectionSide === 'primary' ? setPrimaryChain : setComparisonChain;
   const {
     reference,
     accession,
@@ -173,6 +171,27 @@ export default function ProteinAnnotationExplorer() {
   const displayed = relevant.filter(
     (a) => category === 'All' || a.category === category
   );
+  const autoReference = (
+    side: InspectionProtein,
+    protein: ProteinInput | null,
+    chain: string
+  ) => {
+    const id = referenceAccession(protein, chain);
+    if (id)
+      void (
+        side === 'primary' ? primaryInspection : comparisonInspection
+      ).retrieveReference(id);
+  };
+  const enableComparison = () => {
+    setComparisonEnabled(true);
+    if (!primaryInspection.reference && !primaryInspection.referenceLoading)
+      autoReference('primary', primaryInput, primaryChain);
+    if (
+      !comparisonInspection.reference &&
+      !comparisonInspection.referenceLoading
+    )
+      autoReference('comparison', comparisonInput, comparisonChain);
+  };
   const replaceInput = (
     next: ProteinInput,
     ref: ReferenceProtein | null = null,
@@ -192,6 +211,8 @@ export default function ProteinAnnotationExplorer() {
       ref?.accession || next.suggestedAccession || ''
     );
     setInspectionProtein('primary');
+    if (!ref && keepComparison)
+      autoReference('primary', next, next.chains[0].id);
     setHover(null);
     anchor.current = null;
   };
@@ -286,6 +307,7 @@ export default function ProteinAnnotationExplorer() {
       comparisonInspection.reset(null, next.suggestedAccession || '');
       setComparisonInput(next);
       setComparisonChain(next.chains[0].id);
+      autoReference('comparison', next, next.chains[0].id);
     } catch (e) {
       if (comparisonOperation.current === id)
         setComparisonError(
@@ -309,7 +331,6 @@ export default function ProteinAnnotationExplorer() {
       const next = await fetchAccessionStructure(id, signal);
       if (current()) {
         replaceInput(next, null, true);
-        primaryInspection.setAccession(id);
       }
     });
   const loadComparisonAccession = async (id: string) => {
@@ -326,6 +347,7 @@ export default function ProteinAnnotationExplorer() {
       comparisonInspection.reset(null, next.suggestedAccession || '');
       setComparisonInput(next);
       setComparisonChain(next.chains[0].id);
+      autoReference('comparison', next, next.chains[0].id);
       setComparison(null);
     } catch (error) {
       if (comparisonOperation.current === request && !controller.signal.aborted)
@@ -353,25 +375,14 @@ export default function ProteinAnnotationExplorer() {
   const loadReference = (asNewProtein = false) => {
     const target = inspectionSide;
     const version = inputVersions.current[target];
-    const targetInspection = inspection;
-    void run('Retrieving Public Annotations…', async (signal, current) => {
-      const id = accession.trim().toUpperCase();
-      if (!ACCESSION.test(id))
-        throw new Error(
-          'Enter a canonical UniProt accession, such as P00698. Isoform identifiers are not supported yet.'
-        );
-      const data: ReferenceProtein = await (
-        await get(`/api/protein-annotations?kind=reference&id=${id}`, signal)
-      ).json();
-      if (current() && inputVersions.current[target] === version) {
-        if (target === 'primary' && (!input || asNewProtein))
-          openReferenceProtein(data);
-        else {
-          targetInspection.setReference(data);
-          targetInspection.setCategory('All');
-        }
-        targetInspection.setAccession(data.accession);
-      }
+    void inspection.retrieveReference(accession).then((data) => {
+      if (
+        data &&
+        inputVersions.current[target] === version &&
+        target === 'primary' &&
+        (!input || asNewProtein)
+      )
+        openReferenceProtein(data);
     });
   };
   const loadExample = () =>
@@ -404,11 +415,15 @@ export default function ProteinAnnotationExplorer() {
       ]);
       const primary = {
         ...parseProteinStructure(alpha, 'RfaH 2OUG CTD.pdb'),
+        // https://www.rcsb.org/structure/2OUG
+        suggestedAccession: 'P0AFW0',
         origin:
           'RfaH C terminal domain from PDB 2OUG, chain A, observed residues 115 to 156. Alpha helical state.',
       };
       const secondary = {
         ...parseProteinStructure(beta, 'RfaH 2LCL CTD.pdb'),
+        // https://www.rcsb.org/structure/2LCL
+        suggestedAccession: 'P0AFW0',
         origin:
           'Isolated RfaH C terminal domain from PDB 2LCL, first NMR model. Beta barrel state.',
       };
@@ -417,7 +432,8 @@ export default function ProteinAnnotationExplorer() {
         setComparisonInput(secondary);
         setComparisonChain(secondary.chains[0].id);
         setComparisonEnabled(true);
-        primaryInspection.setAccession('');
+        autoReference('primary', primary, primary.chains[0].id);
+        autoReference('comparison', secondary, secondary.chains[0].id);
       }
     });
   const loadModel = () =>
@@ -462,6 +478,11 @@ export default function ProteinAnnotationExplorer() {
     const state = side === 'primary' ? primaryInspection : comparisonInspection;
     state.setSelectedKeys([]);
     state.setCategory('All');
+    if (comparisonEnabled) {
+      const protein = side === 'primary' ? primaryInput : comparisonInput;
+      state.clearReference(referenceAccession(protein, id) || '');
+      autoReference(side, protein, id);
+    }
     setHover(null);
     anchor.current = null;
     dragging.current = false;
@@ -595,6 +616,27 @@ export default function ProteinAnnotationExplorer() {
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const referenceStatus = (
+    state: typeof primaryInspection,
+    label: string,
+    retry = () => {
+      void state.retrieveReference(state.accession);
+    }
+  ) =>
+    state.referenceLoading ? (
+      <p role="status" className={styles.small}>
+        Loading {label} Annotations…
+      </p>
+    ) : state.referenceError ? (
+      <div role="alert" className={styles.mappingWarning}>
+        <p>
+          {label} Annotations: {state.referenceError}
+        </p>
+        <button type="button" onClick={retry}>
+          Retry {label} Annotations
+        </button>
+      </div>
+    ) : null;
   const inspectionControls =
     comparisonEnabled && comparisonInput ? (
       <div
@@ -621,6 +663,8 @@ export default function ProteinAnnotationExplorer() {
   const referenceControls = (
     <>
       <p className={styles.eyebrow}>02 / Reference Annotations</p>
+      {!comparisonEnabled &&
+        referenceStatus(inspection, 'Protein', () => loadReference())}
       <h2>Connect A Reference Protein.</h2>
       <form
         onSubmit={(e) => {
@@ -642,7 +686,12 @@ export default function ProteinAnnotationExplorer() {
           />
           <button
             className={styles.primary}
-            disabled={!ready || Boolean(busy) || !accession.trim()}
+            disabled={
+              !ready ||
+              Boolean(busy) ||
+              inspection.referenceLoading ||
+              !accession.trim()
+            }
           >
             Load Annotations
           </button>
@@ -651,7 +700,12 @@ export default function ProteinAnnotationExplorer() {
           <button
             className={styles.newProtein}
             type="button"
-            disabled={!ready || Boolean(busy) || !accession.trim()}
+            disabled={
+              !ready ||
+              Boolean(busy) ||
+              inspection.referenceLoading ||
+              !accession.trim()
+            }
             onClick={() => loadReference(true)}
           >
             Open As New Protein
@@ -659,8 +713,8 @@ export default function ProteinAnnotationExplorer() {
         )}
       </form>
       <p className={styles.small}>
-        {inspectionSide === 'comparison'
-          ? 'Load Annotations connects the reference to Protein 2 only. Use its upload card to replace the structure.'
+        {comparisonEnabled
+          ? `Annotations load automatically for ${inspectingLabel} when a UniProt accession is available. You can enter a different reference here. Use the protein’s upload card to replace its structure.`
           : input
             ? 'Load Annotations compares the reference with your current protein. Open As New Protein replaces it with the reference sequence and clears the current selection and notes.'
             : 'Enter an accession to open its reference sequence and annotations. You can then load its existing AlphaFold structure.'}
@@ -710,7 +764,7 @@ export default function ProteinAnnotationExplorer() {
         <button
           type="button"
           aria-pressed={comparisonEnabled}
-          onClick={() => setComparisonEnabled(true)}
+          onClick={enableComparison}
         >
           Compare Structures
         </button>
@@ -721,7 +775,8 @@ export default function ProteinAnnotationExplorer() {
           <p>
             Upload a structure or enter a UniProt accession in each numbered
             card, then choose the chains to align. The comparison starts
-            automatically when both structures are ready.
+            automatically when both structures are ready. Known UniProt
+            accessions also load reference annotations automatically.
           </p>
           <p className={styles.small}>
             Use Overlay, Protein 1 Only, or Protein 2 Only above the 3D view to
@@ -808,6 +863,7 @@ export default function ProteinAnnotationExplorer() {
                     ? 'Sequence Loaded · Add Coordinates To Align'
                     : 'Upload A Structure Or Load An Accession'}
               </p>
+              {referenceStatus(primaryInspection, 'Protein 1')}
               {primaryInput?.origin && (
                 <p className={styles.small}>{primaryInput.origin}</p>
               )}
@@ -896,6 +952,7 @@ export default function ProteinAnnotationExplorer() {
                 ? 'Structure Ready'
                 : 'Upload A Structure Or Load An Accession'}
             </p>
+            {referenceStatus(comparisonInspection, 'Protein 2')}
             {comparisonInput?.origin && (
               <p className={styles.small}>{comparisonInput.origin}</p>
             )}
@@ -934,9 +991,7 @@ export default function ProteinAnnotationExplorer() {
         >
           {comparisonEnabled ? (
             <details>
-              <summary>
-                Optional: Add Reference Annotations To {inspectingLabel}
-              </summary>
+              <summary>Reference Annotations For {inspectingLabel}</summary>
               {referenceControls}
             </details>
           ) : (
@@ -1301,7 +1356,7 @@ export default function ProteinAnnotationExplorer() {
                   <div key={i} className={styles.saved}>
                     <button
                       onClick={() => {
-                        setChain(region.chain);
+                        if (region.chain !== chain) switchChain(region.chain);
                         setSelectedKeys(region.keys);
                         setCategory('All');
                         anchor.current = null;
@@ -1339,8 +1394,11 @@ export default function ProteinAnnotationExplorer() {
               </h2>
               {!reference ? (
                 <p>
-                  Load a UniProt reference above to connect this protein to
-                  published annotations.
+                  {inspection.referenceLoading
+                    ? `Loading annotations for ${accession}…`
+                    : inspection.referenceError
+                      ? 'Annotations could not be loaded. Retry from the reference controls above.'
+                      : 'Enter a UniProt accession in the reference controls above to connect this protein to published annotations.'}
                 </p>
               ) : (
                 <>

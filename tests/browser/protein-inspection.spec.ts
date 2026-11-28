@@ -39,7 +39,7 @@ async function openPair(page: Page) {
 }
 async function requestSecondaryReference(page: Page) {
   await page
-    .getByText('Optional: Add Reference Annotations To Protein 2', {
+    .getByText('Reference Annotations For Protein 2', {
       exact: true,
     })
     .click();
@@ -53,6 +53,25 @@ async function exportJson(page: Page, name: string) {
   await page.getByRole('button', { name, exact: true }).click();
   return JSON.parse(fs.readFileSync(await (await download).path(), 'utf8'));
 }
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/protein-annotations?kind=reference&*', (route) => {
+    const id = new URL(route.request().url()).searchParams.get('id');
+    if (id === 'P00698')
+      return route.fulfill({
+        json: JSON.parse(
+          fs.readFileSync(
+            'public/tools/protein-annotations/P00698.json',
+            'utf8'
+          )
+        ),
+      });
+    return route.fulfill({
+      status: 503,
+      json: { error: 'Reference fixture unavailable.' },
+    });
+  });
+});
 
 test('each protein retains its own selection, notes, and annotation evidence even with identical residue keys', async ({
   page,
@@ -78,7 +97,7 @@ test('each protein retains its own selection, notes, and annotation evidence eve
   await inspect(page, 2);
   await expect(sequence(page).locator('[aria-pressed="true"]')).toHaveCount(0);
   await expect(panel(page)).toContainText('Protein 2 · second-lysozyme.pdb');
-  await expect(panel(page)).not.toContainText('P00698');
+  await expect(panel(page)).toContainText('P00698');
   await expect(
     page.getByRole('button', { name: 'Primary Catalytic Region · 1 Residues' })
   ).toHaveCount(0);
@@ -221,7 +240,7 @@ test('replacing Protein 2 discards old inspection state and ignores its pending 
   await openPair(page);
   await inspect(page, 2);
   await sequence(page)
-    .getByRole('button', { name: 'ASP 52, A', exact: true })
+    .getByRole('button', { name: /^ASP 52, A/ })
     .click();
   const requested = page.waitForRequest(
     '**/api/protein-annotations?kind=reference&id=P12345'

@@ -431,7 +431,7 @@ test('opening a new accession preserves the current protein on failure and repla
     page
       .getByRole('region', { name: 'Protein Annotation Explorer', exact: true })
       .getByRole('alert')
-  ).toHaveText('Reference temporarily unavailable.');
+  ).toContainText('Reference temporarily unavailable.');
   await expect(
     page.getByRole('heading', { name: '1LYZ.pdb', exact: true })
   ).toBeVisible();
