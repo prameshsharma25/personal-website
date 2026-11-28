@@ -696,3 +696,12 @@
   font-size: 0.8rem;
   color: #bbdfff;
 }
+
+.accessionLoader {
+  margin: 1.25rem 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid #31577c;
+}
+.accessionLoader .inline button {
+  flex: 1 1 auto;
+}

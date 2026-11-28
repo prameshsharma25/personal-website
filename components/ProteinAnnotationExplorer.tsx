@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AnnotationStructureViewer from './AnnotationStructureViewer';
 import ProteinComparison from './ProteinComparison';
+import ProteinAccessionLoader from './ProteinAccessionLoader';
+import { parseAccessionModel } from '../lib/protein-accession-model';
 import type { ComparisonReport } from '../lib/protein-comparison';
 import AnnotationTypeIcon from './AnnotationTypeIcon';
 import {
@@ -32,6 +34,7 @@ export default function ProteinAnnotationExplorer() {
   const [comparisonBusy, setComparisonBusy] = useState('');
   const [comparisonError, setComparisonError] = useState('');
   const comparisonOperation = useRef(0);
+  const comparisonAbort = useRef<AbortController | null>(null);
   const [comparison, setComparison] = useState<ComparisonReport | null>(null);
   const [input, setInput] = useState<ProteinInput | null>(null);
   const [reference, setReference] = useState<ReferenceProtein | null>(null);
@@ -56,6 +59,9 @@ export default function ProteinAnnotationExplorer() {
   const sequenceStrip = useRef<HTMLDivElement>(null);
   const structurePanel = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    // Retain the stable ref objects so cleanup invalidates the latest request.
+    const comparisonRequests = comparisonOperation;
+    const comparisonController = comparisonAbort;
     setReady(true);
     const stop = () => {
       dragging.current = false;
@@ -66,7 +72,8 @@ export default function ProteinAnnotationExplorer() {
       window.removeEventListener('pointerup', stop);
       window.removeEventListener('blur', stop);
       abort.current?.abort();
-      comparisonOperation.current++;
+      comparisonRequests.current++;
+      comparisonController.current?.abort();
     };
   }, []);
   const residues = useMemo(
@@ -197,8 +204,14 @@ export default function ProteinAnnotationExplorer() {
       }
     });
   };
-  const removeComparison = () => {
+  const cancelComparisonLoad = () => {
     comparisonOperation.current++;
+    comparisonAbort.current?.abort();
+    setComparisonBusy('');
+    setComparisonError('');
+  };
+  const removeComparison = () => {
+    cancelComparisonLoad();
     setComparisonInput(null);
     setComparisonChain('');
     setComparison(null);
@@ -229,6 +242,47 @@ export default function ProteinAnnotationExplorer() {
         );
     } finally {
       if (comparisonOperation.current === id) setComparisonBusy('');
+    }
+  };
+  const fetchAccessionStructure = async (id: string, signal: AbortSignal) => {
+    const data = await (
+      await get(
+        `/api/protein-annotations?kind=model&id=${encodeURIComponent(id)}`,
+        signal
+      )
+    ).json();
+    return parseAccessionModel(id, data);
+  };
+  const loadPrimaryAccession = (id: string) =>
+    void run('Loading Protein 1 From UniProt…', async (signal, current) => {
+      const next = await fetchAccessionStructure(id, signal);
+      if (current()) {
+        replaceInput(next, null, true);
+        setAccession(id);
+      }
+    });
+  const loadComparisonAccession = async (id: string) => {
+    cancelComparisonLoad();
+    const request = comparisonOperation.current;
+    const controller = new AbortController();
+    comparisonAbort.current = controller;
+    setComparisonBusy('Loading Protein 2 From UniProt…');
+    try {
+      const next = await fetchAccessionStructure(id, controller.signal);
+      if (comparisonOperation.current !== request || controller.signal.aborted)
+        return;
+      setComparisonInput(next);
+      setComparisonChain(next.chains[0].id);
+      setComparison(null);
+    } catch (error) {
+      if (comparisonOperation.current === request && !controller.signal.aborted)
+        setComparisonError(
+          error instanceof Error
+            ? error.message
+            : 'The model could not be loaded.'
+        );
+    } finally {
+      if (comparisonOperation.current === request) setComparisonBusy('');
     }
   };
   const openReferenceProtein = (data: ReferenceProtein) => {
@@ -552,9 +606,9 @@ export default function ProteinAnnotationExplorer() {
         <div className={styles.comparisonIntro}>
           <h2>Load Two Proteins. Compare Their Structures.</h2>
           <p>
-            Choose a structure in each numbered card, then choose the chains to
-            align. The comparison starts automatically when both structures are
-            ready.
+            Upload a structure or enter a UniProt accession in each numbered
+            card, then choose the chains to align. The comparison starts
+            automatically when both structures are ready.
           </p>
           <p className={styles.small}>
             Use Overlay, Protein 1 Only, or Protein 2 Only above the 3D view to
@@ -611,6 +665,26 @@ export default function ProteinAnnotationExplorer() {
             chain.
           </p>
           {comparisonEnabled && (
+            <ProteinAccessionLoader
+              slot={1}
+              disabled={!ready || Boolean(busy)}
+              loading={busy === 'Loading Protein 1 From UniProt…'}
+              onLoad={loadPrimaryAccession}
+              onCancel={() => {
+                operation.current++;
+                abort.current?.abort();
+                setBusy('');
+                setError('');
+              }}
+            />
+          )}
+          {comparisonEnabled && busy && <p role="status">{busy}</p>}
+          {comparisonEnabled && error && (
+            <p role="alert" className={styles.error}>
+              {error}
+            </p>
+          )}
+          {comparisonEnabled && (
             <>
               <p className={styles.loadedFile}>
                 <strong>{input?.name || 'No Structure Loaded'}</strong>
@@ -619,8 +693,9 @@ export default function ProteinAnnotationExplorer() {
                   ? 'Structure Ready'
                   : input
                     ? 'Sequence Loaded · Add Coordinates To Align'
-                    : 'Choose A PDB Or mmCIF File Above'}
+                    : 'Upload A Structure Or Load An Accession'}
               </p>
+              {input?.origin && <p className={styles.small}>{input.origin}</p>}
               {input && (
                 <label>
                   Primary Chain
@@ -689,13 +764,25 @@ export default function ProteinAnnotationExplorer() {
               PDB or mmCIF. Up to 5 MB and 2,000 residues per chain. This
               structure is aligned to Protein 1.
             </p>
+            <ProteinAccessionLoader
+              slot={2}
+              disabled={!ready}
+              loading={comparisonBusy === 'Loading Protein 2 From UniProt…'}
+              onLoad={(id) => {
+                void loadComparisonAccession(id);
+              }}
+              onCancel={cancelComparisonLoad}
+            />
             <p className={styles.loadedFile}>
               <strong>{comparisonInput?.name || 'No Structure Loaded'}</strong>
               <br />
               {comparisonInput
                 ? 'Structure Ready'
-                : 'Choose A PDB Or mmCIF File Above'}
+                : 'Upload A Structure Or Load An Accession'}
             </p>
+            {comparisonInput?.origin && (
+              <p className={styles.small}>{comparisonInput.origin}</p>
+            )}
             {comparisonInput && (
               <>
                 <label>
@@ -772,12 +859,12 @@ export default function ProteinAnnotationExplorer() {
         Loading an existing model requests it from AlphaFold DB. No structure
         prediction runs here.
       </p>
-      {busy && (
+      {!comparisonEnabled && busy && (
         <p role="status" className={styles.status}>
           {busy}
         </p>
       )}
-      {error && (
+      {!comparisonEnabled && error && (
         <p role="alert" className={styles.error}>
           {error}
         </p>

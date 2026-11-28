@@ -621,3 +621,279 @@ test('view buttons change actual rendered proteins while preserving the camera, 
   ).toBe(true);
   await viewer.screenshot({ path: '.local/comparison-switcher-mobile.png' });
 });
+
+// Coordinate fixtures stand in for provider models; these tests exercise loading, not biological identity.
+function accessionFixture(id: string, text: string) {
+  const names: Record<string, string> = {
+    ALA: 'A',
+    ARG: 'R',
+    ASN: 'N',
+    ASP: 'D',
+    CYS: 'C',
+    GLN: 'Q',
+    GLU: 'E',
+    GLY: 'G',
+    HIS: 'H',
+    ILE: 'I',
+    LEU: 'L',
+    LYS: 'K',
+    MET: 'M',
+    PHE: 'F',
+    PRO: 'P',
+    SER: 'S',
+    THR: 'T',
+    TRP: 'W',
+    TYR: 'Y',
+    VAL: 'V',
+  };
+  const sequence = text
+    .split('\n')
+    .filter((l) => l.startsWith('ATOM') && l.slice(12, 16).trim() === 'CA')
+    .map((l) => names[l.slice(17, 20).trim()])
+    .join('');
+  return {
+    name: `AF-${id}.pdb`,
+    text,
+    sequence,
+    url: `https://alphafold.ebi.ac.uk/files/AF-${id}-F1-model_v6.pdb`,
+    label: `AlphaFold DB prediction for ${id}; model version 6`,
+  };
+}
+
+test('two accessions load independently and their source identities survive alignment and export', async ({
+  page,
+}) => {
+  let releasePrimary!: () => void;
+  const primaryGate = new Promise<void>(
+    (resolve) => (releasePrimary = resolve)
+  );
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.route('**/api/protein-annotations?kind=model&*', async (route) => {
+    const id = new URL(route.request().url()).searchParams.get('id')!;
+    if (id === 'P00698') await primaryGate;
+    await route.fulfill({
+      json: accessionFixture(
+        id,
+        id === 'P00698' ? lysozyme.toString() : rfah.toString()
+      ),
+    });
+  });
+  try {
+    await page.goto('/tools/protein-annotations');
+    await page
+      .getByRole('button', { name: 'Compare Structures', exact: true })
+      .click();
+    const first = page.getByRole('group', { name: 'Protein 1 Input' }),
+      second = page.getByRole('group', { name: 'Protein 2 Input' });
+    await first.getByLabel('UniProt Accession For Protein 1').fill(' p00698 ');
+    await first
+      .getByRole('button', { name: 'Load Protein 1', exact: true })
+      .click();
+    await second.getByLabel('UniProt Accession For Protein 2').fill('q96ae4');
+    await second
+      .getByRole('button', { name: 'Load Protein 2', exact: true })
+      .click();
+    await expect(second).toContainText('AF-Q96AE4.pdb');
+    await expect(
+      first.getByRole('button', { name: 'Cancel Loading Protein 1' })
+    ).toBeVisible();
+    releasePrimary();
+    await expect(first).toContainText('AF-P00698.pdb');
+    await expect(
+      page.locator('[data-comparison-viewer="ready"]')
+    ).toBeVisible();
+    await expect(first).toContainText('AlphaFold DB prediction for P00698');
+    await expect(second).toContainText('AlphaFold DB prediction for Q96AE4');
+    await page
+      .getByRole('button', { name: 'Protein 2 Only', exact: true })
+      .click();
+    await expect(page.getByLabel('Proteins In This Comparison')).toContainText(
+      'AF-Q96AE4.pdb'
+    );
+    const download = page.waitForEvent('download');
+    await page
+      .getByRole('button', { name: 'Download Comparison Report' })
+      .click();
+    const report = JSON.parse(
+      fs.readFileSync(await (await download).path(), 'utf8')
+    );
+    expect(report.primary.name).toBe('AF-P00698.pdb');
+    expect(report.comparison.name).toBe('AF-Q96AE4.pdb');
+    expect(report.primary.origin).toContain('AF-P00698-F1-model_v6.pdb');
+    expect(report.comparison.origin).toContain('AF-Q96AE4-F1-model_v6.pdb');
+    expect(report.reference).toBeNull();
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1
+      )
+    ).toBe(true);
+    await first
+      .locator('..')
+      .screenshot({ path: '.local/accession-cards-mobile.png' });
+    expect(errors).toEqual([]);
+  } finally {
+    releasePrimary();
+  }
+});
+
+test('mixed upload and accession inputs retain current structures on unavailable or inconsistent model responses', async ({
+  page,
+}) => {
+  await page.route('**/api/protein-annotations?kind=model&*', (route) => {
+    const id = new URL(route.request().url()).searchParams.get('id')!;
+    if (id === 'P12345')
+      return route.fulfill({
+        status: 404,
+        json: {
+          error:
+            'No AlphaFold model is available for this accession. Upload a PDB or mmCIF structure instead.',
+        },
+      });
+    const model = accessionFixture(id, rfah.toString());
+    if (id === 'Q96AE4') model.sequence = 'ACD' + model.sequence;
+    return route.fulfill({ json: model });
+  });
+  await page.goto('/tools/protein-annotations');
+  await page
+    .getByRole('button', { name: 'Compare Structures', exact: true })
+    .click();
+  const first = page.getByRole('group', { name: 'Protein 1 Input' }),
+    second = page.getByRole('group', { name: 'Protein 2 Input' });
+  await first
+    .getByLabel('Upload Protein', { exact: true })
+    .setInputFiles({
+      name: 'my-protein.pdb',
+      mimeType: 'text/plain',
+      buffer: lysozyme,
+    });
+  await second.getByLabel('UniProt Accession For Protein 2').fill('P00698');
+  await second
+    .getByRole('button', { name: 'Load Protein 2', exact: true })
+    .click();
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await second.getByLabel('UniProt Accession For Protein 2').fill('P12345');
+  await second
+    .getByRole('button', { name: 'Load Protein 2', exact: true })
+    .click();
+  await expect(second.getByRole('alert')).toContainText(
+    'Upload a PDB or mmCIF'
+  );
+  await expect(second).toContainText('AF-P00698.pdb');
+  await expect(first).toContainText('my-protein.pdb');
+  await first.getByLabel('UniProt Accession For Protein 1').fill('Q96AE4');
+  await first
+    .getByRole('button', { name: 'Load Protein 1', exact: true })
+    .click();
+  await expect(first.getByRole('alert')).toContainText(
+    'coordinates do not match'
+  );
+  await expect(first).toContainText('my-protein.pdb');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await second
+    .getByLabel('Comparison Structure', { exact: true })
+    .setInputFiles({
+      name: 'uploaded-replacement.pdb',
+      mimeType: 'text/plain',
+      buffer: lysozyme,
+    });
+  await expect(second.getByRole('alert')).toHaveCount(0);
+  await expect(second).toContainText('uploaded-replacement.pdb');
+  await expect(page.getByLabel('Comparison Metrics')).toContainText('0.00');
+});
+
+for (const slot of [1, 2])
+  test(`cancelled accession loading cannot overwrite a newer Protein ${slot}`, async ({
+    page,
+  }) => {
+    let release!: () => void, settled!: () => void;
+    const gate = new Promise<void>((r) => (release = r)),
+      finished = new Promise<void>((r) => (settled = r));
+    await page.route(
+      '**/api/protein-annotations?kind=model&*',
+      async (route) => {
+        await gate;
+        try {
+          await route.fulfill({
+            json: accessionFixture('Q96AE4', lysozyme.toString()),
+          });
+        } catch {
+          /* The client aborted this request. */
+        } finally {
+          settled();
+        }
+      }
+    );
+    try {
+      await page.goto('/tools/protein-annotations');
+      await page.getByRole('button', { name: 'Compare RfaH States' }).click();
+      await expect(
+        page.locator('[data-comparison-viewer="ready"]')
+      ).toBeVisible();
+      const card = page.getByRole('group', { name: `Protein ${slot} Input` });
+      await card
+        .getByLabel(`UniProt Accession For Protein ${slot}`)
+        .fill('Q96AE4');
+      const started = page.waitForRequest((r) =>
+        r.url().includes('kind=model')
+      );
+      await card
+        .getByRole('button', { name: `Load Protein ${slot}`, exact: true })
+        .click();
+      await started;
+      await card
+        .getByRole('button', { name: `Cancel Loading Protein ${slot}` })
+        .click();
+      await card
+        .getByLabel(slot === 1 ? 'Upload Protein' : 'Comparison Structure', {
+          exact: true,
+        })
+        .setInputFiles({
+          name: `latest-${slot}.pdb`,
+          mimeType: 'text/plain',
+          buffer: rfah,
+        });
+      await expect(card).toContainText(`latest-${slot}.pdb`);
+      release();
+      await finished;
+      await expect(
+        page.locator('[data-comparison-viewer="ready"]')
+      ).toBeVisible();
+      await expect(card).not.toContainText('AF-Q96AE4.pdb');
+      const download = page.waitForEvent('download');
+      await page
+        .getByRole('button', { name: 'Download Comparison Report' })
+        .click();
+      const report = JSON.parse(
+        fs.readFileSync(await (await download).path(), 'utf8')
+      );
+      expect(report[slot === 1 ? 'primary' : 'comparison'].name).toBe(
+        `latest-${slot}.pdb`
+      );
+    } finally {
+      release();
+    }
+  });
+
+test('invalid accession validation stays within its card and does not request a model', async ({
+  page,
+}) => {
+  const requests: string[] = [];
+  page.on('request', (r) => {
+    if (r.url().includes('kind=model')) requests.push(r.url());
+  });
+  await page.goto('/tools/protein-annotations');
+  await page
+    .getByRole('button', { name: 'Compare Structures', exact: true })
+    .click();
+  const first = page.getByRole('group', { name: 'Protein 1 Input' });
+  await first.getByLabel('UniProt Accession For Protein 1').fill('Q96AE4-2');
+  await first
+    .getByRole('button', { name: 'Load Protein 1', exact: true })
+    .click();
+  await expect(first.getByRole('alert')).toContainText(
+    'canonical UniProt accession'
+  );
+  expect(requests).toEqual([]);
+});

@@ -91,6 +91,22 @@ export default function ProteinAnnotations() {
             chain.
           </p>
           <p>
+            Each comparison input accepts a PDB or mmCIF file, or a canonical
+            UniProt accession. Accession loading retrieves an existing
+            prediction from{' '}
+            <a
+              href="https://alphafold.ebi.ac.uk/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              AlphaFold DB
+            </a>
+            . Its coordinates must match the sequence reported for that model.
+            The source and model version stay with the structure in exported
+            reports. If a complete model is unavailable, upload a structure
+            instead. No new predictions are generated.
+          </p>
+          <p>
             Structure comparison uses{' '}
             <a
               href="https://github.com/pylelab/USalign"

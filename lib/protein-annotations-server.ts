@@ -123,19 +123,33 @@ export function createAnnotationService(request: typeof fetch = fetch) {
           'Enter a canonical UniProt accession.',
           400
         );
-      const models = JSON.parse(
-        await get(
-          `https://alphafold.ebi.ac.uk/api/prediction/${accession}`,
-          256 * 1024
-        )
-      );
+      let models: unknown;
+      try {
+        models = JSON.parse(
+          await get(
+            `https://alphafold.ebi.ac.uk/api/prediction/${accession}`,
+            256 * 1024
+          )
+        );
+      } catch (error) {
+        if (error instanceof AnnotationRequestError && error.status === 404)
+          throw new AnnotationRequestError(
+            'No AlphaFold model is available for this accession. Upload a PDB or mmCIF structure instead.',
+            404
+          );
+        throw error;
+      }
       const model =
         Array.isArray(models) &&
         models.find(
           (m) =>
-            m.uniprotAccession === accession &&
+            m?.uniprotAccession === accession &&
+            typeof (m.sequence || m.uniprotSequence) === 'string' &&
+            /^[A-Z]+$/.test(m.sequence || m.uniprotSequence) &&
             m.sequenceStart === 1 &&
-            m.sequenceEnd === (m.uniprotSequence || m.sequence)?.length
+            m.sequenceEnd === (m.sequence || m.uniprotSequence).length &&
+            (!m.uniprotSequence ||
+              m.uniprotSequence === (m.sequence || m.uniprotSequence))
         );
       if (
         !model ||
@@ -150,7 +164,7 @@ export function createAnnotationService(request: typeof fetch = fetch) {
       return {
         name: `AF-${accession}.pdb`,
         text: await get(model.pdbUrl, 5 * 1024 * 1024),
-        sequence: model.sequence,
+        sequence: model.sequence || model.uniprotSequence,
         url: model.pdbUrl,
         label: `AlphaFold DB prediction for ${accession}; model version ${model.latestVersion}`,
       };
