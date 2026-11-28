@@ -91,14 +91,28 @@ export default function ProteinAnnotations() {
             chain.
           </p>
           <p>
-            Structure comparison pairs observed residues by sequence, then fits
-            the comparison chain onto the primary chain using an unweighted
-            least squares alpha carbon alignment. The fit uses a proper rigid
-            rotation with no reflection, scaling, flexible fitting, or outlier
-            removal. Both chain coverage values and RMSD are reported. Missing
-            coordinates and unpaired residues are excluded from the fit.
-            Differences can reflect conformational change, experimental
-            conditions, or uncertainty. They do not establish altered function.
+            Structure comparison uses{' '}
+            <a
+              href="https://github.com/pylelab/USalign"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              MM-align from the US-align software collection
+            </a>{' '}
+            to search for matching 3D geometry in a local browser worker. No
+            sequence identity or TM score cutoff is used to reject a fit.
+            Sequence Correspondence is also available and displays a
+            deterministic alignment when sequence scores tie. Reference
+            annotation mapping retains its separate sequence quality checks.
+          </p>
+          <p>
+            RMSD, identity, coverage, and normalized TM scores describe the
+            displayed alignment, not a probability that the proteins are
+            biologically related. The structural search is heuristic. Its
+            transform and residue pairing are retained in the overlay and
+            exported report. Both methods use a rigid rotation with no
+            reflection or flexible fitting. Missing coordinates and unpaired
+            residues are excluded from the reported RMSD.
           </p>
           <p>
             The comparison example uses the RfaH C terminal domain from{' '}

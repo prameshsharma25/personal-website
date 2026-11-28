@@ -15,13 +15,16 @@ test('RfaH comparison computes in a worker, links chart selection, and exports n
   });
   await page.goto('/tools/protein-annotations');
   await page.getByRole('button', { name: 'Compare RfaH States' }).click();
+  await page
+    .getByRole('combobox', { name: 'Alignment Method', exact: true })
+    .selectOption('sequence');
   await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
   const metrics = page.getByLabel('Comparison Metrics');
   await expect(metrics).toContainText('42');
   await expect(metrics).toContainText('100%');
   await expect(
     page.getByText(
-      'Primary Coverage 100% · Comparison Coverage 88% · 0 Substitutions'
+      'Primary Coverage 100% · Comparison Coverage 88% · 0 Nonidentical Pairs'
     )
   ).toBeVisible();
   await page.getByRole('button', { name: 'Select Largest Difference' }).click();
@@ -41,7 +44,7 @@ test('RfaH comparison computes in a worker, links chart selection, and exports n
   const json = JSON.parse(
     fs.readFileSync(await (await jsonDownload).path(), 'utf8')
   );
-  expect(json.schema).toBe('protein-structure-comparison-1.0');
+  expect(json.schema).toBe('protein-structure-comparison-1.1');
   expect(json.pairs).toHaveLength(42);
   expect(json.unmatched.comparison).toHaveLength(6);
   expect(json.metrics.rmsd).toBeGreaterThan(1);
@@ -94,6 +97,9 @@ test('comparison selection is linked to reference annotations and changing prote
   await slider.focus();
   await page.keyboard.press('Home');
   for (let i = 1; i < 52; i++) await page.keyboard.press('ArrowRight');
+  await expect(slider).toHaveValue('52');
+  await page.mouse.move(1, 1);
+  await expect(slider).toHaveValue('52');
   const sequence = page.getByLabel('Protein Sequence', { exact: true });
   await expect(
     sequence.getByRole('button', {
@@ -108,9 +114,6 @@ test('comparison selection is linked to reference annotations and changing prote
       exact: true,
     })
   ).toBeVisible();
-  await panel
-    .getByRole('button', { name: 'Clear Selection', exact: true })
-    .count();
   await page
     .getByRole('button', { name: 'Clear Selection', exact: true })
     .click();
@@ -146,7 +149,7 @@ test('comparison selection is linked to reference annotations and changing prote
   ).toHaveCount(0);
 });
 
-test('invalid correspondence clears the previous fit and mobile layout remains contained', async ({
+test('weak structural matches are displayed and mobile layout remains contained', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -167,21 +170,20 @@ test('invalid correspondence clears the previous fit and mobile layout remains c
     mimeType: 'text/plain',
     buffer: lysozyme,
   });
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
   await expect(
-    page
-      .getByLabel('Protein Structure Comparison', { exact: true })
-      .getByRole('alert')
-  ).toContainText(/alignment|correspondence/);
-  await expect(page.getByLabel('Comparison Metrics')).toHaveCount(0);
-  await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
+    page.getByLabel('Alignment Method And Interpretation')
+  ).toContainText('Sequence identity is low');
   const reviewDownload = page.waitForEvent('download');
   await page
     .getByRole('button', { name: 'Export Review', exact: true })
     .click();
-  expect(
-    JSON.parse(fs.readFileSync(await (await reviewDownload).path(), 'utf8'))
-      .comparison
-  ).toBeNull();
+  const review = JSON.parse(
+    fs.readFileSync(await (await reviewDownload).path(), 'utf8')
+  );
+  expect(review.comparison.comparison.name).toBe('wrong-protein.pdb');
+  expect(review.comparison.mode).toBe('structure');
+  expect(review.comparison.metrics.sequenceIdentity).toBeLessThan(0.9);
   await page
     .getByRole('button', { name: 'Remove Comparison', exact: true })
     .click();
@@ -219,12 +221,16 @@ test('switching chains recalculates the fit and a rapid replacement cannot resto
   await expect(page.getByLabel('Comparison Chain')).toHaveValue('B');
   await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
   await page.getByLabel('Comparison Chain').selectOption('C');
-  await expect(
-    page
-      .getByLabel('Protein Structure Comparison', { exact: true })
-      .getByRole('alert')
-  ).toContainText(/alignment|correspondence/);
-  await expect(page.getByLabel('Comparison Metrics')).toHaveCount(0);
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  const changedDownload = page.waitForEvent('download');
+  await page
+    .getByRole('button', { name: 'Download Comparison Report' })
+    .click();
+  const changed = JSON.parse(
+    fs.readFileSync(await (await changedDownload).path(), 'utf8')
+  );
+  expect(changed.comparison.chain).toBe('C');
+  expect(changed.metrics.comparisonCount).toBe(129);
   await page.getByLabel('Comparison Chain').selectOption('B');
   await page.getByRole('button', { name: 'Try Lysozyme' }).click();
   await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
@@ -290,6 +296,9 @@ test('comparison reports remain available when molecular rendering cannot load',
   await page.route('**/vendor/3dmol/**', (route) => route.abort());
   await page.goto('/tools/protein-annotations');
   await page.getByRole('button', { name: 'Compare RfaH States' }).click();
+  await page
+    .getByRole('combobox', { name: 'Alignment Method', exact: true })
+    .selectOption('sequence');
   await expect(
     page.locator('[data-comparison-viewer="unavailable"]')
   ).toBeVisible();
@@ -304,4 +313,95 @@ test('comparison reports remain available when molecular rendering cannot load',
   expect(
     JSON.parse(fs.readFileSync(await (await download).path(), 'utf8')).pairs
   ).toHaveLength(42);
+});
+
+test('2OUG and 5JYT align locally with low scores and both methods remain available', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/tools/protein-annotations');
+  await page
+    .getByLabel('Upload Protein', { exact: true })
+    .setInputFiles('tests/fixtures/protein-comparison/2OUG-chain-A.pdb');
+  await page
+    .getByRole('button', { name: 'Compare Structures', exact: true })
+    .click();
+  await expect(
+    page.getByRole('combobox', { name: 'Alignment Method', exact: true })
+  ).toHaveValue('structure');
+  await page
+    .getByLabel('Comparison Structure', { exact: true })
+    .setInputFiles('tests/fixtures/protein-comparison/5JYT-chain-A.pdb');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await expect(page.getByLabel('Comparison Metrics')).toContainText('4.72');
+  await expect(page.getByLabel('Comparison Metrics')).toContainText('68');
+  await expect(page.getByLabel('Structural Similarity Scores')).toContainText(
+    '0.300'
+  );
+  await expect(page.getByLabel('Structural Similarity Scores')).toContainText(
+    '0.365'
+  );
+  await expect(
+    page.getByLabel('Alignment Method And Interpretation')
+  ).toContainText('Sequence identity is low');
+  await page.getByRole('button', { name: 'Select Largest Difference' }).click();
+  await expect(
+    page
+      .getByLabel('Protein Sequence', { exact: true })
+      .locator('[aria-pressed="true"]')
+  ).toHaveCount(1);
+  const download = page.waitForEvent('download');
+  await page
+    .getByRole('button', { name: 'Download Comparison Report' })
+    .click();
+  const result = JSON.parse(
+    fs.readFileSync(await (await download).path(), 'utf8')
+  );
+  expect(result.mode).toBe('structure');
+  expect(result.pairs).toHaveLength(68);
+  expect(result.metrics.tmScores).toEqual({
+    primary: 0.29981,
+    comparison: 0.36549,
+  });
+  expect(result.structuralAlignment.reportedRmsd).toBe(4.63);
+  expect(result.metrics.rmsd).toBeCloseTo(4.7236475, 5);
+  await page
+    .getByRole('combobox', { name: 'Alignment Method', exact: true })
+    .selectOption('sequence');
+  await expect(
+    page.getByLabel('Alignment Method And Interpretation')
+  ).toContainText('Several sequence alignments have the same score');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await expect(page.getByLabel('Structural Similarity Scores')).toHaveCount(0);
+  await expect(
+    page
+      .getByLabel('Protein Structure Comparison', { exact: true })
+      .getByRole('alert')
+  ).toHaveCount(0);
+  await page
+    .getByRole('combobox', { name: 'Alignment Method', exact: true })
+    .selectOption('structure');
+  await expect(page.getByLabel('Structural Similarity Scores')).toContainText(
+    '0.300'
+  );
+  expect(errors).toEqual([]);
+});
+
+test('an unavailable structural engine can be bypassed by choosing sequence correspondence', async ({
+  page,
+}) => {
+  await page.route('**/mmalign.wasm', (route) => route.abort());
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Compare RfaH States' }).click();
+  await expect(
+    page
+      .getByLabel('Protein Structure Comparison', { exact: true })
+      .getByRole('alert')
+  ).toContainText('Sequence Correspondence');
+  await page
+    .getByRole('combobox', { name: 'Alignment Method', exact: true })
+    .selectOption('sequence');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await expect(page.getByLabel('Comparison Metrics')).toContainText('42');
 });

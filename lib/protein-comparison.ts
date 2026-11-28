@@ -1,5 +1,6 @@
 import {
   mapSequence,
+  AMINO,
   type Mapping,
   type ProteinInput,
   type ReferenceProtein,
@@ -14,7 +15,31 @@ export type ComparisonPair = {
   comparison: Residue;
   distance: number;
 };
+export type ComparisonMode = 'structure' | 'sequence';
+export type StructuralAlignmentOutput = {
+  stdout: string;
+  matrix: string;
+  engine: {
+    name: string;
+    sourceCommit: string;
+    sourceUrl: string;
+    buildRecord: string;
+    license: string;
+  };
+  arguments: string[];
+};
 export type ProteinComparisonResult = {
+  mode: ComparisonMode;
+  method: string;
+  warnings: string[];
+  sequenceAmbiguous: boolean | null;
+  tmScores: { primary: number; comparison: number } | null;
+  structuralAlignment:
+    | (StructuralAlignmentOutput & {
+        reportedRmsd: number;
+        leastSquaresRmsd: number;
+      })
+    | null;
   primaryChain: string;
   comparisonChain: string;
   primaryCount: number;
@@ -29,7 +54,9 @@ export type ProteinComparisonResult = {
   transform: RigidTransform;
 };
 export const COMPARISON_METHOD =
-  'Sequence correspondence followed by an unweighted least squares alpha carbon fit using a proper rigid rotation (Horn quaternion method). All paired residues contribute; no outlier removal or flexible fitting.';
+  'Sequence correspondence (one deterministic alignment when scores tie) followed by an unweighted least squares alpha carbon fit using a proper rigid rotation (Horn quaternion method). All paired residues contribute; no outlier removal or flexible fitting.';
+export const STRUCTURAL_COMPARISON_METHOD =
+  'MM-align structure search with no sequence identity or TM score cutoff. The displayed pairing and rigid transform come from the engine. Structural similarity does not establish homology or a unique residue correspondence. The search is heuristic and does not guarantee a global optimum.';
 export const COMPARISON_LIMITATIONS =
   'Only the selected chains and first coordinate models are compared. Missing coordinates are excluded. A large displacement can reflect a domain movement, different experimental conditions, or model uncertainty; it does not establish a functional change. Annotation evidence belongs to the primary reference and is not independently validated on the comparison structure.';
 
@@ -181,11 +208,18 @@ export function compareProteins(
     query.map((r) => r.letter).join(''),
     target.map((r) => r.letter).join('')
   );
-  if (!mapping.usable)
-    throw new Error(
-      mapping.ambiguous
-        ? 'These sequences have more than one equally scoring alignment. Choose a different chain or a less repetitive fragment. No structural fit was applied.'
-        : `These chains do not have a reliable sequence correspondence (${Math.round(mapping.identity * 100)}% identity; ${Math.round(mapping.coverage * 100)}% coverage of the shorter chain). This comparison requires at least 90% of each. No structural fit was applied.`
+  const warnings: string[] = [];
+  if (mapping.identity < 0.9)
+    warnings.push(
+      'Low sequence identity. This pairing is exploratory and does not establish equivalent biological positions.'
+    );
+  if (mapping.coverage < 0.9)
+    warnings.push(
+      'Limited sequence coverage. Only the paired residues contribute to the fit.'
+    );
+  if (mapping.ambiguous)
+    warnings.push(
+      'Several sequence alignments have the same score. One deterministic pairing is shown; other pairings may give a different fit.'
     );
   const pairs: ComparisonPair[] = [];
   mapping.positions.forEach((position, index) => {
@@ -205,6 +239,12 @@ export function compareProteins(
     pair.distance = Math.hypot(...point.map((x, i) => x - pair.primary.xyz[i]));
   }
   return {
+    mode: 'sequence',
+    method: COMPARISON_METHOD,
+    warnings,
+    sequenceAmbiguous: mapping.ambiguous,
+    tmScores: null,
+    structuralAlignment: null,
     primaryChain,
     comparisonChain,
     primaryCount: a.length,
@@ -216,6 +256,210 @@ export function compareProteins(
     rmsd: Math.sqrt(
       pairs.reduce((sum, p) => sum + p.distance * p.distance, 0) / pairs.length
     ),
+    maxDistance: Math.max(...pairs.map((p) => p.distance)),
+    pairs,
+    transform,
+  };
+}
+
+const engineLetter = (residue: Residue) =>
+  'ACDEFGHIKLMNPQRSTVWY'.includes(residue.letter) ? residue.letter : 'X';
+
+/** Canonical CA records prevent modified residue names being interpreted differently by the engine. */
+export function structuralInputPdb(input: ProteinInput, chain: string): string {
+  const residues = input.chains.find((c) => c.id === chain)?.residues;
+  if (!residues || residues.length < 3)
+    throw new Error(
+      'Structural alignment needs at least three alpha carbon coordinates in each selected chain.'
+    );
+  return (
+    comparisonPdb(input, chain)
+      .split('\n')
+      .filter(
+        (line) => line.startsWith('ATOM') && line.slice(12, 16).trim() === 'CA'
+      )
+      .map((line) => {
+        const residue = residues[Number(line.slice(22, 26)) - 1];
+        const letter = engineLetter(residue);
+        const name =
+          Object.keys(AMINO).find((name) => AMINO[name] === letter) || 'UNK';
+        return line.slice(0, 17) + name + line.slice(20);
+      })
+      .join('\n') + '\nEND\n'
+  );
+}
+
+/** Read the engine's correspondence and transform together; do not refit its TM optimized overlay. */
+export function structuralComparison(
+  primary: ProteinInput,
+  primaryChain: string,
+  comparison: ProteinInput,
+  comparisonChain: string,
+  output: StructuralAlignmentOutput
+): ProteinComparisonResult {
+  const a = primary.chains.find((c) => c.id === primaryChain)?.residues;
+  const b = comparison.chains.find((c) => c.id === comparisonChain)?.residues;
+  if (!a?.length || !b?.length)
+    throw new Error('Choose an available chain in each structure.');
+  const lines = output.stdout.split(/\r?\n/);
+  const marker = lines.findIndex((line) =>
+    line.includes('denotes residue pairs')
+  );
+  const moving = lines[marker + 1]?.trim(),
+    fixed = lines[marker + 3]?.trim();
+  if (
+    marker < 0 ||
+    !moving ||
+    !fixed ||
+    moving.length !== fixed.length ||
+    !/^[A-Z-]+$/.test(moving) ||
+    !/^[A-Z-]+$/.test(fixed) ||
+    moving.replace(/-/g, '') !== b.map(engineLetter).join('') ||
+    fixed.replace(/-/g, '') !== a.map(engineLetter).join('')
+  )
+    throw new Error(
+      'The structural engine returned an alignment that does not match the selected chains.'
+    );
+  const rows = output.matrix
+    .split(/\r?\n/)
+    .filter((line) => /^\s*[012]\s+/.test(line))
+    .map((line) => line.trim().split(/\s+/).map(Number));
+  if (
+    rows.length !== 3 ||
+    rows.some(
+      (row, i) =>
+        row.length !== 5 || row[0] !== i || row.some((n) => !Number.isFinite(n))
+    )
+  )
+    throw new Error(
+      'The structural engine did not return a valid coordinate transform.'
+    );
+  const rotation = rows.map((row) => row.slice(2)),
+    translation = rows.map((row) => row[1]) as Vec3;
+  const det =
+    rotation[0][0] *
+      (rotation[1][1] * rotation[2][2] - rotation[1][2] * rotation[2][1]) -
+    rotation[0][1] *
+      (rotation[1][0] * rotation[2][2] - rotation[1][2] * rotation[2][0]) +
+    rotation[0][2] *
+      (rotation[1][0] * rotation[2][1] - rotation[1][1] * rotation[2][0]);
+  if (
+    Math.abs(det - 1) > 1e-5 ||
+    rotation.some((row, i) =>
+      rotation.some(
+        (other, j) =>
+          Math.abs(
+            row.reduce((sum, v, k) => sum + v * other[k], 0) - +(i === j)
+          ) > 1e-5
+      )
+    )
+  )
+    throw new Error(
+      'The structural engine returned a transform that is not a proper rigid rotation.'
+    );
+  const transform = { rotation, translation };
+  const pairs: ComparisonPair[] = [];
+  let i = 0,
+    j = 0;
+  for (let column = 0; column < fixed.length; column++) {
+    if (fixed[column] !== '-' && moving[column] !== '-') {
+      const first = a[i],
+        second = b[j];
+      if (
+        !first.xyz ||
+        !second.xyz ||
+        [...first.xyz, ...second.xyz].some((n) => !Number.isFinite(n))
+      )
+        throw new Error(
+          'The paired residues need finite alpha carbon coordinates.'
+        );
+      const point = transformPoint(second.xyz, transform);
+      pairs.push({
+        primary: first,
+        comparison: second,
+        distance: Math.hypot(...point.map((v, k) => v - first.xyz[k])),
+      });
+    }
+    if (fixed[column] !== '-') i++;
+    if (moving[column] !== '-') j++;
+  }
+  const summary = output.stdout.match(
+    /Aligned length=\s*(\d+),\s*RMSD=\s*([\d.eE+-]+)/
+  );
+  const scores = [
+    ...output.stdout.matchAll(
+      /TM-score=\s*([\d.eE+-]+)\s*\(normalized by length of Structure_([12]):/g
+    ),
+  ];
+  const tmScores = {
+    primary: Number(scores.find((m) => m[2] === '2')?.[1]),
+    comparison: Number(scores.find((m) => m[2] === '1')?.[1]),
+  };
+  const rmsd = Math.sqrt(
+    pairs.reduce((sum, p) => sum + p.distance * p.distance, 0) / pairs.length
+  );
+  // The engine reports a least squares RMSD for its chosen pairs, but writes
+  // a TM optimized transform. Keep the displayed distances and RMSD tied to
+  // that transform, and record the engine's separate RMSD explicitly.
+  const leastSquares = fitCoordinates(
+    pairs.map((p) => p.primary.xyz),
+    pairs.map((p) => p.comparison.xyz)
+  );
+  const leastSquaresRmsd = Math.sqrt(
+    pairs.reduce(
+      (sum, p) =>
+        sum +
+        transformPoint(p.comparison.xyz, leastSquares).reduce(
+          (n, v, i) => n + (v - p.primary.xyz[i]) ** 2,
+          0
+        ),
+      0
+    ) / pairs.length
+  );
+  if (
+    pairs.length < 3 ||
+    Number(summary?.[1]) !== pairs.length ||
+    !Number.isFinite(rmsd) ||
+    !Number.isFinite(Number(summary?.[2])) ||
+    Math.abs(Number(summary?.[2]) - leastSquaresRmsd) > 0.02 ||
+    Object.values(tmScores).some((n) => !Number.isFinite(n) || n < 0 || n > 1)
+  )
+    throw new Error(
+      'The structural alignment summary is inconsistent with its residue pairs or coordinates.'
+    );
+  const identical = pairs.filter(
+    (p) =>
+      p.primary.letter === p.comparison.letter &&
+      !'XBZJ'.includes(p.primary.letter)
+  ).length;
+  const identity = identical / pairs.length;
+  const warnings = [
+    'Exploratory structural alignment. Similar geometry does not establish homology, equivalent function, or a unique residue correspondence.',
+  ];
+  if (identity < 0.9)
+    warnings.push(
+      'Sequence identity is low. Reference annotations describe the primary protein only.'
+    );
+  return {
+    mode: 'structure',
+    method: STRUCTURAL_COMPARISON_METHOD,
+    warnings,
+    sequenceAmbiguous: null,
+    tmScores,
+    structuralAlignment: {
+      ...output,
+      reportedRmsd: Number(summary[2]),
+      leastSquaresRmsd,
+    },
+    primaryChain,
+    comparisonChain,
+    primaryCount: a.length,
+    comparisonCount: b.length,
+    primaryCoverage: pairs.length / a.length,
+    comparisonCoverage: pairs.length / b.length,
+    identity,
+    substitutions: pairs.length - identical,
+    rmsd,
     maxDistance: Math.max(...pairs.map((p) => p.distance)),
     pairs,
     transform,
@@ -265,8 +509,12 @@ export function comparisonReport(
   mapping: Mapping | null
 ) {
   return {
-    schema: 'protein-structure-comparison-1.0',
-    method: COMPARISON_METHOD,
+    schema: 'protein-structure-comparison-1.1',
+    mode: result.mode,
+    method: result.method,
+    warnings: result.warnings,
+    sequenceAmbiguous: result.sequenceAmbiguous,
+    structuralAlignment: result.structuralAlignment,
     limitations: COMPARISON_LIMITATIONS,
     coordinateUnit: 'angstrom',
     transformConvention: 'comparison coordinates into primary frame: R * x + t',
@@ -287,7 +535,8 @@ export function comparisonReport(
       primaryCoverage: result.primaryCoverage,
       comparisonCoverage: result.comparisonCoverage,
       sequenceIdentity: result.identity,
-      substitutions: result.substitutions,
+      aminoAcidMismatches: result.substitutions,
+      tmScores: result.tmScores,
       rmsd: result.rmsd,
       maxDistance: result.maxDistance,
     },
@@ -345,6 +594,10 @@ export function comparisonCsv(report: ComparisonReport): string {
       'comparison_amino_acid',
       'ca_distance_angstrom',
       'primary_annotations',
+      'alignment_method',
+      'sequence_alignment_ambiguous',
+      'tm_score_primary',
+      'tm_score_comparison',
     ],
   ];
   for (const p of report.pairs)
@@ -361,6 +614,10 @@ export function comparisonCsv(report: ComparisonReport): string {
       p.primaryAnnotations
         .map((a) => `${a.source}: ${a.description}`)
         .join('; '),
+      report.mode,
+      report.sequenceAmbiguous,
+      report.metrics.tmScores?.primary,
+      report.metrics.tmScores?.comparison,
     ]);
   return rows.map((row) => row.map(cell).join(',')).join('\r\n');
 }

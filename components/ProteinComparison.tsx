@@ -9,7 +9,7 @@ import { parseProteinStructure } from '../lib/protein-input';
 import {
   comparisonReport,
   comparisonCsv,
-  COMPARISON_METHOD,
+  type ComparisonMode,
   type ComparisonReport,
   type ProteinComparisonResult,
 } from '../lib/protein-comparison';
@@ -22,6 +22,7 @@ type Ready = {
   chain: string;
   otherChain: string;
   result: ProteinComparisonResult;
+  mode: ComparisonMode;
 };
 export default function ProteinComparison({
   input,
@@ -46,6 +47,7 @@ export default function ProteinComparison({
   onReport: (report: ComparisonReport | null) => void;
   children: ReactNode;
 }) {
+  const [mode, setMode] = useState<ComparisonMode>('structure');
   const [enabled, setEnabled] = useState(Boolean(initialComparison));
   const [other, setOther] = useState<ProteinInput | null>(initialComparison);
   const [otherChain, setOtherChain] = useState(
@@ -55,6 +57,9 @@ export default function ProteinComparison({
     [error, setError] = useState(''),
     [loading, setLoading] = useState('');
   const [active, setActive] = useState<number | null>(null);
+  // Hover is transient; keyboard navigation must keep its position when the
+  // pointer enters or leaves the viewer during scrolling.
+  const [cursor, setCursor] = useState(0);
   const fileOperation = useRef(0);
   const chartHost = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(640);
@@ -69,12 +74,14 @@ export default function ProteinComparison({
     ready?.primary === input &&
     ready?.comparison === other &&
     ready?.chain === chain &&
-    ready?.otherChain === otherChain
+    ready?.otherChain === otherChain &&
+    ready?.mode === mode
       ? ready.result
       : null;
   useEffect(() => {
     setReady(null);
     setActive(null);
+    setCursor(0);
     setError('');
     if (!other) {
       setLoading('');
@@ -91,9 +98,14 @@ export default function ProteinComparison({
         event: MessageEvent<{
           result?: ProteinComparisonResult;
           error?: string;
+          progress?: string;
         }>
       ) => {
         if (disposed) return;
+        if (event.data.progress) {
+          setLoading(event.data.progress);
+          return;
+        }
         setLoading('');
         if (event.data.error) setError(event.data.error);
         else if (event.data.result)
@@ -103,6 +115,7 @@ export default function ProteinComparison({
             chain,
             otherChain,
             result: event.data.result,
+            mode,
           });
         worker.terminate();
       };
@@ -121,6 +134,7 @@ export default function ProteinComparison({
         primaryChain: chain,
         comparison: other,
         comparisonChain: otherChain,
+        mode,
       });
     } catch {
       setLoading('');
@@ -131,7 +145,7 @@ export default function ProteinComparison({
       disposed = true;
       worker?.terminate();
     };
-  }, [input, chain, other, otherChain]);
+  }, [input, chain, other, otherChain, mode]);
   const hasResult = Boolean(result);
   useEffect(() => {
     const element = chartHost.current;
@@ -189,7 +203,8 @@ export default function ProteinComparison({
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  const current = result?.pairs[active ?? 0];
+  const current = result?.pairs[active ?? cursor];
+  const cursorPair = result?.pairs[cursor];
   const w = chartWidth,
     h = 190,
     left = 48,
@@ -228,10 +243,26 @@ export default function ProteinComparison({
       </div>
       {enabled && (
         <div className={styles.setup}>
-          <h3>Compare Two Conformations</h3>
+          <h3>Align And Compare Structures</h3>
           <p>
-            Align another structure to the selected primary chain. Explore which
-            residues move and inspect their reference annotations.
+            Find a structural match to the selected primary chain, including
+            proteins with different sequences. Inspect the fit alongside the
+            primary protein’s reference annotations.
+          </p>
+          <label>
+            Alignment Method
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value as ComparisonMode)}
+            >
+              <option value="structure">Structural Alignment (MM-align)</option>
+              <option value="sequence">Sequence Correspondence</option>
+            </select>
+          </label>
+          <p className={styles.note}>
+            {mode === 'structure'
+              ? 'Searches for matching 3D geometry without a sequence identity cutoff. Different proteins can be compared.'
+              : 'Fits residues paired by sequence. Weak or tied alignments are shown with interpretation notes.'}
           </p>
           <label>
             Comparison Structure
@@ -288,6 +319,8 @@ export default function ProteinComparison({
           {error && (
             <p role="alert" className={styles.warning}>
               {error}
+              {mode === 'structure' &&
+                ' You can also try Sequence Correspondence.'}
             </p>
           )}
         </div>
@@ -299,7 +332,11 @@ export default function ProteinComparison({
               <strong>
                 {result.rmsd.toFixed(2)} <small>Å</small>
               </strong>
-              <span>Alpha Carbon RMSD</span>
+              <span>
+                {result.mode === 'structure'
+                  ? 'Overlay RMSD'
+                  : 'Alpha Carbon RMSD'}
+              </span>
             </div>
             <div>
               <strong>{result.pairs.length}</strong>
@@ -307,14 +344,51 @@ export default function ProteinComparison({
             </div>
             <div>
               <strong>{Math.round(result.identity * 100)}%</strong>
-              <span>Sequence Identity</span>
+              <span>Identity In Paired Residues</span>
             </div>
           </div>
           <p className={styles.coverage}>
             Primary Coverage {Math.round(result.primaryCoverage * 100)}% ·
             Comparison Coverage {Math.round(result.comparisonCoverage * 100)}% ·{' '}
-            {result.substitutions} Substitutions
+            {result.substitutions} Nonidentical Pairs
           </p>
+          {result.tmScores && (
+            <>
+              <div
+                className={styles.metrics}
+                aria-label="Structural Similarity Scores"
+                style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}
+              >
+                <div>
+                  <strong>{result.tmScores.primary.toFixed(3)}</strong>
+                  <span>TM Score · Primary Length</span>
+                </div>
+                <div>
+                  <strong>{result.tmScores.comparison.toFixed(3)}</strong>
+                  <span>TM Score · Comparison Length</span>
+                </div>
+              </div>
+              <p className={styles.note}>
+                TM scores describe structural similarity using each chain’s
+                length. They are not confidence probabilities.
+              </p>
+            </>
+          )}
+          <div
+            className={styles.note}
+            aria-label="Alignment Method And Interpretation"
+          >
+            <p>
+              <strong>
+                {result.mode === 'structure'
+                  ? 'Structural Alignment · MM-align'
+                  : 'Sequence Correspondence · Rigid Fit'}
+              </strong>
+            </p>
+            {result.warnings.map((note) => (
+              <p key={note}>{note}</p>
+            ))}
+          </div>
           <ProteinComparisonViewer
             primary={input}
             comparison={other}
@@ -322,7 +396,13 @@ export default function ProteinComparison({
             selected={selected}
             active={active}
             onActive={setActive}
-            onPick={onPick}
+            onPick={(key, add) => {
+              const index = result.pairs.findIndex(
+                (pair) => pair.primary.key === key
+              );
+              if (index >= 0) setCursor(index);
+              onPick(key, add);
+            }}
             reference={reference}
             mapping={mapping}
             focus={focus}
@@ -366,6 +446,7 @@ export default function ProteinComparison({
                   )
                 );
                 setActive(index);
+                setCursor(index);
                 onPick(
                   result.pairs[index].primary.key,
                   e.shiftKey || e.ctrlKey || e.metaKey
@@ -440,15 +521,16 @@ export default function ProteinComparison({
                 type="range"
                 min={1}
                 max={count}
-                value={(active ?? 0) + 1}
+                value={cursor + 1}
                 aria-valuetext={
-                  current
-                    ? `${current.primary.name} ${current.primary.number}; ${current.distance.toFixed(2)} angstroms`
+                  cursorPair
+                    ? `${cursorPair.primary.name} ${cursorPair.primary.number}; ${cursorPair.distance.toFixed(2)} angstroms`
                     : undefined
                 }
                 onChange={(e) => {
                   const index = Number(e.target.value) - 1;
                   setActive(index);
+                  setCursor(index);
                   onPick(result.pairs[index].primary.key, false);
                 }}
               />
@@ -474,6 +556,7 @@ export default function ProteinComparison({
                   0
                 );
                 setActive(i);
+                setCursor(i);
                 onPick(result.pairs[i].primary.key, false);
               }}
             >
@@ -512,13 +595,40 @@ export default function ProteinComparison({
           </div>
           <details className={styles.method}>
             <summary>How This Comparison Works</summary>
-            <p>{COMPARISON_METHOD}</p>
+            <p>{result.method}</p>
+            {result.structuralAlignment && (
+              <p>
+                The overlay and chart use the TM optimized transform. The RMSD
+                above is calculated from those displayed distances. MM-align
+                also reports{' '}
+                {result.structuralAlignment.reportedRmsd.toFixed(2)} Å after a
+                separate least squares fit of the same paired residues. Both
+                values and the original output are included in the report.
+              </p>
+            )}
             <p>
-              Correspondence requires at least 90% sequence identity and
-              coverage of the shorter observed chain, with no equally scoring
-              alternative alignment. Both coverage figures above refer to
-              residues with coordinates, not the full biological sequence.
+              No minimum sequence identity or similarity score is required to
+              display a fit. Both coverage figures refer to residues with
+              coordinates. RMSD and sequence identity describe only the paired
+              subset. A small subset can fit well even when the complete
+              proteins have different structures.
             </p>
+            {result.mode === 'structure' && (
+              <p>
+                The MM-align transform and residue pairing are preserved in the
+                overlay and report. This is a rigid structural search with no
+                reflection or flexible fitting. It does not guarantee the global
+                best alignment. See the{' '}
+                <a
+                  href="https://github.com/pylelab/USalign"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  alignment software and references
+                </a>
+                .
+              </p>
+            )}
             <p>
               Unpaired residues are gray and excluded from RMSD. Distance colors
               describe coordinate differences, not confidence or functional

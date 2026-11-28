@@ -161,20 +161,25 @@ test('identical structures have zero distance and altered coordinates are measur
     21
   );
 });
-test('unsafe or ambiguous correspondence and missing structures are rejected', () => {
+test('weak and ambiguous sequence fits are displayed, while missing structures are rejected', () => {
   const copy = structuredClone(b);
   copy.chains[0].residues.forEach((r) => {
     r.letter = 'A';
   });
-  assert.throws(
-    () => compareProteins(a, 'A', copy, 'A'),
-    /alignment|correspondence/
+  const weak = compareProteins(a, 'A', copy, 'A');
+  assert.ok(weak.pairs.length >= 3);
+  assert.ok(weak.identity < 0.9);
+  assert.ok(
+    weak.warnings.some((note) => note.includes('Low sequence identity'))
   );
   const repeat = structuredClone(a);
   repeat.chains[0].residues.push(
     ...repeat.chains[0].residues.map((r) => ({ ...r }))
   );
-  assert.throws(() => compareProteins(a, 'A', repeat, 'A'), /equally scoring/);
+  const tied = compareProteins(a, 'A', repeat, 'A');
+  assert.equal(tied.sequenceAmbiguous, true);
+  assert.equal(tied.pairs.length, 42);
+  assert.ok(tied.warnings.some((note) => note.includes('same score')));
   assert.throws(() => compareProteins(a, 'wrong', b, 'A'), /chain/);
   assert.throws(
     () => compareProteins({ ...a, pdb: undefined }, 'A', b, 'A'),
