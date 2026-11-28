@@ -185,3 +185,60 @@
 .setup .controls label {
   flex-basis: 190px;
 }
+
+.viewSwitcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem;
+}
+.viewSwitcher button {
+  line-height: 1.4;
+  white-space: normal;
+}
+.viewSwitcher button[aria-pressed='true'] {
+  border-color: #8bd3ff;
+  background: #1c4467;
+  color: #e3f4ff;
+  box-shadow: inset 0 -2px #8bd3ff;
+}
+.proteinKey {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.proteinKey p {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  margin: 0 !important;
+  padding: 0.7rem;
+  border: 1px solid #31577c;
+  border-radius: 8px;
+  background: #071525;
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+.proteinKey strong {
+  color: #73c5ff;
+  font-weight: 500;
+}
+.proteinKey [data-protein='comparison'] strong {
+  color: #f6a66a;
+}
+.proteinKey [data-visible='false'] {
+  border-style: dashed;
+  background: #080f1b;
+}
+.proteinKey small {
+  color: #b1c8e3;
+}
+@media (max-width: 500px) {
+  .viewSwitcher {
+    gap: 0.3rem;
+  }
+  .viewSwitcher button {
+    padding: 0.65rem 0.3rem;
+    font-size: 0.74rem;
+  }
+}

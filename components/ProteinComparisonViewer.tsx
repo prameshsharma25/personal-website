@@ -270,7 +270,57 @@ export default function ProteinComparisonViewer({
     ? residuePreview(primaryResidue, result.primaryChain, reference, mapping)
     : null;
   return (
-    <div data-comparison-viewer={state}>
+    <div data-comparison-viewer={state} data-visible-structures={visible}>
+      <div
+        className={styles.viewSwitcher}
+        role="group"
+        aria-label="Visible Structures"
+      >
+        {[
+          { value: 'Both', label: 'Overlay' },
+          { value: 'Primary', label: 'Protein 1 Only' },
+          { value: 'Comparison', label: 'Protein 2 Only' },
+        ].map((view) => (
+          <button
+            key={view.value}
+            type="button"
+            aria-pressed={visible === view.value}
+            onClick={() => {
+              viewer.current?.setHover(null);
+              setHover(null);
+              onActive(null);
+              setVisible(view.value);
+            }}
+          >
+            {view.label}
+          </button>
+        ))}
+      </div>
+      <div
+        className={styles.proteinKey}
+        aria-label="Proteins In This Comparison"
+      >
+        <p data-protein="primary" data-visible={visible !== 'Comparison'}>
+          <strong>● Protein 1 · Primary</strong>
+          <span>{primary.name}</span>
+          <small>
+            Chain {result.primaryChain || 'Unnamed'} ·{' '}
+            {visible === 'Comparison' ? 'Hidden' : 'Visible'}
+          </small>
+        </p>
+        <p data-protein="comparison" data-visible={visible !== 'Primary'}>
+          <strong>● Protein 2 · Comparison</strong>
+          <span>{comparison.name}</span>
+          <small>
+            Chain {result.comparisonChain || 'Unnamed'} ·{' '}
+            {visible === 'Primary' ? 'Hidden' : 'Visible'}
+          </small>
+        </p>
+      </div>
+      <p className={styles.note}>
+        Switch views without changing the alignment or camera angle. Annotations
+        and the sequence strip refer to Protein 1.
+      </p>
       <div
         className={styles.viewport}
         onPointerLeave={() => {
@@ -328,22 +378,6 @@ export default function ProteinComparisonViewer({
             <option>Difference</option>
           </select>
         </label>
-        <label>
-          Visible Structures
-          <select
-            value={visible}
-            onChange={(e) => {
-              viewer.current?.setHover(null);
-              setHover(null);
-              onActive(null);
-              setVisible(e.target.value);
-            }}
-          >
-            <option>Both</option>
-            <option>Primary</option>
-            <option>Comparison</option>
-          </select>
-        </label>
         <button
           type="button"
           disabled={state !== 'ready'}
@@ -353,7 +387,7 @@ export default function ProteinComparisonViewer({
             viewer.current?.render();
           }}
         >
-          Reset Overlay
+          Reset View
         </button>
         <button
           type="button"
@@ -366,7 +400,7 @@ export default function ProteinComparisonViewer({
               a.click();
             } catch {
               setError(
-                'The image could not be exported. Try resetting the overlay.'
+                'The image could not be exported. Try resetting the view.'
               );
             }
           }}
@@ -377,7 +411,7 @@ export default function ProteinComparisonViewer({
       <p className={styles.legend}>
         {color === 'Structure' ? (
           <>
-            <span>● Primary</span> <span>● Comparison</span>
+            <span>● Protein 1</span> <span>● Protein 2</span>
           </>
         ) : (
           <>Difference: Blue 0 Å To Coral {result.maxDistance.toFixed(2)} Å</>

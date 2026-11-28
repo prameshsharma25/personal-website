@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  ANNOTATION_LIMITS,
   type Mapping,
   type ProteinInput,
   type ReferenceProtein,
 } from '../lib/protein-annotations';
-import { parseProteinStructure } from '../lib/protein-input';
 import {
   comparisonReport,
   comparisonCsv,
@@ -27,7 +25,9 @@ type Ready = {
 export default function ProteinComparison({
   input,
   chain,
-  initialComparison,
+  other,
+  otherChain,
+  enabled,
   selected,
   onPick,
   reference,
@@ -38,7 +38,9 @@ export default function ProteinComparison({
 }: {
   input: ProteinInput;
   chain: string;
-  initialComparison: ProteinInput | null;
+  other: ProteinInput | null;
+  otherChain: string;
+  enabled: boolean;
   selected: Set<string>;
   onPick: (key: string, add: boolean) => void;
   reference: ReferenceProtein | null;
@@ -48,11 +50,6 @@ export default function ProteinComparison({
   children: ReactNode;
 }) {
   const [mode, setMode] = useState<ComparisonMode>('structure');
-  const [enabled, setEnabled] = useState(Boolean(initialComparison));
-  const [other, setOther] = useState<ProteinInput | null>(initialComparison);
-  const [otherChain, setOtherChain] = useState(
-    initialComparison?.chains[0].id || ''
-  );
   const [ready, setReady] = useState<Ready | null>(null),
     [error, setError] = useState(''),
     [loading, setLoading] = useState('');
@@ -60,15 +57,8 @@ export default function ProteinComparison({
   // Hover is transient; keyboard navigation must keep its position when the
   // pointer enters or leaves the viewer during scrolling.
   const [cursor, setCursor] = useState(0);
-  const fileOperation = useRef(0);
   const chartHost = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(640);
-  useEffect(
-    () => () => {
-      fileOperation.current++;
-    },
-    []
-  );
   // Ignore a stale worker result immediately, even before effect cleanup runs.
   const result =
     ready?.primary === input &&
@@ -167,34 +157,6 @@ export default function ProteinComparison({
     onReport(report);
     return () => onReport(null);
   }, [report, onReport]);
-  const upload = async (file?: File) => {
-    if (!file) return;
-    const operation = ++fileOperation.current;
-    setOther(null);
-    setReady(null);
-    setError('');
-    setLoading('Opening Comparison Structure…');
-    try {
-      if (file.size > ANNOTATION_LIMITS.bytes)
-        throw new Error('Choose a comparison structure up to 5 MB.');
-      const text = new TextDecoder('utf-8', { fatal: true }).decode(
-        await file.arrayBuffer()
-      );
-      if (operation !== fileOperation.current) return;
-      const next = parseProteinStructure(text, file.name);
-      setOther(next);
-      setOtherChain(next.chains[0].id);
-    } catch (e) {
-      if (operation === fileOperation.current) {
-        setError(
-          e instanceof Error
-            ? e.message
-            : 'The comparison structure could not be opened.'
-        );
-        setLoading('');
-      }
-    }
-  };
   const download = (data: string, name: string, type: string) => {
     const url = URL.createObjectURL(new Blob([data], { type }));
     const a = document.createElement('a');
@@ -225,29 +187,13 @@ export default function ProteinComparison({
       className={styles.comparison}
       aria-label="Protein Structure Comparison"
     >
-      <div className={styles.mode}>
-        <button
-          type="button"
-          aria-pressed={!enabled}
-          onClick={() => setEnabled(false)}
-        >
-          Annotation View
-        </button>
-        <button
-          type="button"
-          aria-pressed={enabled}
-          onClick={() => setEnabled(true)}
-        >
-          Compare Structures
-        </button>
-      </div>
       {enabled && (
         <div className={styles.setup}>
           <h3>Align And Compare Structures</h3>
           <p>
-            Find a structural match to the selected primary chain, including
-            proteins with different sequences. Inspect the fit alongside the
-            primary protein’s reference annotations.
+            Protein 2 is aligned to Protein 1. Switch between the individual
+            structures and their overlay below. Reference annotations describe
+            Protein 1.
           </p>
           <label>
             Alignment Method
@@ -264,56 +210,10 @@ export default function ProteinComparison({
               ? 'Searches for matching 3D geometry without a sequence identity cutoff. Different proteins can be compared.'
               : 'Fits residues paired by sequence. Weak or tied alignments are shown with interpretation notes.'}
           </p>
-          <label>
-            Comparison Structure
-            <input
-              type="file"
-              accept=".pdb,.cif,.mmcif"
-              onChange={(e) => {
-                void upload(e.target.files?.[0]);
-                e.target.value = '';
-              }}
-            />
-          </label>
-          <p className={styles.note}>
-            PDB Or mmCIF · Up To 5 MB · Calculated On Your Device
-          </p>
-          {other && (
-            <>
-              <p className={styles.names}>
-                <strong>Primary:</strong> {input.name} · Chain{' '}
-                {chain || 'Unnamed'}
-                <br />
-                <strong>Comparison:</strong> {other.name}
-              </p>
-              <div className={styles.controls}>
-                <label>
-                  Comparison Chain
-                  <select
-                    value={otherChain}
-                    onChange={(e) => setOtherChain(e.target.value)}
-                  >
-                    {other.chains.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.id || 'Unnamed'} · {c.residues.length} Residues
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    fileOperation.current++;
-                    setOther(null);
-                    setReady(null);
-                    setError('');
-                    setLoading('');
-                  }}
-                >
-                  Remove Comparison
-                </button>
-              </div>
-            </>
+          {!other && (
+            <p className={styles.note}>
+              Add Protein 2 in the upload cards above to start the comparison.
+            </p>
           )}
           {loading && <p role="status">{loading}</p>}
           {error && (

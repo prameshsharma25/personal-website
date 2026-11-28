@@ -35,8 +35,10 @@ test('RfaH comparison computes in a worker, links chart selection, and exports n
   await expect(sequence.locator('[aria-pressed="true"]')).toHaveCount(1);
   await expect(sequence.locator('[aria-pressed="true"]')).toContainText('115');
   await page.getByLabel('Color By').selectOption('Difference');
-  await page.getByLabel('Visible Structures').selectOption('Comparison');
-  await page.getByLabel('Visible Structures').selectOption('Both');
+  await page
+    .getByRole('button', { name: 'Protein 2 Only', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Overlay', exact: true }).click();
   const jsonDownload = page.waitForEvent('download');
   await page
     .getByRole('button', { name: 'Download Comparison Report' })
@@ -78,7 +80,7 @@ test('RfaH comparison computes in a worker, links chart selection, and exports n
   expect(uploads).toEqual([]);
 });
 
-test('comparison selection is linked to reference annotations and changing protein clears comparison', async ({
+test('comparison selection links annotations and replacing Protein 1 preserves Protein 2', async ({
   page,
 }) => {
   await page.goto('/tools/protein-annotations');
@@ -137,16 +139,22 @@ test('comparison selection is linked to reference annotations and changing prote
   await expect(
     page.getByRole('heading', { name: 'rfah-new.pdb', exact: true })
   ).toBeVisible();
-  await expect(page.getByLabel('Comparison Metrics')).toHaveCount(0);
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Annotation View', exact: true })
+    page.getByRole('button', { name: 'Compare Structures', exact: true })
   ).toHaveAttribute('aria-pressed', 'true');
-  await page
-    .getByRole('button', { name: 'Compare Structures', exact: true })
-    .click();
   await expect(
-    page.getByText('second-lysozyme.pdb', { exact: false })
-  ).toHaveCount(0);
+    page.getByRole('group', { name: 'Protein 2 Input' })
+  ).toContainText('second-lysozyme.pdb');
+  const replacedDownload = page.waitForEvent('download');
+  await page
+    .getByRole('button', { name: 'Download Comparison Report' })
+    .click();
+  const replaced = JSON.parse(
+    fs.readFileSync(await (await replacedDownload).path(), 'utf8')
+  );
+  expect(replaced.primary.name).toBe('rfah-new.pdb');
+  expect(replaced.comparison.name).toBe('second-lysozyme.pdb');
 });
 
 test('weak structural matches are displayed and mobile layout remains contained', async ({
@@ -250,7 +258,9 @@ test('real 3D picking on the comparison model selects the paired primary residue
   await page
     .locator('[data-comparison-viewer]')
     .screenshot({ path: '.local/comparison-overlay.png' });
-  await page.getByLabel('Visible Structures').selectOption('Comparison');
+  await page
+    .getByRole('button', { name: 'Protein 2 Only', exact: true })
+    .click();
   const canvas = page.locator('[data-comparison-viewer] canvas').first();
   await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
@@ -404,4 +414,210 @@ test('an unavailable structural engine can be bypassed by choosing sequence corr
     .selectOption('sequence');
   await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
   await expect(page.getByLabel('Comparison Metrics')).toContainText('42');
+});
+
+test('comparison inputs are visible before loading and accept either order without losing the other protein', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/tools/protein-annotations');
+  await page
+    .getByRole('button', { name: 'Compare Structures', exact: true })
+    .click();
+  const first = page.getByRole('group', { name: 'Protein 1 Input' });
+  const second = page.getByRole('group', { name: 'Protein 2 Input' });
+  await expect(
+    first.getByLabel('Upload Protein', { exact: true })
+  ).toBeVisible();
+  await expect(
+    second.getByLabel('Comparison Structure', { exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'View Comparison' })
+  ).toBeDisabled();
+  await second
+    .getByLabel('Comparison Structure', { exact: true })
+    .setInputFiles('tests/fixtures/protein-comparison/5JYT-chain-A.pdb');
+  await expect(second).toContainText('5JYT-chain-A.pdb');
+  await first
+    .getByLabel('Upload Protein', { exact: true })
+    .setInputFiles('tests/fixtures/protein-comparison/2OUG-chain-A.pdb');
+  await expect(first).toContainText('2OUG-chain-A.pdb');
+  await expect(second).toContainText('5JYT-chain-A.pdb');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await expect(page.getByLabel('Comparison Metrics')).toContainText('68');
+  await expect(
+    page.getByRole('button', { name: 'View Comparison' })
+  ).toBeEnabled();
+  await page
+    .getByRole('button', { name: 'Annotation View', exact: true })
+    .click();
+  await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Compare Structures', exact: true })
+    .click();
+  await expect(second).toContainText('5JYT-chain-A.pdb');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  // A failed replacement must remove the obsolete comparison, without losing Protein 1.
+  await second
+    .getByLabel('Comparison Structure', { exact: true })
+    .setInputFiles({
+      name: 'invalid.pdb',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('not coordinates'),
+    });
+  await expect(second.getByRole('alert')).toBeVisible();
+  await expect(first).toContainText('2OUG-chain-A.pdb');
+  await expect(page.getByLabel('Comparison Metrics')).toHaveCount(0);
+  await second
+    .getByLabel('Comparison Structure', { exact: true })
+    .setInputFiles('tests/fixtures/protein-comparison/5JYT-chain-A.pdb');
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  await expect(second.getByRole('alert')).toHaveCount(0);
+  await page.getByRole('button', { name: 'View Comparison' }).click();
+  await expect(
+    page
+      .locator('[tabindex="-1"]')
+      .filter({
+        has: page.getByLabel('Protein Structure Comparison', { exact: true }),
+      })
+      .last()
+  ).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+test('view buttons change actual rendered proteins while preserving the camera, selection, and computation', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const Original = window.Worker;
+    (window as any).__comparisonWorkers = 0;
+    window.Worker = class extends Original {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        (window as any).__comparisonWorkers++;
+      }
+    };
+  });
+  await page.goto('/tools/protein-annotations');
+  await page.getByRole('button', { name: 'Try Lysozyme' }).click();
+  await expect(page.locator('[data-annotation-viewer="ready"]')).toBeVisible();
+  // Observe the real renderer's camera without adding production test hooks.
+  await page.evaluate(() => {
+    const library = (window as any).$3Dmol;
+    const create = library.createViewer.bind(library);
+    (window as any).$3Dmol = {
+      ...library,
+      createViewer: (element: HTMLElement, config: object) => {
+        const scene = create(element, config);
+        if (element.closest('[data-comparison-viewer]'))
+          (window as any).__comparisonScene = scene;
+        return scene;
+      },
+    };
+  });
+  await page.getByRole('button', { name: 'Compare RfaH States' }).click();
+  await expect(page.locator('[data-comparison-viewer="ready"]')).toBeVisible();
+  const viewer = page.locator('[data-comparison-viewer]');
+  const colors = async () => {
+    await page.mouse.move(1, 1);
+    const png = await viewer.locator('canvas').first().screenshot();
+    return page.evaluate(async (base64) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${base64}`;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(image, 0, 0);
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let blue = 0,
+        orange = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        // Ignore the blue frame around the canvas, which is visible in every mode.
+        const x = (i / 4) % canvas.width,
+          y = Math.floor(i / 4 / canvas.width);
+        if (x < 5 || y < 5 || x >= canvas.width - 5 || y >= canvas.height - 5)
+          continue;
+        const [r, g, b] = [pixels[i], pixels[i + 1], pixels[i + 2]];
+        // Exclude gray unpaired residues, including their antialiased edges.
+        if (b > 70 && b > r * 1.8 && g > r * 1.45) blue++;
+        if (r > 70 && r > g * 1.2 && g > b * 1.2) orange++;
+      }
+      return { blue, orange };
+    }, png.toString('base64'));
+  };
+  // Rotate once so an inadvertent camera reset is detectable.
+  await page.evaluate(() => {
+    const scene = (window as any).__comparisonScene;
+    scene.rotate(32, 'y');
+    scene.render();
+  });
+  const snapshot = await page.evaluate(() => ({
+    camera: (window as any).__comparisonScene.getView(),
+    workers: (window as any).__comparisonWorkers,
+  }));
+  const both = await colors();
+  expect(both.blue).toBeGreaterThan(50);
+  expect(both.orange).toBeGreaterThan(50);
+  await page
+    .getByRole('button', { name: 'Protein 1 Only', exact: true })
+    .click();
+  await expect(viewer).toHaveAttribute('data-visible-structures', 'Primary');
+  await expect(
+    page.getByRole('button', { name: 'Protein 1 Only', exact: true })
+  ).toHaveAttribute('aria-pressed', 'true');
+  const primary = await colors();
+  expect(primary.blue).toBeGreaterThan(50);
+  expect(primary.orange).toBeLessThan(5);
+  await page
+    .getByRole('button', { name: 'Protein 2 Only', exact: true })
+    .click();
+  const secondary = await colors();
+  expect(secondary.orange).toBeGreaterThan(50);
+  expect(secondary.blue).toBeLessThan(5); // Allow isolated antialiasing pixels.
+  expect(
+    await page.evaluate(() =>
+      (window as any).__comparisonScene
+        .selectedAtoms({ model: 0 })
+        .every((atom: any) => Object.keys(atom.style).length === 0)
+    )
+  ).toBe(true);
+  await expect(page.getByLabel('Proteins In This Comparison')).toContainText(
+    'Hidden'
+  );
+  await page.getByRole('button', { name: 'Overlay', exact: true }).click();
+  expect(
+    await page.evaluate(() => ({
+      camera: (window as any).__comparisonScene.getView(),
+      workers: (window as any).__comparisonWorkers,
+    }))
+  ).toEqual(snapshot);
+  const restored = await colors();
+  expect(restored.blue).toBe(both.blue);
+  expect(restored.orange).toBe(both.orange);
+  await page.getByRole('button', { name: 'Select Largest Difference' }).click();
+  await page
+    .getByRole('button', { name: 'Protein 2 Only', exact: true })
+    .click();
+  await expect(
+    page
+      .getByLabel('Protein Sequence', { exact: true })
+      .locator('[aria-pressed="true"]')
+  ).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole('button', { name: 'Protein 1 Only', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Protein 1 Only', exact: true })
+  ).toHaveAttribute('aria-pressed', 'true');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1
+    )
+  ).toBe(true);
+  await viewer.screenshot({ path: '.local/comparison-switcher-mobile.png' });
 });
