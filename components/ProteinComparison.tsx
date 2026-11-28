@@ -250,6 +250,33 @@ export default function ProteinComparison({
       )}
       {enabled && result && other ? (
         <>
+          <ProteinComparisonViewer
+            primary={input}
+            comparison={other}
+            result={result}
+            selected={selected}
+            active={active}
+            onActive={setActive}
+            onPick={(key, add) => {
+              const index = result.pairs.findIndex(
+                (pair) => pair[inspectionProtein].key === key
+              );
+              if (index >= 0) setCursor(index);
+              onPick(key, add);
+            }}
+            inspectionProtein={inspectionProtein}
+            reference={
+              inspectionProtein === 'primary'
+                ? primaryReference
+                : comparisonReference
+            }
+            mapping={
+              inspectionProtein === 'primary'
+                ? primaryMapping
+                : comparisonMapping
+            }
+            focus={focus}
+          />
           <div className={styles.metrics} aria-label="Comparison Metrics">
             <div>
               <strong>
@@ -312,33 +339,6 @@ export default function ProteinComparison({
               <p key={note}>{note}</p>
             ))}
           </div>
-          <ProteinComparisonViewer
-            primary={input}
-            comparison={other}
-            result={result}
-            selected={selected}
-            active={active}
-            onActive={setActive}
-            onPick={(key, add) => {
-              const index = result.pairs.findIndex(
-                (pair) => pair[inspectionProtein].key === key
-              );
-              if (index >= 0) setCursor(index);
-              onPick(key, add);
-            }}
-            inspectionProtein={inspectionProtein}
-            reference={
-              inspectionProtein === 'primary'
-                ? primaryReference
-                : comparisonReference
-            }
-            mapping={
-              inspectionProtein === 'primary'
-                ? primaryMapping
-                : comparisonMapping
-            }
-            focus={focus}
-          />
           <div ref={chartHost} className={styles.chartPanel}>
             <h3>Residue Differences</h3>
             <p className={styles.note}>

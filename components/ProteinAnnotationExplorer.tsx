@@ -746,7 +746,6 @@ export default function ProteinAnnotationExplorer() {
           Compare RfaH States <span aria-hidden="true">↗</span>
         </button>
       </div>
-      {inspectionControls}
       <div className={styles.setup}>
         <div
           className={`${styles.inputPanel} ${comparisonEnabled ? styles.primaryProtein : ''}`}
@@ -1047,7 +1046,6 @@ export default function ProteinAnnotationExplorer() {
               </button>
             </div>
           </div>
-          {inspectionControls}
           <div className={styles.workspace}>
             <div className={styles.visualColumn}>
               <div
@@ -1209,6 +1207,7 @@ export default function ProteinAnnotationExplorer() {
                     </button>
                   ))}
                 </div>
+                {inspectionControls}
                 <div className={styles.actions}>
                   <button
                     disabled={!selected.size}
