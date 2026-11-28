@@ -769,22 +769,6 @@ export default function ProteinAnnotationExplorer() {
           Compare Structures
         </button>
       </div>
-      {comparisonEnabled && (
-        <div className={styles.comparisonIntro}>
-          <h2>Load Two Proteins. Compare Their Structures.</h2>
-          <p>
-            Upload a structure or enter a UniProt accession in each numbered
-            card, then choose the chains to align. The comparison starts
-            automatically when both structures are ready. Known UniProt
-            accessions also load reference annotations automatically.
-          </p>
-          <p className={styles.small}>
-            Use Overlay, Protein 1 Only, or Protein 2 Only above the 3D view to
-            switch what you see. Use Inspect Protein 1 or Inspect Protein 2 to
-            choose which sequence, annotations, and notes to explore.
-          </p>
-        </div>
-      )}
       <div className={styles.examples}>
         <button
           className={styles.example}
@@ -801,22 +785,34 @@ export default function ProteinAnnotationExplorer() {
           Compare RfaH States <span aria-hidden="true">↗</span>
         </button>
       </div>
-      <div className={styles.setup}>
+      <div
+        className={`${styles.setup} ${comparisonEnabled ? styles.comparisonSetup : ''}`}
+      >
+        {comparisonEnabled && (
+          <header className={styles.comparisonSetupHeading}>
+            <p className={styles.eyebrow}>01 / Comparison Inputs</p>
+            <h2>Load Your Proteins.</h2>
+            <p className={styles.small}>
+              Upload a structure or enter a UniProt accession for each protein.
+              Alignment and available annotations load automatically.
+            </p>
+          </header>
+        )}
         <div
           className={`${styles.inputPanel} ${comparisonEnabled ? styles.primaryProtein : ''}`}
           role="group"
           aria-label={comparisonEnabled ? 'Protein 1 Input' : 'Protein Input'}
         >
-          <p className={styles.eyebrow}>
-            {comparisonEnabled
-              ? '01 / Protein 1 · Primary'
-              : '01 / Your Protein'}
-          </p>
-          <h2>
-            {comparisonEnabled
-              ? 'Load Your First Protein.'
-              : 'Start With A Structure Or Sequence.'}
-          </h2>
+          {comparisonEnabled ? (
+            <h3 className={styles.proteinSlotHeading}>
+              Protein 1 <span>Primary</span>
+            </h3>
+          ) : (
+            <>
+              <p className={styles.eyebrow}>01 / Your Protein</p>
+              <h2>Start With A Structure Or Sequence.</h2>
+            </>
+          )}
           <label htmlFor="protein-upload">Upload Protein</label>
           <input
             id="protein-upload"
@@ -919,8 +915,9 @@ export default function ProteinAnnotationExplorer() {
             role="group"
             aria-label="Protein 2 Input"
           >
-            <p className={styles.eyebrow}>02 / Protein 2 · Comparison</p>
-            <h2>Load Your Second Protein.</h2>
+            <h3 className={styles.proteinSlotHeading}>
+              Protein 2 <span>Comparison</span>
+            </h3>
             <label htmlFor="comparison-upload">Comparison Structure</label>
             <input
               id="comparison-upload"

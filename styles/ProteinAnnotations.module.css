@@ -640,13 +640,6 @@
   border-color: #82cfff;
   color: #d5efff;
 }
-.comparisonIntro {
-  max-width: 75ch;
-}
-.comparisonIntro p {
-  font-size: 0.88rem;
-  color: #c1d7ed;
-}
 .examples {
   display: flex;
   flex-wrap: wrap;
@@ -656,14 +649,60 @@
 .examples .example {
   margin: 0;
 }
-.primaryProtein {
-  border-top-color: #73c5ff;
+.comparisonSetup {
+  gap: 0;
+  border: 1px solid #31577c99;
+  border-top: 2px solid #73c5ff;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0b1e34, #071221);
+  overflow: hidden;
 }
-.secondaryProtein {
-  border-top-color: #f6a66a;
+.comparisonSetupHeading {
+  grid-column: 1 / -1;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border-bottom: 1px solid #31577c99;
 }
-.secondaryProtein .eyebrow {
+.comparisonSetupHeading p:last-child {
+  margin-bottom: 0;
+}
+.comparisonSetup > .inputPanel {
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.comparisonSetup > .primaryProtein {
+  border-right: 1px solid #31577c99;
+}
+.explorer .proteinSlotHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+  color: #83caff;
+  font-size: 1.15rem;
+}
+.proteinSlotHeading span {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #73c5ff14;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+.secondaryProtein .proteinSlotHeading {
   color: #f6b989;
+}
+.secondaryProtein .proteinSlotHeading span {
+  background: #f6a66a14;
+}
+.comparisonSetup > .referencePanel {
+  border-top: 1px solid #31577c99;
+}
+@media (max-width: 700px) {
+  .comparisonSetup > .primaryProtein {
+    border-right: 0;
+    border-bottom: 1px solid #31577c99;
+  }
 }
 .loadedFile {
   padding: 0.8rem;
