@@ -15,11 +15,17 @@ import type {
   Residue,
 } from '../lib/protein-annotations';
 import { residuePreview } from '../lib/protein-hover';
+import ProteinColorLegend from './ProteinColorLegend';
+import {
+  EXTRA_COLOR_MODES,
+  residueColor,
+  residueColorLookup,
+  type ProteinColorMode,
+} from '../lib/protein-colors';
 import styles from '../styles/ProteinComparison.module.css';
 
-type Atom = { model: number; chain: string; resi: number };
+type Atom = { model: number; chain: string; resi: number; ss?: string };
 type Viewer = MolecularViewer & {
-  addStyle(selection: object, style: object): void;
   setHover(atom: Atom | null): void;
   setClickable(
     selection: object,
@@ -65,7 +71,7 @@ export default function ProteinComparisonViewer({
   callbacks.current = { onActive, onPick, inspectionProtein };
   const [state, setState] = useState('loading'),
     [error, setError] = useState('');
-  const [color, setColor] = useState('Structure'),
+  const [color, setColor] = useState<ProteinColorMode>('Structure'),
     [visible, setVisible] = useState('Both');
   const [hover, setHover] = useState<{
     residue: Residue;
@@ -92,6 +98,13 @@ export default function ProteinComparisonViewer({
     });
     return map;
   }, [primary, comparison, result]);
+  const colors = useMemo(
+    () => [
+      residueColorLookup(primary.chains),
+      residueColorLookup(comparison.chains),
+    ],
+    [primary, comparison]
+  );
   useEffect(() => {
     const element = host.current;
     if (!element) return;
@@ -206,6 +219,8 @@ export default function ProteinComparisonViewer({
       if (visible !== 'Both' && visible !== (model ? 'Comparison' : 'Primary'))
         continue;
       const colorfunc = (atom: Atom) => {
+        if (color !== 'Structure' && color !== 'Difference')
+          return residueColor(color, atom, colors[model], '#7a8799');
         const hit = lookup.get(`${model}:${atom.chain}:${atom.resi}`);
         if (hit?.pair == null || hit.pair < 0) return '#7a8799';
         if (color === 'Structure') return model ? '#f6a66a' : '#73c5ff';
@@ -220,6 +235,7 @@ export default function ProteinComparisonViewer({
         { model },
         { cartoon: { colorfunc }, line: { colorfunc, opacity: 0.15 } }
       );
+      // Replace the base style so its color callback cannot override highlights.
       const picked = result.pairs
         .filter((p) => selected.has(p[inspectionProtein].key))
         .map((p) => (model ? p.comparison : p.primary).viewerPosition);
@@ -230,7 +246,7 @@ export default function ProteinComparisonViewer({
           if (selected.has(r.key) && !picked.includes(r.viewerPosition))
             picked.push(r.viewerPosition);
       if (picked.length)
-        scene.addStyle(
+        scene.setStyle(
           { model, resi: picked },
           {
             cartoon: { color: '#ffdc76' },
@@ -246,7 +262,7 @@ export default function ProteinComparisonViewer({
           ? hover.residue
           : null;
       if (residue)
-        scene.addStyle(
+        scene.setStyle(
           { model, resi: residue.viewerPosition },
           {
             cartoon: { color: '#f38bff' },
@@ -260,6 +276,7 @@ export default function ProteinComparisonViewer({
     state,
     visible,
     color,
+    colors,
     selected,
     active,
     hover,
@@ -313,7 +330,11 @@ export default function ProteinComparisonViewer({
       )
     : null;
   return (
-    <div data-comparison-viewer={state} data-visible-structures={visible}>
+    <div
+      data-comparison-viewer={state}
+      data-visible-structures={visible}
+      data-color-mode={color}
+    >
       <div
         className={styles.viewSwitcher}
         role="group"
@@ -429,9 +450,15 @@ export default function ProteinComparisonViewer({
       <div className={styles.controls}>
         <label>
           Color By
-          <select value={color} onChange={(e) => setColor(e.target.value)}>
+          <select
+            value={color}
+            onChange={(e) => setColor(e.target.value as ProteinColorMode)}
+          >
             <option>Structure</option>
             <option>Difference</option>
+            {EXTRA_COLOR_MODES.map((mode) => (
+              <option key={mode}>{mode}</option>
+            ))}
           </select>
         </label>
         <button
@@ -464,16 +491,11 @@ export default function ProteinComparisonViewer({
           Download Image
         </button>
       </div>
-      <p className={styles.legend}>
-        {color === 'Structure' ? (
-          <>
-            <span>● Protein 1</span> <span>● Protein 2</span>
-          </>
-        ) : (
-          <>Difference: Blue 0 Å To Coral {result.maxDistance.toFixed(2)} Å</>
-        )}{' '}
-        · Gray Unpaired · Gold Selected · Pink Hovered
-      </p>
+      <ProteinColorLegend
+        mode={color}
+        comparison
+        maxDistance={result.maxDistance}
+      />
     </div>
   );
 }

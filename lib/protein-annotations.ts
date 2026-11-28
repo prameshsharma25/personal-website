@@ -18,7 +18,7 @@ export type Residue = {
 export type ProteinInput = {
   name: string;
   kind: 'sequence' | 'structure';
-  chains: { id: string; residues: Residue[] }[];
+  chains: { id: string; residues: Residue[]; referenceAccession?: string }[];
   pdb?: string;
   suggestedAccession?: string;
   origin?: string;

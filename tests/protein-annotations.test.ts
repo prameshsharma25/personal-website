@@ -371,3 +371,46 @@ test('malformed and oversized provider results fail without invented annotations
   );
   await assert.rejects(noentry.reference('P00698'), /No entry/);
 });
+
+test('automatic references use chain-specific PDB identifiers and withhold ambiguous or isoform identifiers', async () => {
+  const { referenceAccession } =
+    await import('../lib/protein-reference-accession');
+  const pdb = fs.readFileSync(
+    'public/tools/protein-annotations/1LYZ.pdb',
+    'utf8'
+  );
+  const atoms = pdb.split('\n').filter((line) => line.startsWith('ATOM'));
+  const second = atoms.map((line) => line.slice(0, 21) + 'B' + line.slice(22));
+  const refA = pdb.split('\n').find((line) => line.startsWith('DBREF '));
+  const refB =
+    refA.slice(0, 12) + 'B' + refA.slice(13).replace('P00698', 'Q96AE4');
+  const parsed = parseProteinStructure(
+    [refA, refB, ...atoms, ...second].join('\n'),
+    'two.pdb'
+  );
+  assert.equal(referenceAccession(parsed, 'A'), 'P00698');
+  assert.equal(referenceAccession(parsed, 'B'), 'Q96AE4');
+  assert.equal(referenceAccession(parsed, 'missing'), null);
+  const unknown = parseProteinStructure(
+    [refA, ...atoms, ...second].join('\n'),
+    'two.pdb'
+  );
+  assert.equal(referenceAccession(unknown, 'B'), null);
+  const fusion = parseProteinStructure(
+    [refA, refA.replace('P00698', 'Q96AE4'), ...atoms].join('\n'),
+    'fusion.pdb'
+  );
+  assert.equal(referenceAccession(fusion, 'A'), null);
+  const isoform = parseProteinStructure(
+    [refA.replace('P00698', 'P00698-2'), ...atoms].join('\n'),
+    'isoform.pdb'
+  );
+  assert.equal(referenceAccession(isoform, 'A'), null);
+  assert.equal(isoform.suggestedAccession, undefined);
+  const noRef = parseProteinStructure(atoms.join('\n'), 'AF-Q96AE4.pdb');
+  assert.equal(referenceAccession(noRef, 'A'), null);
+  assert.equal(
+    referenceAccession({ ...noRef, suggestedAccession: 'Q96AE4' }, 'A'),
+    'Q96AE4'
+  );
+});

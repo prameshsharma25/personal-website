@@ -1,0 +1,41 @@
+.legend {
+  margin-top: 0.75rem;
+  color: #b9cee5;
+  font-size: 0.7rem;
+}
+.legend p {
+  margin: 0.4rem 0;
+  line-height: 1.5;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.6rem;
+}
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.item i {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  flex: none;
+}
+.scale {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  max-width: 28rem;
+}
+.scale i {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: 0.5rem;
+  border-radius: 1rem;
+}
+.scale span:last-child {
+  text-align: right;
+}

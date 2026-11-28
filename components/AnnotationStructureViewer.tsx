@@ -19,10 +19,17 @@ import type {
 } from '../lib/protein-annotations';
 import { AMINO_NAMES, residuePreview } from '../lib/protein-hover';
 import AnnotationTypeIcon from './AnnotationTypeIcon';
+import ProteinColorLegend from './ProteinColorLegend';
+import {
+  CHAIN_COLORS,
+  EXTRA_COLOR_MODES,
+  residueColor,
+  residueColorLookup,
+  type ProteinColorMode,
+} from '../lib/protein-colors';
 import styles from '../styles/ProteinAnnotations.module.css';
-type Atom = { chain: string; resi: number };
+type Atom = { chain: string; resi: number; ss?: string };
 type SelectableViewer = MolecularViewer & {
-  addStyle: (selection: object, style: object) => void;
   setHover: (atom: Atom | null) => void;
   setClickable: (
     selection: object,
@@ -69,6 +76,8 @@ export default function AnnotationStructureViewer({
   callbacks.current = { onPick, onHover };
   const [state, setState] = useState('loading'),
     [style, setStyle] = useState('Cartoon');
+  const [color, setColor] = useState<ProteinColorMode>('Annotations');
+  const colors = useMemo(() => residueColorLookup(input.chains), [input]);
   const preview = useMemo(
     () => (hovered ? residuePreview(hovered, chain, reference, mapping) : null),
     [hovered, chain, reference, mapping]
@@ -203,34 +212,46 @@ export default function AnnotationStructureViewer({
     const scene = viewer.current;
     if (state !== 'ready' || !scene) return;
     scene.setStyle({}, {});
-    const palette = ['#7fb8ed', '#c2a5ef', '#70d8c2', '#efb579'];
     input.chains.forEach((c, index) => {
-      const color = palette[index % palette.length];
+      const colorfunc = (atom: Atom) =>
+        residueColor(
+          color,
+          atom,
+          colors,
+          CHAIN_COLORS[index % CHAIN_COLORS.length]
+        );
       const sel = { chain: c.residues[0].viewerChain };
       scene.setStyle(
         sel,
         style === 'Cartoon'
           ? {
-              cartoon: { color, opacity: c.id === chain ? 1 : 0.3 },
-              line: { color, opacity: 0.18 },
+              cartoon: { colorfunc, opacity: c.id === chain ? 1 : 0.3 },
+              line: { colorfunc, opacity: 0.18 },
             }
           : {
-              stick: { color, radius: 0.12, opacity: c.id === chain ? 1 : 0.3 },
+              stick: {
+                colorfunc,
+                radius: 0.12,
+                opacity: c.id === chain ? 1 : 0.3,
+              },
             }
       );
       const hits = c.residues
         .filter((r) => annotated.has(r.key))
         .map((r) => r.viewerPosition);
-      if (hits.length)
-        scene.addStyle(
+      if (color === 'Annotations' && hits.length)
+        scene.setStyle(
           { ...sel, resi: hits },
-          { cartoon: { color: '#60dfd3' } }
+          style === 'Cartoon'
+            ? { cartoon: { color: '#60dfd3' } }
+            : { stick: { color: '#60dfd3', radius: 0.12 } }
         );
+      // Replace the base style so its color callback cannot override highlights.
       const picks = c.residues
         .filter((r) => selected.has(r.key))
         .map((r) => r.viewerPosition);
       if (picks.length)
-        scene.addStyle(
+        scene.setStyle(
           { ...sel, resi: picks },
           {
             cartoon: { color: '#ffc473' },
@@ -241,7 +262,7 @@ export default function AnnotationStructureViewer({
     // Hover overrides annotation/selection colors temporarily. Reapplying the
     // base styles above restores them when the pointer leaves the residue.
     if (hovered && input.chains.some((c) => c.residues.includes(hovered))) {
-      scene.addStyle(
+      scene.setStyle(
         { chain: hovered.viewerChain, resi: hovered.viewerPosition },
         {
           cartoon: { color: '#f38bff', opacity: 1 },
@@ -250,7 +271,7 @@ export default function AnnotationStructureViewer({
       );
     }
     scene.render();
-  }, [input, chain, selected, annotated, style, state, hovered]);
+  }, [input, chain, selected, annotated, style, color, colors, state, hovered]);
   useEffect(() => {
     if (!focus || !viewer.current) return;
     const keys = new Set(
@@ -270,7 +291,11 @@ export default function AnnotationStructureViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus]);
   return (
-    <div className={styles.structure} data-annotation-viewer={state}>
+    <div
+      className={styles.structure}
+      data-annotation-viewer={state}
+      data-color-mode={color}
+    >
       <div
         ref={viewport}
         className={styles.viewport}
@@ -393,6 +418,23 @@ export default function AnnotationStructureViewer({
             <option>Sticks</option>
           </select>
         </label>
+        <label>
+          Color By
+          <select
+            value={color}
+            onChange={(e) => setColor(e.target.value as ProteinColorMode)}
+          >
+            {(
+              [
+                'Annotations',
+                'Chain',
+                ...EXTRA_COLOR_MODES,
+              ] as ProteinColorMode[]
+            ).map((mode) => (
+              <option key={mode}>{mode}</option>
+            ))}
+          </select>
+        </label>
         <button
           type="button"
           onClick={() => {
@@ -404,6 +446,7 @@ export default function AnnotationStructureViewer({
           Reset View
         </button>
       </div>
+      <ProteinColorLegend mode={color} chains={input.chains} />
     </div>
   );
 }
